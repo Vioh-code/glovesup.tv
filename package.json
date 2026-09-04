@@ -1,0 +1,17 @@
+{
+  "name": "glovesup",
+  "version": "1.0.0",
+  "description": "Gloving Competition Site",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "Matt Flom",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "pg": "^8.12.0"
+  }
+}
