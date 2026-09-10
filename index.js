@@ -2,22 +2,15 @@ require('dotenv').config();
 
 const express = require('express');
 const path = require('path');
-const { Pool } = require('pg');
+const session = require('express-session');
+
+const passport = require('./config/passport');
 
 const routes = require('./routes');
+const authRoutes = require('./routes/auth');
 
 const app = express();
 const port = process.env.PORT || 3000;
-
-const pool = new Pool({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-});
-
-app.locals.db = pool;
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -26,6 +19,23 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'glovesup-dev-secret',
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.use((req, res, next) => {
+  res.locals.user = req.user;
+  next();
+});
+
+app.use('/auth', authRoutes);
 app.use('/', routes);
 
 app.listen(port, () => {

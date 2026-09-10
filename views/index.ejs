@@ -8,10 +8,14 @@
 <body>
   <h1><%= title %></h1>
   <p>Welcome to the Gloving Competition Site.</p>
-  <% if (serverTime) { %>
-    <p>Database connection successful. Server time: <%= serverTime %></p>
+
+  <% if (user) { %>
+    <p>You are logged in as <%= user.username %>.</p>
+    <form action="/auth/logout" method="post">
+      <button type="submit">Log out</button>
+    </form>
   <% } else { %>
-    <p>Could not connect to the database.</p>
+    <p><a href="/auth/login">Log in</a> or <a href="/auth/register">Register</a>.</p>
   <% } %>
 </body>
 </html>
