@@ -22,7 +22,7 @@ jobs:
 
       - name: Deploy
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} '
+          ssh -i ~/.ssh/gh_actions_deploy -o IdentitiesOnly=yes ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} '
             set -e
             cd ~/glovesup.tv
             git pull --ff-only
