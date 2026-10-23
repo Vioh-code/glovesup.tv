@@ -4,18 +4,65 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= title %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Orbitron:wght@800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <h1><%= title %></h1>
-  <p>Welcome to the Gloving Competition Site.</p>
+  <div class="lights" aria-hidden="true"><span></span><span></span><span></span></div>
 
-  <% if (user) { %>
-    <p>You are logged in as <%= user.username %>.</p>
-    <form action="/auth/logout" method="post">
-      <button type="submit">Log out</button>
-    </form>
-  <% } else { %>
-    <p><a href="/auth/login">Log in</a> or <a href="/auth/register">Register</a>.</p>
-  <% } %>
+  <header class="container nav">
+    <a href="/" class="logo">Gloves<span>Up</span></a>
+    <nav class="nav-links">
+      <% if (user) { %>
+        <form action="/auth/logout" method="post">
+          <button type="submit" class="btn">Log out</button>
+        </form>
+      <% } else { %>
+        <a href="/auth/login" class="btn">Log in</a>
+        <a href="/auth/register" class="btn btn-primary">Register</a>
+      <% } %>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <span class="eyebrow">The Gloving Competition Site</span>
+      <h1><%= title %></h1>
+      <p class="tagline">Light up the stage. Battle the best glovers, show off your flow, and earn your place on the leaderboard.</p>
+
+      <% if (user) { %>
+        <p class="welcome">Welcome back, <strong><%= user.username %></strong>.</p>
+      <% } else { %>
+        <div class="cta">
+          <a href="/auth/register" class="btn btn-primary btn-lg">Join the competition</a>
+          <a href="/auth/login" class="btn btn-lg">Log in</a>
+        </div>
+      <% } %>
+    </section>
+
+    <section class="features">
+      <article class="card">
+        <div class="icon" aria-hidden="true">⚡</div>
+        <h2>Battle</h2>
+        <p>Go head to head with glovers from around the world in themed competitions.</p>
+      </article>
+      <article class="card">
+        <div class="icon" aria-hidden="true">🏆</div>
+        <h2>Rank up</h2>
+        <p>Every win counts. Climb the leaderboard and get recognised for your skills.</p>
+      </article>
+      <article class="card">
+        <div class="icon" aria-hidden="true">✨</div>
+        <h2>Connect</h2>
+        <p>Share your light shows, discover new styles, and meet the gloving community.</p>
+      </article>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">&copy; <%= new Date().getFullYear() %> Gloves Up</div>
+  </footer>
 </body>
 </html>
