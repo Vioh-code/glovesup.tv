@@ -36,7 +36,7 @@ Confirmed from the Nov 13, 2026 stack report and checks on both machines. `[CONF
 - Migrations: node-pg-migrate 9 via `scripts/migrate.js` (runner API, reads DB_* from the env file). Files in `migrations/`, CommonJS, `<timestamp>_<name>.js`. Tracking table `pgmigrations`.
 - Tests: Node's built-in runner (`node --test`, files in `test/*.test.js`) against `glovesup_test`. No linter.
 - Timers: one-minute worker over `scheduled_jobs`, run by cron with `flock -n` so runs never overlap. Cron has a bare PATH, so use absolute paths. [NOT SET UP]
-- Bind the app to 127.0.0.1 behind Nginx. The old app listened on all interfaces.
+- Bind the app to 127.0.0.1 behind Nginx.
 
 **Commands**
 | Task | Command |
@@ -55,7 +55,7 @@ Confirmed from the Nov 13, 2026 stack report and checks on both machines. `[CONF
 **Merge equals deploy**
 - The Action only pulls, installs and restarts. It does not run migrations or change `.env`, Nginx, cron or systemd. Those are manual steps on the Linode, done before Matt merges.
 - docs/, wireframes/, CLAUDE.md and OPEN_ITEMS.md must not end up on the Linode. [NOT SET UP: plan is git sparse-checkout on the server, see OPEN_ITEMS.md]
-- The Linode checkout is one commit behind with local edits to package.json and package-lock.json. Clean it before the first merge. See OPEN_ITEMS.md.
+- Linode prep: dedicated least-privilege DB role and a fresh database; clean the Linode checkout. See OPEN_ITEMS.md.
 
 ## Session start (every session)
 1. `git pull`, confirm the working tree is clean and you are on a feature branch, not main.

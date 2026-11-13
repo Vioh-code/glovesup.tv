@@ -29,10 +29,8 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 
 ## Added Nov 13, 2026 (repo reset)
 - Node 24: dev box done (24.22.3). Linode still needs Node 24 before the first deploy. Confirm its current version.
-- Linode checkout is one commit behind with local edits to package.json and package-lock.json. Save the diff and reset to clean before the first merge.
-- Old app on the Linode listens on all interfaces (port 3000). Confirm the firewall. New app binds to 127.0.0.1.
+- Linode prep: dedicated least-privilege DB role and a fresh database; clean the Linode checkout.
 - Full git pull ships docs/, wireframes/, CLAUDE.md and OPEN_ITEMS.md to the Linode. Plan: sparse-checkout on the server. Decide before first deploy.
-- Hardening commit 42d1b41 (Postgres session store, cookie hardening) never reached the Linode. Old app only; not fixing.
 - Before merging chore/v1-repo-reset into main (the first deploy): clean the Linode checkout, Node 24, Nginx and DB ready, .env values, decide sparse-checkout. Slice PRs target chore/v1-repo-reset until then.
 - Optional deploy.yml hardening later: remove workflow_dispatch, add permissions: contents: read, add a test job gate. It works as is.
 - Tests run on the dev box only; the Action has no test gate.
@@ -42,7 +40,6 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 
 ## Added Nov 13, 2026 (slice 0 scaffold)
 - DB roles: split an owner role (runs migrations, owns tables) from a least-privilege app role (runtime queries). Today the dev box uses one role, `glovesup_dev`, for both dev and test databases.
-- The Linode `.env` may use the postgres superuser. Confirm, and switch to a dedicated role before the first deploy.
 - Old databases `glovesup` and `gloveleague` on the dev box can be dropped when Matt says so. Do not drop before then.
 - The app no longer uses dotenv; Node loads env files with `--env-file`. Confirm how the systemd unit starts the app (ExecStart and EnvironmentFile). It must run `node --env-file=.env index.js` (or `npm start`) or set EnvironmentFile, or the first deploy starts with no DB settings. Remove dotenv from package.json once confirmed.
 - npm 11 skipped bcrypt's install script (node-gyp rebuild) with an install-scripts warning. bcrypt loads on the dev box today. Check `npm ci --omit=dev` on the Linode builds it, before the auth slice.
