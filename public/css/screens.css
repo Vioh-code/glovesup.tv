@@ -1,0 +1,127 @@
+/* ==========================================================================
+   screens.css — GlovesUP V1
+   Page-level layout only (grids, spacing, one-off arrangements).
+   Anything reusable lives in components.css.
+   ========================================================================== */
+
+.page { flex: 1; padding-block: var(--space-6) var(--space-8); position: relative; z-index: 1; }
+.page .container { display: block; }
+
+/* Main column + right rail (dashboard, create call out, battle) */
+.layout { display: grid; gap: var(--space-5); grid-template-columns: 1fr; align-items: start; }
+@media (min-width: 960px) {
+  .layout { grid-template-columns: minmax(0, 1fr) 320px; }
+  .layout--wide-rail { grid-template-columns: minmax(0, 1fr) 360px; }
+  .layout--sticky-rail > aside { position: sticky; top: 88px; }
+}
+.layout > aside > .card + .card,
+.layout > main > .card + .card { margin-top: var(--space-5); }
+.layout > * { min-width: 0; }
+
+/* ---- Dashboard ---------------------------------------------------------- */
+.rating-card .stat__value { font-size: var(--text-3xl); margin-block: var(--space-2) var(--space-4); }
+
+/* ---- Create call out ---------------------------------------------------- */
+.opponent-lookup { display: grid; grid-template-columns: 1fr auto auto; gap: var(--space-3); align-items: center; }
+.opponent-lookup .num { font-size: var(--text-sm); }
+@media (max-width: 640px) { .opponent-lookup { grid-template-columns: 1fr; } }
+.pairings { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--space-4); margin-top: var(--space-4); }
+.subgroup { margin-top: var(--space-5); }
+.subgroup__label { margin-bottom: var(--space-3); }
+
+/* ---- Judge panel -------------------------------------------------------- */
+.approval-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--space-4); }
+.approval-bar__side { display: flex; align-items: center; gap: var(--space-3); }
+.approval-bar__side--right { flex-direction: row-reverse; text-align: right; }
+.approval-bar__name { font-family: var(--font-display); font-weight: 700; font-size: var(--text-lg); text-transform: uppercase; }
+.judge-grid { display: grid; gap: var(--space-4); grid-template-columns: 1fr; }
+@media (min-width: 640px) { .judge-grid { grid-template-columns: repeat(3, 1fr); } }
+.button-pair { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-5); }
+
+/* ---- Battle detail ------------------------------------------------------ */
+.battle-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: var(--space-4); margin-bottom: var(--space-5); }
+.battle-head__title { font-size: var(--text-2xl); }
+.video-pair { display: grid; gap: var(--space-5); grid-template-columns: 1fr; margin-bottom: var(--space-5); }
+@media (min-width: 760px) { .video-pair { grid-template-columns: 1fr 1fr; } }
+.video-pair__title { margin-top: var(--space-3); font-weight: 700; }
+.verdict-row { display: grid; grid-template-columns: 90px 190px 1fr; gap: var(--space-4); align-items: baseline; padding: var(--space-3) 0; border-top: var(--border-width) solid var(--border); }
+.verdict-row:first-of-type { border-top: 0; }
+@media (max-width: 640px) { .verdict-row { grid-template-columns: 1fr; gap: var(--space-1); } }
+.vote-stack { display: grid; gap: var(--space-3); margin-top: var(--space-4); }
+
+/* ---- Score this battle -------------------------------------------------- */
+.judging-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: var(--space-4); margin-bottom: var(--space-5); }
+.scoring-grid > * { min-width: 0; }
+.scoring-grid { display: grid; gap: var(--space-5); grid-template-columns: 1fr; align-items: start; }
+@media (min-width: 960px) { .scoring-grid { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); } }
+.tiebreak { margin-top: var(--space-5); padding-top: var(--space-4); border-top: var(--border-width) solid var(--border); }
+.submit-block { margin-top: var(--space-5); display: grid; gap: var(--space-3); }
+
+/* ---- Profile ------------------------------------------------------------ */
+.profile-layout { display: grid; gap: var(--space-6); grid-template-columns: 1fr; align-items: start; }
+@media (min-width: 960px) { .profile-layout { grid-template-columns: 300px minmax(0, 1fr); } }
+.identity { text-align: center; }
+.identity__avatar { margin-inline: auto; }
+.identity__name { font-size: var(--text-xl); margin-top: var(--space-4); }
+.identity__alias { color: var(--text-secondary); font-size: var(--text-sm); margin-top: var(--space-1); }
+.identity__stats { display: flex; justify-content: center; gap: var(--space-6); margin-top: var(--space-5); padding-top: var(--space-5); border-top: var(--border-width) solid var(--border); }
+.identity__actions { display: grid; gap: var(--space-3); margin-top: var(--space-5); }
+.identity__links { display: flex; justify-content: center; gap: var(--space-4); }
+
+/* ---- Team manage -------------------------------------------------------- */
+.manage-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: var(--space-4); margin-bottom: var(--space-5); }
+.person { display: flex; align-items: center; gap: var(--space-3); font-weight: 700; }
+.application { display: grid; grid-template-columns: 200px 1fr auto; gap: var(--space-4); align-items: center; }
+@media (max-width: 760px) { .application { grid-template-columns: 1fr; } }
+
+/* ---- Staff case --------------------------------------------------------- */
+.case-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); margin-bottom: var(--space-5); }
+.case-head__title { font-size: var(--text-xl); flex: 1; min-width: 220px; }
+.action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--space-3); margin-top: var(--space-4); }
+.reply-box { margin-top: var(--space-5); }
+.reply-box__actions { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-3); }
+
+/* ---- Index (home) ------------------------------------------------------- */
+.hero { padding-block: var(--space-8) var(--space-8); text-align: center; border-bottom: var(--border-width) solid var(--border); overflow: hidden; }
+.hero__inner { position: relative; z-index: 1; max-width: var(--content-max-width); margin-inline: auto; padding-inline: var(--space-4); }
+.hero__title { font-size: clamp(3rem, 9vw, var(--text-3xl)); margin-top: var(--space-3); }
+.hero__title em { font-style: normal; color: var(--color-ember); }
+.hero__sub { margin: var(--space-4) auto 0; font-size: var(--text-md); color: var(--text-secondary); max-width: 52ch; }
+.hero__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-3); margin-top: var(--space-6); }
+.hero__stats { display: inline-flex; margin-top: var(--space-7); }
+
+.section { padding-block: var(--space-7); }
+.section + .section { padding-top: 0; }
+.section__head { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--space-4); margin-bottom: var(--space-5); }
+.how { display: grid; gap: var(--space-4); grid-template-columns: 1fr; counter-reset: how; }
+@media (min-width: 760px) { .how { grid-template-columns: repeat(4, 1fr); } }
+.how__step { counter-increment: how; position: relative; padding-top: var(--space-7); }
+.how__step::before {
+  content: counter(how, decimal-leading-zero);
+  position: absolute; top: var(--space-4); left: var(--space-5);
+  font-family: var(--font-display); font-weight: 700; font-size: var(--text-xl); color: var(--color-ember); line-height: 1;
+}
+.how__title { font-size: var(--text-md); margin-bottom: var(--space-2); }
+.how__text { font-size: var(--text-sm); color: var(--text-secondary); }
+.home-split { display: grid; gap: var(--space-6); grid-template-columns: 1fr; }
+@media (min-width: 960px) { .home-split { grid-template-columns: 1.4fr 1fr; } }
+.cta-band { text-align: center; padding-block: var(--space-7); border-block: var(--border-width) solid var(--border); background: var(--surface-1); }
+.cta-band .hero__actions { margin-top: var(--space-5); }
+
+/* ---- Settings ----------------------------------------------------------- */
+.settings-layout { display: grid; gap: var(--space-6); grid-template-columns: 1fr; align-items: start; }
+@media (min-width: 960px) { .settings-layout { grid-template-columns: 220px minmax(0, 1fr); } }
+.form-grid { display: grid; gap: var(--space-4); grid-template-columns: 1fr; }
+@media (min-width: 640px) { .form-grid { grid-template-columns: 1fr 1fr; } }
+.form-grid .field + .field { margin-top: 0; }
+.form-grid .span-2 { grid-column: 1 / -1; }
+.form-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-5); padding-top: var(--space-5); border-top: var(--border-width) solid var(--border); }
+
+/* ---- Team profile (public) ---------------------------------------------- */
+.team-hero { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-5); margin-bottom: var(--space-5); }
+.team-hero__main { flex: 1; min-width: 240px; }
+.team-hero__name { font-size: var(--text-2xl); }
+.two-col { display: grid; gap: var(--space-5); grid-template-columns: 1fr; align-items: start; }
+@media (min-width: 960px) { .two-col { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.two-col > * { min-width: 0; }
+.two-col > .card + .card { margin-top: 0; }
