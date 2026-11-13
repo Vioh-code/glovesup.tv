@@ -28,13 +28,12 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 - Score cards and a score card builder (future feature, not in V1).
 
 ## Added Nov 13, 2026 (repo reset)
-- Node 20 is past end of life. Move dev and prod to Node 24 LTS before the first build slice.
+- Node 24: dev box done (24.22.3). Linode still needs Node 24 before the first deploy. Confirm its current version.
 - Linode checkout is one commit behind with local edits to package.json and package-lock.json. Save the diff and reset to clean before the first merge.
 - Old app on the Linode listens on all interfaces (port 3000). Confirm the firewall. New app binds to 127.0.0.1.
 - Full git pull ships docs/, wireframes/, CLAUDE.md and OPEN_ITEMS.md to the Linode. Plan: sparse-checkout on the server. Decide before first deploy.
 - Hardening commit 42d1b41 (Postgres session store, cookie hardening) never reached the Linode. Old app only; not fixing.
-- Remove the unused Caddy binary on the dev box.
-- Set up branch protection on main (require PR, no bypass) and Claude Code deny rules for merge and push to main.
+- Before merging chore/v1-repo-reset into main (the first deploy): clean the Linode checkout, Node 24, Nginx and DB ready, .env values, decide sparse-checkout. Slice PRs target chore/v1-repo-reset until then.
 - Optional deploy.yml hardening later: remove workflow_dispatch, add permissions: contents: read, add a test job gate. It works as is.
 - Tests run on the dev box only; the Action has no test gate.
 - Worker cron output needs a log file and rotation. Decide in the worker slice.

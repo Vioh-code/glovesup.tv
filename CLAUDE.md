@@ -29,7 +29,7 @@ Confirmed from the Nov 13, 2026 stack report and checks on both machines. `[CONF
 - Domain: glovesup.tv
 
 **Stack**
-- Runtime: Node 20.20.2, npm 10.8.2 today. Target Node 24 LTS on dev and prod, since Node 20 is past end of life. [NOT SET UP]
+- Runtime: Node 24 LTS. Dev box is on 24.22.3 (npm 11.19.1). The Linode must be on Node 24 before the first deploy. [CONFIRM: Linode Node version]
 - App: Express 4, EJS server-rendered views, Passport (local), express-session with connect-pg-simple, bcrypt.
 - Data access: plain `pg` with SQL. Remove Sequelize and pg-hstore in the first slice. [NOT SET UP]
 - Database: Postgres. Settings in `.env`: DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME. Dev databases `glovesup_dev` and `glovesup_test`. [CONFIRM names]
@@ -62,7 +62,7 @@ Confirmed from the Nov 13, 2026 stack report and checks on both machines. `[CONF
 
 ## Working rules
 - One slice per session: a user-facing path built end to end (schema, server, screen, tests). Build the thin core loop first: register, log in, create call out, accept, submit videos, judge, finalize, ELO move. Widen after.
-- Branch per slice, named `slice/<short-name>`. Open a pull request after tests pass. Only Matt merges, in the GitHub UI, because a merge to main deploys to production.
+- Branch per slice, named `slice/<short-name>`. Open a pull request after tests pass. Only Matt merges, in the GitHub UI, because a merge to main deploys to production. Until the first deploy, branch from `chore/v1-repo-reset` and open the PR against it, not main. Nothing deploys from that branch. Matt merges it into main when the Linode is ready.
 - Write tests first for rules that cannot be wrong: ELO math (K=32, start 1000), the +/-400 band, 2-of-3 judge majority and 2-of-3 pairings in a team battle, the two-admin reversal, permission checks, 72h/48h/5-day timers.
 - Commit small. Commit messages name the IDs touched, for example `S-J2, F-C4: judge pick plus reason`.
 - Change a decision in the docs in the same commit as the code. Do not leave docs behind.
