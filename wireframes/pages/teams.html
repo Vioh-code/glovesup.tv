@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teams — GlovesUP</title>
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/screens.css" />
+</head>
+<body class="bg-arena">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="site-header__logo" href="../index.html">Gloves<span>UP</span></a>
+      <nav class="site-nav" aria-label="Main">
+        <a class="site-nav__link" href="battle-log.html">Battle log</a>
+        <a class="site-nav__link site-nav__link--active" href="teams.html" aria-current="page">Teams</a>
+        <a class="site-nav__link" href="leaderboards.html">Leaderboards</a>
+      </nav>
+      <div class="site-header__actions"><a class="btn btn--link" href="login.html">Log in</a><a class="btn btn--primary btn--sm" href="register.html">Register</a></div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <div class="page-head">
+        <div><h1>Teams</h1><p class="page-head__sub">Find a crew to join, or see who you're up against.</p></div>
+        <a class="btn btn--primary" href="#">Create a team</a>
+      </div>
+      <div class="toolbar">
+        <div class="toolbar__search"><label class="visually-hidden" for="q">Search</label><input class="input" id="q" type="search" placeholder="Search teams" /></div>
+        <select class="select" aria-label="Recruiting"><option>Any status</option><option>Recruiting</option></select>
+        <select class="select" aria-label="Sort"><option>Highest rating</option><option>Newest</option><option>Most members</option></select>
+      </div>
+      <section class="team-grid" aria-label="Teams">
+        <a class="team-card" href="team-profile.html">
+          <div class="team-card__top"><span class="avatar avatar--crest avatar--crest-md">T</span><div><div class="team-card__name">[Team name]</div><span class="pill pill--success">Recruiting</span></div></div>
+          <p class="text-sm text-secondary" style="margin:0">[Short team tagline]</p>
+          <div class="team-card__stats"><span>Rating <span class="num" style="color:var(--color-ember)">[ELO]</span></span><span>[N] members</span></div>
+        </a>
+        <a class="team-card" href="team-profile.html">
+          <div class="team-card__top"><span class="avatar avatar--crest avatar--crest-md">T</span><div><div class="team-card__name">[Team name]</div><span class="pill pill--success">Recruiting</span></div></div>
+          <p class="text-sm text-secondary" style="margin:0">[Short team tagline]</p>
+          <div class="team-card__stats"><span>Rating <span class="num" style="color:var(--color-ember)">[ELO]</span></span><span>[N] members</span></div>
+        </a>
+        <a class="team-card" href="team-profile.html">
+          <div class="team-card__top"><span class="avatar avatar--crest avatar--crest-md">T</span><div><div class="team-card__name">[Team name]</div><span class="pill pill--success">Recruiting</span></div></div>
+          <p class="text-sm text-secondary" style="margin:0">[Short team tagline]</p>
+          <div class="team-card__stats"><span>Rating <span class="num" style="color:var(--color-ember)">[ELO]</span></span><span>[N] members</span></div>
+        </a>
+        <a class="team-card" href="team-profile.html">
+          <div class="team-card__top"><span class="avatar avatar--crest avatar--crest-md">T</span><div><div class="team-card__name">[Team name]</div><span class="pill pill--outline">Closed</span></div></div>
+          <p class="text-sm text-secondary" style="margin:0">[Short team tagline]</p>
+          <div class="team-card__stats"><span>Rating <span class="num" style="color:var(--color-ember)">[ELO]</span></span><span>[N] members</span></div>
+        </a>
+        <a class="team-card" href="team-profile.html">
+          <div class="team-card__top"><span class="avatar avatar--crest avatar--crest-md">T</span><div><div class="team-card__name">[Team name]</div><span class="pill pill--outline">Closed</span></div></div>
+          <p class="text-sm text-secondary" style="margin:0">[Short team tagline]</p>
+          <div class="team-card__stats"><span>Rating <span class="num" style="color:var(--color-ember)">[ELO]</span></span><span>[N] members</span></div>
+        </a>
+        <a class="team-card" href="team-profile.html">
+          <div class="team-card__top"><span class="avatar avatar--crest avatar--crest-md">T</span><div><div class="team-card__name">[Team name]</div><span class="pill pill--success">Recruiting</span></div></div>
+          <p class="text-sm text-secondary" style="margin:0">[Short team tagline]</p>
+          <div class="team-card__stats"><span>Rating <span class="num" style="color:var(--color-ember)">[ELO]</span></span><span>[N] members</span></div>
+        </a>
+      </section>
+      <div class="pager"><span>Showing [N] of [N]</span><div class="pager__btns"><button class="btn btn--ghost btn--sm" type="button" disabled>Previous</button><button class="btn btn--ghost btn--sm" type="button">Next</button></div></div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <nav class="site-footer__links"><a href="#">Privacy</a><a href="#">Terms</a></nav>
+      <span>&copy; 2026 GlovesUP</span>
+    </div>
+  <div class="screen-note">Added to cover a nav link; not in the original wireframe PDF, so treat the layout as a proposal · "Create a team" shows to logged-in members only</div>
+  </footer>
+</body>
+</html>

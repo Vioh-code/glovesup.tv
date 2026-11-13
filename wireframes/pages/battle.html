@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Battle — GlovesUP</title>
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/screens.css" />
+</head>
+<body class="bg-arena">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="site-header__logo" href="../index.html">Gloves<span>UP</span></a>
+      <nav class="site-nav" aria-label="Main">
+        <a class="site-nav__link site-nav__link--active" href="battle-log.html" aria-current="page">Battle log</a>
+        <a class="site-nav__link" href="teams.html">Teams</a>
+        <a class="site-nav__link" href="leaderboards.html">Leaderboards</a>
+      </nav>
+      <div class="site-header__actions"><a class="btn btn--link" href="login.html">Log in</a><a class="btn btn--primary btn--sm" href="register.html">Register</a></div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <div class="battle-head">
+        <div>
+          <h1 class="battle-head__title">[Challenger] vs [Opponent]</h1>
+          <div class="page-head__meta"><span class="pill pill--outline">[ELO or Just for fun]</span><span class="pill pill--outline">[Official judges or Popular vote]</span><span class="pill">Finalized</span></div>
+        </div>
+        <div class="card card--accent" style="padding:var(--space-3) var(--space-5)"><span class="stat__label">Winner</span><span class="stat__value stat__value--plain" style="color:var(--color-gold);font-family:var(--font-display);text-transform:uppercase">[Name]</span></div>
+      </div>
+
+      <div class="video-pair">
+        <div><div class="video-frame">YouTube video · [Challenger]</div><div class="video-pair__title">[Saved video title]</div></div>
+        <div><div class="video-frame video-frame--gone"><div><span class="video-frame__title">Gravestone state</span>This video is gone. The link is dead or the video was made private.<div class="text-xs" style="margin-top:var(--space-2)">Saved title and thumbnail still show</div></div></div><div class="video-pair__title">[Saved video title]</div></div>
+      </div>
+
+      <div class="layout layout--wide-rail">
+        <section class="card" aria-labelledby="outcome-h">
+          <div class="card__head"><h2 class="card__title" id="outcome-h">Judging outcome</h2></div>
+          <p class="text-secondary" style="margin-bottom:var(--space-3)">Result: <strong>[Winner]</strong> · [2 of 3 or 3 of 3] judges</p>
+          <div class="verdict-row"><strong>[Judge 1]</strong><span class="pill pill--outline">Pick: [Challenger or Opponent]</span><span class="text-secondary">[Typed reason]</span></div>
+          <div class="verdict-row"><strong>[Judge 2]</strong><span class="pill pill--outline">Pick: [Challenger or Opponent]</span><span class="text-secondary"><a href="#">Watch [Judge 2]&rsquo;s review video</a> (YouTube)</span></div>
+          <div class="verdict-row"><strong>[Judge 3]</strong><span class="pill pill--outline">Pick: [Challenger or Opponent]</span><span class="text-secondary">[Typed reason] · <a href="#">Review video</a></span></div>
+          <p class="hint">Reasons show once all judging is complete. Team battles list the result of each of the three pairings; the team that wins at least two wins the battle.</p>
+        </section>
+
+        <aside>
+          <section class="card" aria-labelledby="vote-h">
+            <div class="card__head"><h2 class="card__title" id="vote-h">Popular vote</h2></div>
+            <p class="hint" style="margin-top:0">Shown only when the battle uses popular vote.</p>
+            <div class="vote-stack">
+              <button class="btn btn--ghost btn--block" type="button">Vote [Challenger]</button>
+              <button class="btn btn--ghost btn--block" type="button">Vote [Opponent]</button>
+            </div>
+            <p class="hint">Verified members with a completed battle only. Results stay hidden until voting closes.</p>
+            <div class="card__foot"><a class="card__link" href="#">Report or dispute this result</a></div>
+          </section>
+          <span class="state-label">Member view: participants only</span>
+          <section class="card" aria-labelledby="act-h">
+            <div class="card__head"><h2 class="card__title card__title--sm" id="act-h">Your actions</h2></div>
+            <div class="vote-stack">
+              <a class="btn btn--primary btn--block" href="submit-video.html">Submit video</a>
+              <a class="btn btn--ghost btn--block" href="forfeit.html">Forfeit</a>
+              <a class="btn btn--ghost btn--block" href="#">Report or dispute the result</a>
+            </div>
+            <p class="hint">Which buttons show depends on the battle state. Participants cannot vote.</p>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <nav class="site-footer__links"><a href="#">Privacy</a><a href="#">Terms</a></nav>
+      <span>&copy; 2026 GlovesUP</span>
+    </div>
+  <div class="screen-note">Screen S-P7 (visitor) and S-B7 (member actions card) · features F-C2, F-C4, F-C5, F-C8 · visitors see it without logging in</div>
+  </footer>
+</body>
+</html>

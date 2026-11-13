@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register — GlovesUP</title>
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/screens.css" />
+</head>
+<body class="bg-arena">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="site-header__logo" href="../index.html">Gloves<span>UP</span></a>
+      <nav class="site-nav" aria-label="Main">
+        <a class="site-nav__link" href="battle-log.html">Battle log</a>
+        <a class="site-nav__link" href="teams.html">Teams</a>
+        <a class="site-nav__link" href="leaderboards.html">Leaderboards</a>
+      </nav>
+      <div class="site-header__actions"><a class="btn btn--link" href="login.html">Log in</a><a class="btn btn--primary btn--sm" href="register.html">Register</a></div>
+    </div>
+  </header>
+
+  <main class="auth bg-spotlight">
+    <section class="card card--raised auth__card" aria-labelledby="t">
+      <h1 class="auth__title" id="t">Create your account</h1>
+      <p class="auth__sub">Free to join. Free to join. Verify your email to call out and join teams.</p>
+      <form onsubmit="return false">
+        <div class="field"><label class="field__label" for="u">Username</label><input class="input" id="u" type="text" autocomplete="username" /><span class="field__hint">Public. Shown on your profile and in battles.</span></div>
+        <div class="field"><label class="field__label" for="e">Email</label><input class="input" id="e" type="email" autocomplete="email" /><span class="field__hint">Never shown to other users. We send a verification link.</span></div>
+        <div class="field"><label class="field__label" for="dob">Date of birth</label><input class="input" id="dob" type="date" /><span class="field__hint">Never shown. Used for the age requirement only.</span></div>
+        <div class="field"><label class="field__label" for="p1">Password</label><input class="input" id="p1" type="password" autocomplete="new-password" /></div>
+        <div class="field"><label class="field__label" for="p2">Confirm password</label><input class="input" id="p2" type="password" autocomplete="new-password" /></div>
+        <label class="check" style="margin-top:var(--space-4)"><input type="checkbox" /> <span>I agree to the <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.</span></label>
+        <button class="btn btn--primary btn--block" type="submit" style="margin-top:var(--space-5)">Create account</button>
+      </form>
+      <p class="auth__alt">Already have an account? <a href="login.html">Log in</a></p>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <nav class="site-footer__links"><a href="#">Privacy</a><a href="#">Terms</a></nav>
+      <span>&copy; 2026 GlovesUP</span>
+    </div>
+  <div class="screen-note">Screen S-P8 · feature F-A1</div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Log in — GlovesUP</title>
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/screens.css" />
+</head>
+<body class="bg-arena">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="site-header__logo" href="../index.html">Gloves<span>UP</span></a>
+      <nav class="site-nav" aria-label="Main">
+        <a class="site-nav__link" href="battle-log.html">Battle log</a>
+        <a class="site-nav__link" href="teams.html">Teams</a>
+        <a class="site-nav__link" href="leaderboards.html">Leaderboards</a>
+      </nav>
+      <div class="site-header__actions"><a class="btn btn--link" href="login.html">Log in</a><a class="btn btn--primary btn--sm" href="register.html">Register</a></div>
+    </div>
+  </header>
+
+  <main class="auth bg-spotlight">
+    <section class="card card--raised auth__card" aria-labelledby="t">
+      <h1 class="auth__title" id="t">Log in</h1>
+      <p class="auth__sub">Welcome back. Pick up where you left off.</p>
+      <form onsubmit="return false">
+        <div class="field"><label class="field__label" for="id">Email or username</label><input class="input" id="id" type="text" autocomplete="username" /></div>
+        <div class="field">
+          <div class="field__row"><label class="field__label" for="pw">Password</label><a class="text-xs" href="#">Forgot password?</a></div>
+          <input class="input" id="pw" type="password" autocomplete="current-password" />
+        </div>
+        <label class="check" style="margin-top:var(--space-4)"><input type="checkbox" /> Keep me logged in on this device</label>
+        <button class="btn btn--primary btn--block" type="submit" style="margin-top:var(--space-5)">Log in</button>
+      </form>
+      <p class="auth__alt">New here? <a href="register.html">Create an account</a></p>
+    </section>
+    <section class="card card--raised auth__card" style="margin-top:var(--space-6)" aria-labelledby="t2">
+      <span class="state-label">State: MFA code step (accounts with MFA)</span>
+      <h2 class="auth__title" id="t2">Enter your code</h2>
+      <p class="auth__sub">Open your authenticator app and enter the 6-digit code.</p>
+      <form onsubmit="return false">
+        <div class="field"><label class="field__label" for="mfa">Code</label><input class="input" id="mfa" inputmode="numeric" maxlength="6" autocomplete="one-time-code" /></div>
+        <button class="btn btn--primary btn--block" type="submit" style="margin-top:var(--space-5)">Verify</button>
+      </form>
+      <p class="auth__alt"><a href="#">Use a backup code</a></p>
+    </section>
+    <section class="card card--raised auth__card" style="margin-top:var(--space-6)">
+      <span class="state-label">State: locked after repeated failures</span>
+      <div class="notice notice--warn"><div class="notice__title">Too many attempts.</div>This account is locked for [N] minutes. If you cannot get in, <a href="#">get help</a>.</div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <nav class="site-footer__links"><a href="#">Privacy</a><a href="#">Terms</a></nav>
+      <span>&copy; 2026 GlovesUP</span>
+    </div>
+  <div class="screen-note">Screen S-P10 · features F-A2, F-A3 · MFA and lockout states drawn below the form</div>
+  </footer>
+</body>
+</html>

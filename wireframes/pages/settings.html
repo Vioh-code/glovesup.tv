@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings — GlovesUP</title>
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/screens.css" />
+</head>
+<body class="bg-arena">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="site-header__logo" href="../index.html">Gloves<span>UP</span></a>
+      <nav class="site-nav" aria-label="Main">
+        <a class="site-nav__link" href="dashboard.html">Dashboard</a>
+        <a class="site-nav__link" href="my-battles.html">Battles</a>
+        <a class="site-nav__link" href="teams.html">Teams</a>
+        <a class="site-nav__link" href="leaderboards.html">Leaderboards</a>
+      </nav>
+      <div class="site-header__actions"><a class="btn btn--link" href="settings.html">Settings</a><a class="avatar-btn" href="profile.html" aria-label="Your profile"><img src="../images/avatars/185.webp" alt="" /></a></div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <div class="page-head"><div><h1>Settings</h1></div></div>
+      <div class="settings-layout">
+        <nav class="side-nav" aria-label="Settings">
+          <a class="side-nav__link side-nav__link--active" href="#" aria-current="page">Profile</a>
+          <a class="side-nav__link" href="#">Account</a>
+          <a class="side-nav__link" href="#">Privacy</a>
+          <a class="side-nav__link" href="#">Notifications</a>
+        </nav>
+        <div>
+          <section class="card" aria-labelledby="p">
+            <div class="card__head"><h2 class="card__title" id="p">Profile</h2></div>
+            <div class="upload-row" style="margin-bottom:var(--space-5)">
+              <img class="avatar avatar--lg" src="../images/avatars/185.webp" alt="" />
+              <div class="cluster"><button class="btn btn--ghost btn--sm" type="button">Upload new photo</button><button class="btn btn--link" type="button">Remove</button></div>
+            </div>
+            <div class="form-grid">
+              <div class="field"><label class="field__label" for="un">Username</label><input class="input" id="un" value="[Username]" /></div>
+              <div class="field"><label class="field__label" for="gn">Glover name</label><input class="input" id="gn" value="[Glover name]" /></div>
+              <div class="field span-2"><label class="field__label" for="bio">Bio</label><textarea class="textarea" id="bio" rows="4">[Bio]</textarea></div>
+              <div class="field span-2">
+                <span class="field__label">Social links (up to 5)</span>
+                <div class="input-group" style="margin-bottom:var(--space-2)"><select class="select" aria-label="Platform 1" style="max-width:160px"><option>YouTube</option><option>Instagram</option><option>TikTok</option><option>Facebook</option><option>X</option><option>Discord</option><option>Twitch</option><option>Website</option></select><input class="input" type="url" placeholder="https://" aria-label="URL 1" /><button class="btn btn--link" type="button">Remove</button></div>
+                <div class="input-group" style="margin-bottom:var(--space-2)"><select class="select" aria-label="Platform 2" style="max-width:160px"><option>Instagram</option><option>YouTube</option><option>TikTok</option><option>Facebook</option><option>X</option><option>Discord</option><option>Twitch</option><option>Website</option></select><input class="input" type="url" placeholder="https://" aria-label="URL 2" /><button class="btn btn--link" type="button">Remove</button></div>
+                <button class="btn btn--ghost btn--sm" type="button">Add link</button>
+                <span class="field__hint">Pick the platform, then paste the link. Who can see them is set under Privacy.</span>
+              </div>
+            </div>
+            <div class="form-actions"><button class="btn btn--primary" type="button">Save changes</button><a class="btn btn--ghost" href="profile.html">View my profile</a></div>
+          </section>
+
+          <section class="card" aria-labelledby="pv">
+            <div class="card__head"><h2 class="card__title" id="pv">Privacy</h2></div>
+            <div class="toggle-row"><div><div class="toggle-row__label">Show my bio</div><div class="toggle-row__hint">On your public profile</div></div><input type="checkbox" checked style="accent-color:var(--color-ember);width:18px;height:18px" aria-label="Show my bio" /></div>
+            <div class="toggle-row"><div><div class="toggle-row__label">Show my social links</div><div class="toggle-row__hint">One setting for all links. Off by default</div></div><input type="checkbox" style="accent-color:var(--color-ember);width:18px;height:18px" aria-label="Show my social links" /></div>
+            <p class="hint">Your email and date of birth are never shown to other users.</p>
+          </section>
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <nav class="site-footer__links"><a href="#">Privacy</a><a href="#">Terms</a></nav>
+      <span>&copy; 2026 GlovesUP</span>
+    </div>
+  <div class="screen-note">Screens S-M2 and S-M3 on one page · feature F-A4 · Security (S-M4), Blocked users (S-M5) and the other tabs are separate screens</div>
+  </footer>
+</body>
+</html>

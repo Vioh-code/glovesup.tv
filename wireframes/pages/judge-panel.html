@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Judge panel — GlovesUP</title>
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/screens.css" />
+</head>
+<body class="bg-arena">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="site-header__logo" href="../index.html">Gloves<span>UP</span></a>
+      <nav class="site-nav" aria-label="Main">
+        <a class="site-nav__link" href="dashboard.html">Dashboard</a>
+        <a class="site-nav__link site-nav__link--active" href="my-battles.html" aria-current="page">Battles</a>
+        <a class="site-nav__link" href="teams.html">Teams</a>
+        <a class="site-nav__link" href="leaderboards.html">Leaderboards</a>
+      </nav>
+      <div class="site-header__actions"><a class="btn btn--link" href="settings.html">Settings</a><a class="avatar-btn" href="profile.html" aria-label="Your profile"><img src="../images/avatars/185.webp" alt="" /></a></div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container container--sm" style="max-width:var(--content-max-width)">
+      <p style="margin-bottom:var(--space-3)"><a class="back-link" href="battle.html">&larr; Battle</a></p>
+      <div class="page-head">
+        <div>
+          <h1>Judge panel</h1>
+          <div class="page-head__meta"><span class="pill pill--outline">[Challenger] vs [Opponent]</span><span class="pill pill--outline">[ELO or Just for fun]</span><span class="pill pill--outline">Official judges</span></div>
+        </div>
+        <span class="time-left">[N] hours left for replies</span>
+      </div>
+
+      <section class="card" aria-labelledby="panel-h">
+        <h2 class="visually-hidden" id="panel-h">Judge panel</h2>
+        <div class="judge-grid">
+          <div class="judge-card judge-card--accepted"><span class="avatar avatar--crest">J1</span><div class="judge-card__name">[Judge 1]</div><span class="pill pill--success">Accepted</span><div class="judge-card__meta">[Judge record: battles judged]</div></div>
+          <div class="judge-card judge-card--waiting"><span class="avatar avatar--crest">J2</span><div class="judge-card__name">[Judge 2]</div><span class="pill pill--waiting">Waiting for reply</span><div class="judge-card__meta">Replaced automatically if no reply in 48 hours</div></div>
+          <div class="judge-card judge-card--accepted"><span class="avatar avatar--crest">J3</span><div class="judge-card__name">[Judge 3]</div><span class="pill pill--success">Accepted</span><div class="judge-card__meta">[Judge record: battles judged]</div></div>
+        </div>
+        <p class="hint">Judges are drawn at random from free judges. Neither side picks, approves or replaces them. Submissions open at acceptance; judging starts once both videos are in and all 3 judges have accepted.</p>
+      </section>
+
+      <span class="state-label" style="margin-top:var(--space-6)">State: fewer than 3 free judges</span>
+      <section class="card">
+        <div class="notice notice--warn">
+          <div class="notice__title">Waiting for judges.</div>
+          Not enough free judges are available right now. The battle waits, and moderators and admins have been notified to step in.
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <nav class="site-footer__links"><a href="#">Privacy</a><a href="#">Terms</a></nav>
+      <span>&copy; 2026 GlovesUP</span>
+    </div>
+  <div class="screen-note">Screen S-B4 · feature F-C4 · read-only, no buttons · may become a section of S-B7 instead of its own page · team battles use the same 3 judges for all pairings</div>
+  </footer>
+</body>
+</html>

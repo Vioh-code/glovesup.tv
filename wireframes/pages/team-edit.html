@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit team profile — GlovesUP</title>
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/screens.css" />
+</head>
+<body class="bg-arena">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="site-header__logo" href="../index.html">Gloves<span>UP</span></a>
+      <nav class="site-nav" aria-label="Main">
+        <a class="site-nav__link" href="dashboard.html">Dashboard</a>
+        <a class="site-nav__link" href="my-battles.html">Battles</a>
+        <a class="site-nav__link site-nav__link--active" href="teams.html" aria-current="page">Teams</a>
+        <a class="site-nav__link" href="leaderboards.html">Leaderboards</a>
+      </nav>
+      <div class="site-header__actions"><a class="btn btn--link" href="settings.html">Settings</a><a class="avatar-btn" href="profile.html" aria-label="Your profile"><img src="../images/avatars/185.webp" alt="" /></a></div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container container--sm" style="max-width:var(--content-max-width)">
+      <div class="page-head"><div><h1>Edit team profile</h1><p class="page-head__sub">Owner and officers.</p></div></div>
+      <section class="card ">
+        <div class="upload-row" style="margin-bottom:var(--space-5)"><span class="avatar avatar--lg avatar--crest">T</span><div class="cluster"><button class="btn btn--ghost btn--sm" type="button">Upload crest</button><button class="btn btn--link" type="button">Remove</button></div></div>
+        <div class="field"><label class="field__label" for="en">Team name</label><input class="input" id="en" value="[Team name]" /></div>
+        <div class="field"><label class="field__label" for="eb">Description</label><textarea class="textarea" id="eb" rows="4">[Description]</textarea></div>
+        <div class="form-actions"><button class="btn btn--primary" type="button">Save changes</button><a class="btn btn--ghost" href="team-manage.html">Cancel</a></div>
+      </section>
+
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <nav class="site-footer__links"><a href="#">Privacy</a><a href="#">Terms</a></nav>
+      <span>&copy; 2026 GlovesUP</span>
+    </div>
+  <div class="screen-note">Screen S-T3 · feature F-B1</div>
+  </footer>
+</body>
+</html>

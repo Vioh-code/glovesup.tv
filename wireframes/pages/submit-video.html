@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Submit video — GlovesUP</title>
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/screens.css" />
+</head>
+<body class="bg-arena">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="site-header__logo" href="../index.html">Gloves<span>UP</span></a>
+      <nav class="site-nav" aria-label="Main">
+        <a class="site-nav__link" href="dashboard.html">Dashboard</a>
+        <a class="site-nav__link site-nav__link--active" href="my-battles.html" aria-current="page">Battles</a>
+        <a class="site-nav__link" href="teams.html">Teams</a>
+        <a class="site-nav__link" href="leaderboards.html">Leaderboards</a>
+      </nav>
+      <div class="site-header__actions"><a class="btn btn--link" href="settings.html">Settings</a><a class="avatar-btn" href="profile.html" aria-label="Your profile"><img src="../images/avatars/185.webp" alt="" /></a></div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <p style="margin-bottom:var(--space-3)"><a class="back-link" href="dashboard.html">&larr; Dashboard</a></p>
+      <div class="page-head">
+        <div><h1>Submit your video</h1><div class="page-head__meta"><span class="pill pill--outline">[You] vs [Opponent]</span><span class="pill pill--outline">[ELO or Just for fun]</span></div></div>
+        <span class="time-left">[N] days left</span>
+      </div>
+      <div class="layout">
+        <section class="card">
+          <form onsubmit="return false">
+            <div class="field">
+              <label class="field__label" for="yt">YouTube link</label>
+              <div class="input-group"><input class="input" id="yt" type="url" placeholder="https://www.youtube.com/watch?v=…" /><button class="btn btn--ghost" type="button">Check link</button></div>
+              <span class="field__hint">Public or unlisted. It must stay up until the battle is finalized.</span>
+            </div>
+            <div class="link-preview" style="margin-top:var(--space-5)">
+              <div class="link-preview__thumb">Thumbnail</div>
+              <div><div class="text-xs text-secondary">Link check result</div><div class="row__title" style="margin-top:var(--space-1)">[Video title from YouTube]</div><span class="pill pill--success" style="margin-top:var(--space-2)">Link works</span></div>
+            </div>
+            <div class="form-actions"><button class="btn btn--primary" type="submit">Submit video</button><a class="btn btn--ghost" href="dashboard.html">Cancel</a></div>
+          </form>
+          <span class="state-label" style="margin-top:var(--space-6)">State: already submitted, before the lock</span>
+          <div class="notice"><div class="notice__title">Your video is in: [Video title]</div>You can replace it or cancel the submission until the due date.</div>
+          <div class="form-actions"><button class="btn btn--ghost" type="button">Replace video</button><button class="btn btn--danger" type="button">Cancel submission</button></div>
+        </section>
+        <aside>
+          <section class="card">
+            <div class="card__head"><h2 class="card__title card__title--sm">Battle status</h2></div>
+            <dl class="dl">
+              <dt>Your video</dt><dd><span class="pill pill--action">Not submitted</span></dd>
+              <dt>[Opponent]</dt><dd><span class="pill pill--waiting">Waiting</span></dd>
+              <dt>Due</dt><dd>[date]</dd>
+            </dl>
+            <p class="hint">You can replace your link until the due date. Judging starts once both videos are in or time runs out.</p>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <nav class="site-footer__links"><a href="#">Privacy</a><a href="#">Terms</a></nav>
+      <span>&copy; 2026 GlovesUP</span>
+    </div>
+  <div class="screen-note">Screen S-B5 · feature F-C3</div>
+  </footer>
+</body>
+</html>

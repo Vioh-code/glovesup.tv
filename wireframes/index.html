@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Home — GlovesUP</title>
+  <link rel="stylesheet" href="css/theme.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/screens.css" />
+</head>
+<body class="bg-arena">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="site-header__logo" href="index.html">Gloves<span>UP</span></a>
+      <nav class="site-nav" aria-label="Main">
+        <a class="site-nav__link" href="pages/battle-log.html">Battle log</a>
+        <a class="site-nav__link" href="pages/teams.html">Teams</a>
+        <a class="site-nav__link" href="pages/leaderboards.html">Leaderboards</a>
+      </nav>
+      <div class="site-header__actions"><a class="btn btn--link" href="pages/login.html">Log in</a><a class="btn btn--primary btn--sm" href="pages/register.html">Register</a></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero bg-stage halftone">
+      <div class="hero__inner">
+        <span class="eyebrow eyebrow--ember">Competitive gloving</span>
+        <h1 class="hero__title">Call them out.<br /><em>Settle it</em> on video.</h1>
+        <p class="hero__sub">Challenge a player or crew, submit your videos, and let three judges pick the winner. Every result moves the ratings.</p>
+        <div class="hero__actions">
+          <a class="btn btn--primary" href="pages/register.html">Register</a>
+          <a class="btn btn--ghost" href="pages/battle-log.html">See the battle log</a>
+        </div>
+        <div class="stat-row hero__stats" style="background:color-mix(in srgb, var(--surface-1) 80%, transparent)">
+          <div class="stat"><span class="stat__label">Registered crews</span><span class="stat__value">[N]</span></div>
+          <div class="stat"><span class="stat__label">Battles judged</span><span class="stat__value stat__value--steel">[N]</span></div>
+          <div class="stat"><span class="stat__label">Open call outs</span><span class="stat__value stat__value--plain">[N]</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section__head"><div><span class="eyebrow">How it works</span><h2>Four steps to a result</h2></div></div>
+        <div class="how">
+          <div class="card how__step"><h3 class="how__title">Call out</h3><p class="how__text">Send a direct challenge to a player or team. It expires in 72 hours.</p></div>
+          <div class="card how__step"><h3 class="how__title">Submit videos</h3><p class="how__text">Once accepted, both sides post a YouTube link before the due date.</p></div>
+          <div class="card how__step"><h3 class="how__title">Judges decide</h3><p class="how__text">Three judges are drawn from the free pool. Each picks a winner and says why.</p></div>
+          <div class="card how__step"><h3 class="how__title">Ratings move</h3><p class="how__text">ELO updates on the result. Just for fun battles skip the rating.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="home-split">
+          <div>
+            <div class="section__head"><h2>Recent battles</h2><a class="card__link" href="pages/battle-log.html">Battle log</a></div>
+            <a class="strip strip--versus" href="pages/battle.html"><div><div class="strip__name">[Challenger] vs [Opponent]</div><div class="strip__sub">[ELO or Just for fun]</div></div><div class="strip__stats"><span class="pill pill--winner">Winner: [Name]</span></div></a>
+            <a class="strip strip--versus" href="pages/battle.html"><div><div class="strip__name">[Team] vs [Team]</div><div class="strip__sub">[ELO or Just for fun]</div></div><div class="strip__stats"><span class="pill pill--winner">Winner: [Team]</span></div></a>
+            <a class="strip strip--versus" href="pages/battle.html"><div><div class="strip__name">[Challenger] vs [Opponent]</div><div class="strip__sub">[ELO or Just for fun]</div></div><div class="strip__stats"><span class="pill pill--winner">Winner: [Name]</span></div></a>
+            <a class="strip strip--versus" href="pages/battle.html"><div><div class="strip__name">[Challenger] vs [Opponent]</div><div class="strip__sub">[ELO or Just for fun]</div></div><div class="strip__stats"><span class="pill pill--winner">Winner: [Name]</span></div></a>
+          </div>
+          <div>
+            <div class="section__head"><h2>Leaderboard</h2><a class="card__link" href="pages/leaderboards.html">Full leaderboard</a></div>
+            <a class="strip strip--gold" href="pages/profile.html"><span class="strip__rank">1</span><div><div class="strip__name">[Username]</div><div class="strip__sub">[Team name]</div></div><div class="strip__stats"><span class="num" style="color:var(--color-ember)">[ELO]</span></div></a>
+            <a class="strip strip--silver" href="pages/profile.html"><span class="strip__rank">2</span><div><div class="strip__name">[Username]</div><div class="strip__sub">[Team name]</div></div><div class="strip__stats"><span class="num" style="color:var(--color-ember)">[ELO]</span></div></a>
+            <a class="strip strip--bronze" href="pages/profile.html"><span class="strip__rank">3</span><div><div class="strip__name">[Username]</div><div class="strip__sub">[Team name]</div></div><div class="strip__stats"><span class="num" style="color:var(--color-ember)">[ELO]</span></div></a>
+            <a class="strip " href="pages/profile.html"><span class="strip__rank">4</span><div><div class="strip__name">[Username]</div><div class="strip__sub">[Team name]</div></div><div class="strip__stats"><span class="num" style="color:var(--color-ember)">[ELO]</span></div></a>
+            <a class="strip " href="pages/profile.html"><span class="strip__rank">5</span><div><div class="strip__name">[Username]</div><div class="strip__sub">[Team name]</div></div><div class="strip__stats"><span class="num" style="color:var(--color-ember)">[ELO]</span></div></a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-band">
+      <div class="container">
+        <span class="eyebrow eyebrow--ember">GlovesUP</span>
+        <h2>Ready to step up?</h2>
+        <div class="hero__actions"><a class="btn btn--primary" href="pages/register.html">Register</a><a class="btn btn--ghost" href="pages/login.html">Log in</a></div>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <nav class="site-footer__links"><a href="#">Privacy</a><a href="#">Terms</a></nav>
+      <span>&copy; 2026 GlovesUP</span>
+    </div>
+  <div class="screen-note">Index · logged-out view · "How it works" and the stat bar are suggested additions, not in the wireframes</div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage team — GlovesUP</title>
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/screens.css" />
+</head>
+<body class="bg-arena">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="site-header__logo" href="../index.html">Gloves<span>UP</span></a>
+      <nav class="site-nav" aria-label="Main">
+        <a class="site-nav__link" href="dashboard.html">Dashboard</a>
+        <a class="site-nav__link" href="my-battles.html">Battles</a>
+        <a class="site-nav__link site-nav__link--active" href="teams.html" aria-current="page">Teams</a>
+        <a class="site-nav__link" href="leaderboards.html">Leaderboards</a>
+      </nav>
+      <div class="site-header__actions"><a class="btn btn--link" href="settings.html">Settings</a><a class="avatar-btn" href="profile.html" aria-label="Your profile"><img src="../images/avatars/185.webp" alt="" /></a></div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <div class="manage-head">
+        <div>
+          <h1>Manage [Team name]</h1>
+          <p class="page-head__sub">Team rating <span class="num">[ELO]</span> · [N] members</p>
+        </div>
+        <div class="cluster"><a class="btn btn--ghost" href="team-profile.html">View team profile</a><a class="btn btn--ghost" href="#">Edit team profile</a><a class="btn btn--ghost" href="#">Team settings</a></div>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <a class="tabs__tab tabs__tab--active" href="#" role="tab" aria-selected="true">Roster</a>
+        <a class="tabs__tab" href="#" role="tab">Applications ([N])</a>
+        <a class="tabs__tab" href="#" role="tab">Invites</a>
+      </div>
+
+      <section class="card card--flush">
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th>Member</th><th>Role</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead>
+            <tbody>
+              <tr><td><span class="person"><span class="avatar avatar--sm avatar--crest">O</span>[Owner name]</span></td><td>Owner</td><td><span class="pill pill--success">Active</span></td><td class="table__actions-note">No actions. Pass ownership to an officer in Team settings.</td></tr>
+              <tr><td><span class="person"><span class="avatar avatar--sm avatar--crest">O</span>[Officer name]</span></td><td>Officer</td><td><span class="pill pill--success">Active</span></td><td><div class="table__actions"><button class="btn btn--ghost btn--sm" type="button">Demote</button></div><div class="table__actions-note text-xs" style="margin-top:var(--space-2)">Only the owner can remove or ban an officer</div></td></tr>
+              <tr><td><span class="person"><span class="avatar avatar--sm avatar--crest">M</span>[Member name]</span></td><td>Member</td><td><span class="pill pill--success">Active</span></td><td><div class="table__actions"><button class="btn btn--ghost btn--sm" type="button">Promote</button><button class="btn btn--ghost btn--sm" type="button">Suspend</button><button class="btn btn--ghost btn--sm" type="button">Kick</button><button class="btn btn--danger btn--sm" type="button">Ban</button></div></td></tr>
+              <tr><td><span class="person"><span class="avatar avatar--sm avatar--crest">M</span>[Member name]</span></td><td>Member</td><td><span class="pill pill--danger">Suspended</span></td><td><div class="table__actions"><button class="btn btn--ghost btn--sm" type="button">Reinstate</button><button class="btn btn--ghost btn--sm" type="button">Kick</button><button class="btn btn--danger btn--sm" type="button">Ban</button></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <p class="hint">Leaving a team is done from the member's own My teams screen. Every roster change is logged with the user who made it.</p>
+
+      <span class="state-label" style="margin-top:var(--space-6)">Applications tab preview</span>
+      <section class="card">
+        <div class="application">
+          <span class="person"><span class="avatar avatar--sm avatar--crest">A</span>[Applicant]</span>
+          <span class="text-secondary">[Application message]</span>
+          <div class="table__actions"><button class="btn btn--ghost btn--sm" type="button">Decline</button><button class="btn btn--primary btn--sm" type="button">Approve</button></div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <nav class="site-footer__links"><a href="#">Privacy</a><a href="#">Terms</a></nav>
+      <span>&copy; 2026 GlovesUP</span>
+    </div>
+  <div class="screen-note">Screen T2 · feature B2 · visible to the team owner and officers</div>
+  </footer>
+</body>
+</html>

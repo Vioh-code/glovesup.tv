@@ -1,0 +1,42 @@
+# GlovesUP V1 open items
+
+All 46 screens are drawn in the wireframe package (index.html and pages/). The wireframes are the record of what is done. This list holds only what is still open. Screen IDs are S- (Screen Inventory), features are F-.
+
+## Design gaps (not drawn yet)
+- Hung Up placeholder: needs artwork direction. Used for deleted accounts (profile history, battle logs).
+- Empty states: lists with no rows (My battles, My cases, Blocked users, battle log search, and so on).
+- Permission gate: what a user sees on a screen they cannot use.
+- Verification banner: shown to unverified members. Blocks call outs and voting until verified.
+- Report button: only a link on the profile is drawn. Needs a standard placement on battle detail and content.
+- ELO badge: plain number only, no player or team mark.
+- Leaderboards: Teams tab not drawn (same table as players).
+- Team battles: S-J2 and the battle outcome show one pairing. Build repeats it per pairing.
+
+## Decisions still open
+- S-B4 Judge panel: own page or a section of S-B7 (marked with a dagger in the Screen Inventory).
+- Countdown urgent state (last 24 hours): wireframes set it by hand. Build must compute it.
+
+## Content to supply
+- Terms and Privacy text (S-P13).
+- Email templates (verification, reset, call out events, judge requests, case updates).
+
+## Deferred to later
+- ELO test cases and seed data.
+- Timer and job details beyond the one-minute worker over scheduled_jobs.
+- Logging design (separate chat).
+- Fight card (not V1).
+- Score cards and a score card builder (future feature, not in V1).
+
+## Added Nov 13, 2026 (repo reset)
+- Node 20 is past end of life. Move dev and prod to Node 24 LTS before the first build slice.
+- Linode checkout is one commit behind with local edits to package.json and package-lock.json. Save the diff and reset to clean before the first merge.
+- Old app on the Linode listens on all interfaces (port 3000). Confirm the firewall. New app binds to 127.0.0.1.
+- Full git pull ships docs/, wireframes/, CLAUDE.md and OPEN_ITEMS.md to the Linode. Plan: sparse-checkout on the server. Decide before first deploy.
+- Hardening commit 42d1b41 (Postgres session store, cookie hardening) never reached the Linode. Old app only; not fixing.
+- Remove the unused Caddy binary on the dev box.
+- Set up branch protection on main (require PR, no bypass) and Claude Code deny rules for merge and push to main.
+- Optional deploy.yml hardening later: remove workflow_dispatch, add permissions: contents: read, add a test job gate. It works as is.
+- Tests run on the dev box only; the Action has no test gate.
+- Worker cron output needs a log file and rotation. Decide in the worker slice.
+- Confirm on the Linode: Nginx and Postgres versions, backup directory, free disk.
+- Old archive at ~/Downloads/Glovesup arch has Privacy_Policy.md, Terms_of_Service.md, ELO_Reference.md. Review for reuse later.

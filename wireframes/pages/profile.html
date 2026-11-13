@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile — GlovesUP</title>
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/screens.css" />
+</head>
+<body class="bg-arena">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="site-header__logo" href="../index.html">Gloves<span>UP</span></a>
+      <nav class="site-nav" aria-label="Main">
+        <a class="site-nav__link" href="battle-log.html">Battle log</a>
+        <a class="site-nav__link" href="teams.html">Teams</a>
+        <a class="site-nav__link" href="leaderboards.html">Leaderboards</a>
+      </nav>
+      <div class="site-header__actions"><a class="btn btn--link" href="login.html">Log in</a><a class="btn btn--primary btn--sm" href="register.html">Register</a></div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <div class="profile-layout">
+        <aside>
+          <section class="card identity">
+            <img class="avatar avatar--lg identity__avatar" src="../images/avatars/185.webp" alt="" />
+            <h1 class="identity__name">[Username]</h1>
+            <p class="identity__alias" style="margin-inline:auto">Glover name: [Glover name]</p>
+            <div class="identity__stats">
+              <div class="stat"><span class="stat__label">Rating</span><span class="stat__value">[ELO]</span></div>
+              <div class="stat"><span class="stat__label">Team</span><span class="stat__value stat__value--steel" style="font-size:var(--text-md);font-family:var(--font-display);text-transform:uppercase">[Team name]</span></div>
+            </div>
+            <div class="identity__actions">
+              <a class="btn btn--primary" href="create-callout.html">Call out [Username]</a>
+              <div class="identity__links"><a class="btn btn--link" href="#">Block</a><a class="btn btn--link" href="#">Report</a></div>
+            </div>
+          </section>
+          <p class="hint">Call out, Block, and Report show to logged-in members only.</p>
+        </aside>
+
+        <div>
+          <section class="card">
+            <div class="card__head"><h2 class="card__title">About</h2></div>
+            <p>[Bio, if the user has not hidden it]</p>
+            <p class="hint">Social links appear here only if the user made them public. Email and date of birth are never shown.</p>
+          </section>
+
+          <div class="stat-row" style="margin-top:var(--space-5)">
+            <div class="stat"><span class="stat__label">Battles</span><span class="stat__value stat__value--plain">[N]</span></div>
+            <div class="stat"><span class="stat__label">Wins</span><span class="stat__value" style="color:var(--color-success)">[N]</span></div>
+            <div class="stat"><span class="stat__label">Losses</span><span class="stat__value" style="color:var(--color-red)">[N]</span></div>
+          </div>
+
+          <section style="margin-top:var(--space-6)">
+            <h2 class="card__title" style="margin-bottom:var(--space-4)">Battle history</h2>
+            <a class="strip strip--versus" href="battle.html"><div class="strip__name">vs [Opponent]</div><div class="strip__stats"><span class="text-secondary">[ELO or Just for fun]</span><span class="result result--win">Win</span></div></a>
+            <a class="strip strip--versus" href="battle.html"><div class="strip__name">vs [Opponent]</div><div class="strip__stats"><span class="text-secondary">[ELO or Just for fun]</span><span class="result result--loss">Loss</span></div></a>
+            <div class="strip strip--versus"><div class="strip__name is-hung-up">vs [Hung Up placeholder]</div><div class="strip__stats"><span class="text-secondary">[ELO or Just for fun]</span><span class="result result--win">Win</span></div></div>
+            <p class="hint">An opponent who deleted their account shows as the Hung Up placeholder and is not clickable.</p>
+          </section>
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <nav class="site-footer__links"><a href="#">Privacy</a><a href="#">Terms</a></nav>
+      <span>&copy; 2026 GlovesUP</span>
+    </div>
+  <div class="screen-note">Screen P3 · features F2, A4, A6, G1 · the stats row is a layout guess</div>
+  </footer>
+</body>
+</html>

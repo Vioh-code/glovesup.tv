@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Battle log — GlovesUP</title>
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/screens.css" />
+</head>
+<body class="bg-arena">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="site-header__logo" href="../index.html">Gloves<span>UP</span></a>
+      <nav class="site-nav" aria-label="Main">
+        <a class="site-nav__link site-nav__link--active" href="battle-log.html" aria-current="page">Battle log</a>
+        <a class="site-nav__link" href="teams.html">Teams</a>
+        <a class="site-nav__link" href="leaderboards.html">Leaderboards</a>
+      </nav>
+      <div class="site-header__actions"><a class="btn btn--link" href="login.html">Log in</a><a class="btn btn--primary btn--sm" href="register.html">Register</a></div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <div class="page-head"><div><h1>Battle log</h1><p class="page-head__sub">Finalized battles, newest first.</p></div></div>
+      <div class="toolbar">
+        <div class="toolbar__search"><label class="visually-hidden" for="q">Search</label><input class="input" id="q" type="search" placeholder="Search by player or team" /></div>
+        <select class="select" aria-label="Format"><option>Any format</option><option>1v1</option><option>3v3</option></select>
+        <select class="select" aria-label="Scoring"><option>ELO or Just for fun</option><option>ELO</option><option>Just for fun</option></select>
+        <select class="select" aria-label="Result"><option>Any result</option><option>Win</option><option>Loss</option></select>
+      </div>
+      <section aria-label="Battles">
+        <a class="strip strip--versus" href="battle.html"><div><div class="strip__name">[Challenger] vs [Opponent]</div><div class="strip__sub">[ELO or Just for fun]</div></div><div class="strip__stats"><span class="elo-delta elo-delta--up">+[N]</span><span class="pill pill--winner">Winner: [Name]</span></div></a>
+        <a class="strip strip--versus" href="battle.html"><div><div class="strip__name">[Team] vs [Team]</div><div class="strip__sub">[3v3] · [ELO or Just for fun]</div></div><div class="strip__stats"><span class="pill pill--winner">Winner: [Team]</span></div></a>
+        <a class="strip strip--versus" href="battle.html"><div><div class="strip__name">[Challenger] vs [Opponent]</div><div class="strip__sub">[ELO or Just for fun]</div></div><div class="strip__stats"><span class="elo-delta elo-delta--up">+[N]</span><span class="pill pill--winner">Winner: [Name]</span></div></a>
+        <a class="strip strip--versus" href="battle.html"><div><div class="strip__name">[Challenger] vs [Opponent]</div><div class="strip__sub">[ELO or Just for fun]</div></div><div class="strip__stats"><span class="pill pill--winner">Winner: [Name]</span></div></a>
+      </section>
+      <div class="pager"><span>Showing [N] of [N]</span><div class="pager__btns"><button class="btn btn--ghost btn--sm" type="button" disabled>Previous</button><button class="btn btn--ghost btn--sm" type="button">Next</button></div></div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <nav class="site-footer__links"><a href="#">Privacy</a><a href="#">Terms</a></nav>
+      <span>&copy; 2026 GlovesUP</span>
+    </div>
+  <div class="screen-note">Screen S-P6 · feature F-C8 · public log shows finalized battles only · Result filter applies to a searched name · members get My battles (S-B3) from the Battles nav</div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Leaderboards — GlovesUP</title>
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/screens.css" />
+</head>
+<body class="bg-arena">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="site-header__logo" href="../index.html">Gloves<span>UP</span></a>
+      <nav class="site-nav" aria-label="Main">
+        <a class="site-nav__link" href="battle-log.html">Battle log</a>
+        <a class="site-nav__link" href="teams.html">Teams</a>
+        <a class="site-nav__link site-nav__link--active" href="leaderboards.html" aria-current="page">Leaderboards</a>
+      </nav>
+      <div class="site-header__actions"><a class="btn btn--link" href="login.html">Log in</a><a class="btn btn--primary btn--sm" href="register.html">Register</a></div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <div class="page-head"><div><h1>Leaderboards</h1><p class="page-head__sub">Ranked by ELO. Just for fun battles don't count.</p></div></div>
+      <div class="tabs" role="tablist">
+        <a class="tabs__tab tabs__tab--active" href="#" role="tab" aria-selected="true">Players</a>
+        <a class="tabs__tab" href="#" role="tab">Teams</a>
+      </div>
+      <div class="toolbar">
+        <div class="toolbar__search"><label class="visually-hidden" for="q">Search</label><input class="input" id="q" type="search" placeholder="Find a player" /></div>
+      </div>
+      <section class="card card--flush">
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th class="is-num" style="width:72px">Rank</th><th>Player</th><th>Team</th><th class="is-num">Rating</th><th class="is-num">W–L</th></tr></thead>
+            <tbody>
+              <tr><td class="is-num"><span style="font-family:var(--font-display);font-weight:700;font-size:var(--text-lg);color:var(--color-gold)">1</span></td><td><a class="person" href="profile.html" style="color:var(--text-primary)"><span class="avatar avatar--sm avatar--crest">U</span>[Username]</a></td><td class="text-secondary">[Team name]</td><td class="is-num num" style="color:var(--color-ember);font-weight:700">[ELO]</td><td class="is-num num">[W]–[L]</td></tr>
+              <tr><td class="is-num"><span style="font-family:var(--font-display);font-weight:700;font-size:var(--text-lg);color:var(--color-silver)">2</span></td><td><a class="person" href="profile.html" style="color:var(--text-primary)"><span class="avatar avatar--sm avatar--crest">U</span>[Username]</a></td><td class="text-secondary">[Team name]</td><td class="is-num num" style="color:var(--color-ember);font-weight:700">[ELO]</td><td class="is-num num">[W]–[L]</td></tr>
+              <tr><td class="is-num"><span style="font-family:var(--font-display);font-weight:700;font-size:var(--text-lg);color:var(--color-bronze)">3</span></td><td><a class="person" href="profile.html" style="color:var(--text-primary)"><span class="avatar avatar--sm avatar--crest">U</span>[Username]</a></td><td class="text-secondary">[Team name]</td><td class="is-num num" style="color:var(--color-ember);font-weight:700">[ELO]</td><td class="is-num num">[W]–[L]</td></tr>
+              <tr><td class="is-num"><span style="font-family:var(--font-display);font-weight:700;font-size:var(--text-lg);color:var(--text-secondary)">4</span></td><td><a class="person" href="profile.html" style="color:var(--text-primary)"><span class="avatar avatar--sm avatar--crest">U</span>[Username]</a></td><td class="text-secondary">[Team name]</td><td class="is-num num" style="color:var(--color-ember);font-weight:700">[ELO]</td><td class="is-num num">[W]–[L]</td></tr>
+              <tr><td class="is-num"><span style="font-family:var(--font-display);font-weight:700;font-size:var(--text-lg);color:var(--text-secondary)">5</span></td><td><a class="person" href="profile.html" style="color:var(--text-primary)"><span class="avatar avatar--sm avatar--crest">U</span>[Username]</a></td><td class="text-secondary">[Team name]</td><td class="is-num num" style="color:var(--color-ember);font-weight:700">[ELO]</td><td class="is-num num">[W]–[L]</td></tr>
+              <tr><td class="is-num"><span style="font-family:var(--font-display);font-weight:700;font-size:var(--text-lg);color:var(--text-secondary)">6</span></td><td><a class="person" href="profile.html" style="color:var(--text-primary)"><span class="avatar avatar--sm avatar--crest">U</span>[Username]</a></td><td class="text-secondary">[Team name]</td><td class="is-num num" style="color:var(--color-ember);font-weight:700">[ELO]</td><td class="is-num num">[W]–[L]</td></tr>
+              <tr><td class="is-num"><span style="font-family:var(--font-display);font-weight:700;font-size:var(--text-lg);color:var(--text-secondary)">7</span></td><td><a class="person" href="profile.html" style="color:var(--text-primary)"><span class="avatar avatar--sm avatar--crest">U</span>[Username]</a></td><td class="text-secondary">[Team name]</td><td class="is-num num" style="color:var(--color-ember);font-weight:700">[ELO]</td><td class="is-num num">[W]–[L]</td></tr>
+              <tr><td class="is-num"><span style="font-family:var(--font-display);font-weight:700;font-size:var(--text-lg);color:var(--text-secondary)">8</span></td><td><a class="person" href="profile.html" style="color:var(--text-primary)"><span class="avatar avatar--sm avatar--crest">U</span>[Username]</a></td><td class="text-secondary">[Team name]</td><td class="is-num num" style="color:var(--color-ember);font-weight:700">[ELO]</td><td class="is-num num">[W]–[L]</td></tr>
+              <tr><td class="is-num"><span style="font-family:var(--font-display);font-weight:700;font-size:var(--text-lg);color:var(--text-secondary)">9</span></td><td><a class="person" href="profile.html" style="color:var(--text-primary)"><span class="avatar avatar--sm avatar--crest">U</span>[Username]</a></td><td class="text-secondary">[Team name]</td><td class="is-num num" style="color:var(--color-ember);font-weight:700">[ELO]</td><td class="is-num num">[W]–[L]</td></tr>
+              <tr><td class="is-num"><span style="font-family:var(--font-display);font-weight:700;font-size:var(--text-lg);color:var(--text-secondary)">10</span></td><td><a class="person" href="profile.html" style="color:var(--text-primary)"><span class="avatar avatar--sm avatar--crest">U</span>[Username]</a></td><td class="text-secondary">[Team name]</td><td class="is-num num" style="color:var(--color-ember);font-weight:700">[ELO]</td><td class="is-num num">[W]–[L]</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <div class="pager"><span>Showing 1–10 of [N]</span><div class="pager__btns"><button class="btn btn--ghost btn--sm" type="button" disabled>Previous</button><button class="btn btn--ghost btn--sm" type="button">Next</button></div></div>
+      <p class="hint">The Teams tab uses the same table with team rating and member count. Gold, silver and bronze are for ranks 1 to 3 only.</p>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <nav class="site-footer__links"><a href="#">Privacy</a><a href="#">Terms</a></nav>
+      <span>&copy; 2026 GlovesUP</span>
+    </div>
+  <div class="screen-note">Added to cover a nav link; not in the original wireframe PDF, so treat the layout as a proposal</div>
+  </footer>
+</body>
+</html>
