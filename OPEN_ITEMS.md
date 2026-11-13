@@ -44,3 +44,4 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 - The app no longer uses dotenv; Node loads env files with `--env-file`. Confirm how the systemd unit starts the app (ExecStart and EnvironmentFile). It must run `node --env-file=.env index.js` (or `npm start`) or set EnvironmentFile, or the first deploy starts with no DB settings. Remove dotenv from package.json once confirmed.
 - npm 11 skipped bcrypt's install script (node-gyp rebuild) with an install-scripts warning. bcrypt loads on the dev box today. Check `npm ci --omit=dev` on the Linode builds it, before the auth slice.
 - `.env.example` still lists reCAPTCHA keys from the old app. Trim it when auth is built.
+- Before the first deploy: confirm which host the Deploy action targets and that its checkout matches main. Check the Actions run log and the checkout's reflog.
