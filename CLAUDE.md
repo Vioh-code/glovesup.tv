@@ -31,10 +31,10 @@ Confirmed from the Nov 13, 2026 stack report and checks on both machines. `[CONF
 **Stack**
 - Runtime: Node 24 LTS. Dev box is on 24.22.3 (npm 11.19.1). The Linode must be on Node 24 before the first deploy. [CONFIRM: Linode Node version]
 - App: Express 4, EJS server-rendered views, Passport (local), express-session with connect-pg-simple, bcrypt.
-- Data access: plain `pg` with SQL. Remove Sequelize and pg-hstore in the first slice. [NOT SET UP]
-- Database: Postgres. Settings in `.env`: DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME. Dev databases `glovesup_dev` and `glovesup_test`. [CONFIRM names]
-- Migrations: node-pg-migrate, files in `migrations/`. [NOT SET UP]
-- Tests: Node's built-in runner (`node --test`) against `glovesup_test`. No linter. [NOT SET UP]
+- Data access: plain `pg` with SQL. Shared pool in `db.js`. Sequelize and pg-hstore are removed.
+- Database: Postgres. Settings: PORT, DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME. Node loads them with `--env-file` (no dotenv). Dev box: `.env.dev` (`glovesup_dev`) and `.env.test` (`glovesup_test`), both as role `glovesup_dev`. Linode: `.env`.
+- Migrations: node-pg-migrate 9 via `scripts/migrate.js` (runner API, reads DB_* from the env file). Files in `migrations/`, CommonJS, `<timestamp>_<name>.js`. Tracking table `pgmigrations`.
+- Tests: Node's built-in runner (`node --test`, files in `test/*.test.js`) against `glovesup_test`. No linter.
 - Timers: one-minute worker over `scheduled_jobs`, run by cron with `flock -n` so runs never overlap. Cron has a bare PATH, so use absolute paths. [NOT SET UP]
 - Bind the app to 127.0.0.1 behind Nginx. The old app listened on all interfaces.
 
@@ -42,9 +42,12 @@ Confirmed from the Nov 13, 2026 stack report and checks on both machines. `[CONF
 | Task | Command |
 |---|---|
 | Install | `npm ci` |
-| Run dev | `npm run dev` (`node --watch index.js`) [NOT SET UP] |
-| Run tests | `npm test` [NOT SET UP] |
-| Migrate | `npm run migrate` [NOT SET UP] |
+| Run dev | `npm run dev` (`node --env-file=.env.dev --watch index.js`), serves http://127.0.0.1:3000/health |
+| Run tests | `npm test` (`node --env-file=.env.test --test`) |
+| Migrate dev | `npm run migrate` (up, all pending). `npm run migrate -- down` reverts the latest one |
+| Migrate test DB | `npm run migrate:test` (same, against `.env.test`) |
+| Migrate production (on the Linode, after a backup) | `node --env-file=.env scripts/migrate.js up` |
+| Start (production) | `npm start` (`node --env-file=.env index.js`). [CONFIRM: how the systemd unit starts the app and loads .env] |
 | Back up before any production migration | `sudo -u postgres pg_dump -Fc <DB_NAME> > ~/backups/glovesup-$(date +%F-%H%M).dump` [CONFIRM: backup directory and free disk on the Linode] |
 | Deploy | Matt merges a pull request to main. The Action in `.github/workflows/deploy.yml` SSHes to the Linode and runs `git pull --ff-only`, `npm ci --omit=dev`, `sudo systemctl restart glovesup`. |
 | Prod logs | `journalctl -u glovesup -n 50` |

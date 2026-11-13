@@ -39,3 +39,11 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 - Worker cron output needs a log file and rotation. Decide in the worker slice.
 - Confirm on the Linode: Nginx and Postgres versions, backup directory, free disk.
 - Old archive at ~/Downloads/Glovesup arch has Privacy_Policy.md, Terms_of_Service.md, ELO_Reference.md. Review for reuse later.
+
+## Added Nov 13, 2026 (slice 0 scaffold)
+- DB roles: split an owner role (runs migrations, owns tables) from a least-privilege app role (runtime queries). Today the dev box uses one role, `glovesup_dev`, for both dev and test databases.
+- The Linode `.env` may use the postgres superuser. Confirm, and switch to a dedicated role before the first deploy.
+- Old databases `glovesup` and `gloveleague` on the dev box can be dropped when Matt says so. Do not drop before then.
+- The app no longer uses dotenv; Node loads env files with `--env-file`. Confirm how the systemd unit starts the app (ExecStart and EnvironmentFile). It must run `node --env-file=.env index.js` (or `npm start`) or set EnvironmentFile, or the first deploy starts with no DB settings. Remove dotenv from package.json once confirmed.
+- npm 11 skipped bcrypt's install script (node-gyp rebuild) with an install-scripts warning. bcrypt loads on the dev box today. Check `npm ci --omit=dev` on the Linode builds it, before the auth slice.
+- `.env.example` still lists reCAPTCHA keys from the old app. Trim it when auth is built.
