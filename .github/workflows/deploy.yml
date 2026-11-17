@@ -3,7 +3,11 @@ name: Deploy
 on:
   push:
     branches: [main]
-  workflow_dispatch:
+    paths-ignore:
+      - 'docs/**'
+      - 'wireframes/**'
+      - 'CLAUDE.md'
+      - 'OPEN_ITEMS.md'
 
 concurrency:
   group: deploy
