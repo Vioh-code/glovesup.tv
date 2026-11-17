@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Team — GlovesUP</title>
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/screens.css" />
+</head>
+<body class="bg-arena">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="site-header__logo" href="../index.html">Gloves<span>UP</span></a>
+      <nav class="site-nav" aria-label="Main">
+        <a class="site-nav__link" href="battle-log.html">Battle log</a>
+        <a class="site-nav__link site-nav__link--active" href="teams.html" aria-current="page">Teams</a>
+        <a class="site-nav__link" href="leaderboards.html">Leaderboards</a>
+      </nav>
+      <div class="site-header__actions"><a class="btn btn--link" href="login.html">Log in</a><a class="btn btn--primary btn--sm" href="register.html">Register</a></div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <div class="team-hero">
+        <span class="avatar avatar--crest avatar--crest-lg">T</span>
+        <div class="team-hero__main">
+          <h1 class="team-hero__name">[Team name]</h1>
+          <div class="page-head__meta"><span class="pill pill--success">Recruiting</span><span class="pill pill--outline">[N] members</span></div>
+        </div>
+        <div class="stat"><span class="stat__label">Team rating</span><span class="stat__value">[ELO]</span></div>
+        <div class="cluster"><a class="btn btn--primary" href="#">Apply to join</a><a class="btn btn--ghost" href="create-callout.html">Call out this team</a></div>
+      </div>
+
+      <section class="card" style="margin-bottom:var(--space-5)">
+        <div class="card__head"><h2 class="card__title">About</h2><a class="card__link" href="team-manage.html">Manage team</a></div>
+        <p>[Team bio]</p>
+        <p class="hint">Apply to join and Call out show to logged-in members only. Manage team shows to the owner and officers.</p>
+      </section>
+
+      <div class="two-col">
+        <section class="card" aria-labelledby="roster-h">
+          <div class="card__head"><h2 class="card__title" id="roster-h">Roster</h2></div>
+          <div class="row-list">
+            <div class="row"><div class="row__main"><a class="person" href="profile.html" style="color:var(--text-primary)"><span class="avatar avatar--sm avatar--crest">O</span>[Owner name]</a></div><span class="pill pill--outline">Owner</span><span class="num" style="color:var(--color-ember)">[ELO]</span></div>
+            <div class="row"><div class="row__main"><a class="person" href="profile.html" style="color:var(--text-primary)"><span class="avatar avatar--sm avatar--crest">O</span>[Officer name]</a></div><span class="pill pill--outline">Officer</span><span class="num" style="color:var(--color-ember)">[ELO]</span></div>
+            <div class="row"><div class="row__main"><a class="person" href="profile.html" style="color:var(--text-primary)"><span class="avatar avatar--sm avatar--crest">M</span>[Member name]</a></div><span class="pill pill--outline">Member</span><span class="num" style="color:var(--color-ember)">[ELO]</span></div>
+          </div>
+        </section>
+        <section class="card" aria-labelledby="rb-h">
+          <div class="card__head"><h2 class="card__title" id="rb-h">Recent battles</h2></div>
+          <a class="strip strip--versus" href="battle.html"><div class="strip__name">vs [Team]</div><div class="strip__stats"><span class="result result--win">Win</span></div></a>
+          <a class="strip strip--versus" href="battle.html"><div class="strip__name">vs [Team]</div><div class="strip__stats"><span class="result result--loss">Loss</span></div></a>
+          <a class="strip strip--versus" href="battle.html"><div class="strip__name">vs [Team]</div><div class="strip__stats"><span class="result result--win">Win</span></div></a>
+        </section>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <nav class="site-footer__links"><a href="#">Privacy</a><a href="#">Terms</a></nav>
+      <span>&copy; 2026 GlovesUP</span>
+    </div>
+  <div class="screen-note">Added to cover a nav link; not in the original wireframe PDF, so treat the layout as a proposal</div>
+  </footer>
+</body>
+</html>

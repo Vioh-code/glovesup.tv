@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Case — GlovesUP</title>
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/screens.css" />
+</head>
+<body class="bg-arena">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="site-header__logo" href="#">Gloves<span>UP</span></a><span class="site-header__staff">Staff</span>
+      <nav class="site-nav" aria-label="Main">
+        <a class="site-nav__link site-nav__link--active" href="staff-queue.html" aria-current="page">Cases</a>
+        <a class="site-nav__link" href="staff-moderation.html">Moderation</a>
+        <a class="site-nav__link" href="staff-users.html">Users</a>
+        <a class="site-nav__link" href="staff-audit.html">Audit log</a>
+      </nav>
+      <div class="site-header__actions"><a class="avatar-btn" href="#" aria-label="Your account"><img src="../images/avatars/185.webp" alt="" /></a></div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <p style="margin-bottom:var(--space-3)"><a class="back-link" href="#">&larr; Back to queue</a></p>
+      <div class="case-head">
+        <h1 class="case-head__title">Case [ID]: [Case title]</h1>
+        <span class="pill pill--outline">[Type]</span><span class="pill pill--action">[Status]</span>
+      </div>
+
+      <div class="layout layout--wide-rail">
+        <section class="card" aria-labelledby="thread-h">
+          <h2 class="visually-hidden" id="thread-h">Case thread</h2>
+          <div class="thread__item"><div class="thread__who">[Reporter] <span class="thread__when">· [date]</span></div><p class="thread__body">[Reporter's description of the problem]</p></div>
+          <div class="thread__item"><div class="thread__who">[Staff member] replied <span class="thread__when">· [date]</span></div><p class="thread__body">[Reply visible to the reporter]</p></div>
+          <div class="thread__item thread__item--internal"><div class="thread__internal-label">Internal note · not visible to the reporter</div><p class="thread__body">[Staff-only note]</p></div>
+
+          <div class="reply-box">
+            <label class="visually-hidden" for="reply">Reply</label>
+            <textarea class="textarea" id="reply" rows="4" placeholder="Write a reply…"></textarea>
+            <div class="reply-box__actions">
+              <button class="btn btn--ghost btn--sm" type="button">Internal note only</button>
+              <div class="cluster"><button class="btn btn--ghost btn--sm" type="button">Ask the user for more</button><button class="btn btn--primary btn--sm" type="button">Send</button></div>
+            </div>
+          </div>
+        </section>
+
+        <aside>
+          <section class="card">
+            <div class="card__head"><h2 class="card__title card__title--sm">Details</h2></div>
+            <dl class="dl">
+              <dt>Status</dt><dd>[Open, Assigned, Waiting on user, Resolved, Closed]</dd>
+              <dt>Assignee</dt><dd>[Staff member]</dd>
+              <dt>Subject</dt><dd>[User, battle, or submission]</dd>
+              <dt>Opened</dt><dd>[date]</dd>
+            </dl>
+            <div class="card__foot"><button class="btn btn--primary btn--block" type="button">Resolve case</button></div>
+          </section>
+          <section class="card">
+            <div class="card__head"><h2 class="card__title card__title--sm">Actions on the subject</h2></div>
+            <div class="action-grid">
+              <button class="btn btn--ghost btn--sm" type="button">Warn</button>
+              <button class="btn btn--ghost btn--sm" type="button">Suspend</button>
+              <button class="btn btn--danger btn--sm" type="button">Ban</button>
+              <button class="btn btn--ghost btn--sm" type="button">Remove content</button>
+            </div>
+            <p class="hint">Every action is logged with your name and the time, and links back to this case. Result reversals are started from Stuck battles and reversals, and need two different admins.</p>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <nav class="site-footer__links"><a href="#">Privacy</a><a href="#">Terms</a></nav>
+      <span>&copy; 2026 GlovesUP</span>
+    </div>
+  <div class="screen-note">Screen S2 · features G2, G3, G4 · moderators and up · which buttons show follows the Permissions Matrix</div>
+  </footer>
+</body>
+</html>

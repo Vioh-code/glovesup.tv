@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — GlovesUP</title>
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/screens.css" />
+</head>
+<body class="bg-arena">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="site-header__logo" href="../index.html">Gloves<span>UP</span></a>
+      <nav class="site-nav" aria-label="Main">
+        <a class="site-nav__link site-nav__link--active" href="dashboard.html" aria-current="page">Dashboard</a>
+        <a class="site-nav__link" href="my-battles.html">Battles</a>
+        <a class="site-nav__link" href="teams.html">Teams</a>
+        <a class="site-nav__link" href="leaderboards.html">Leaderboards</a>
+      </nav>
+      <div class="site-header__actions"><a class="btn btn--link" href="settings.html">Settings</a><a class="avatar-btn" href="profile.html" aria-label="Your profile"><img src="../images/avatars/185.webp" alt="" /></a></div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <div class="page-head"><div>
+        <h1>Dashboard</h1>
+        <p class="page-head__sub">Everything waiting on you, with the time left on each.</p>
+      </div></div>
+
+      <div class="layout">
+        <div>
+          <section class="card" aria-labelledby="needs-h">
+            <div class="card__head"><h2 class="card__title" id="needs-h">Needs your action</h2></div>
+            <div class="row-list">
+              <div class="row row--action">
+                <div class="row__main"><div class="row__title">Call out from [Opponent]</div><div class="row__meta">[1v1 or 3v3] · [ELO or Just for fun] · [judging type]</div></div>
+                <div class="row__aside"><span class="time-left time-left--urgent">[N] hours left to answer</span><a class="btn btn--primary btn--sm" href="callout-respond.html">Review</a></div>
+              </div>
+              <div class="row row--action">
+                <div class="row__main"><div class="row__title">Submit your video: [Battle]</div><div class="row__meta">YouTube link · due [date]</div></div>
+                <div class="row__aside"><span class="time-left">[N] days left</span><a class="btn btn--primary btn--sm" href="submit-video.html">Submit video</a></div>
+              </div>
+              <div class="row row--action">
+                <div class="row__main"><div class="row__title">Judge request: [Battle]</div><div class="row__meta">Shown to judges only</div></div>
+                <div class="row__aside"><span class="time-left">[N] hours left</span><a class="btn btn--ghost btn--sm" href="#">Decline</a><a class="btn btn--primary btn--sm" href="judging-queue.html">Accept</a></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="card" aria-labelledby="active-h">
+            <div class="card__head"><h2 class="card__title" id="active-h">Active battles</h2><a class="card__link" href="battle-log.html">All my battles</a></div>
+            <div class="row-list">
+              <div class="row"><div class="row__main"><div class="row__title">[You] vs [Opponent]</div></div><div class="row__aside"><span class="pill pill--action">Submissions open</span><a class="card__link" href="battle.html">Open</a></div></div>
+              <div class="row"><div class="row__main"><div class="row__title">[Team] vs [Team]</div></div><div class="row__aside"><span class="pill pill--waiting">Judging</span><a class="card__link" href="battle.html">Open</a></div></div>
+            </div>
+          </section>
+        </div>
+
+        <aside>
+          <section class="card rating-card">
+            <span class="stat__label">Your rating</span>
+            <span class="stat__value">[ELO]</span>
+            <a class="btn btn--primary btn--block" href="create-callout.html">Create a call out</a>
+          </section>
+          <section class="card">
+            <span class="stat__label">Your team</span>
+            <div class="card__title" style="margin-top:var(--space-2)">[Team name]</div>
+            <span class="stat__sub">Team rating <span class="num">[ELO]</span></span>
+            <div class="card__foot"><a class="card__link" href="team-manage.html">Manage team</a></div>
+          </section>
+          <section class="card">
+            <div class="card__head"><h2 class="card__title card__title--sm">Recent results</h2></div>
+            <div class="row-list">
+              <div class="row"><div class="row__main">vs [Opponent]</div><span class="result result--win">[Win or loss]</span></div>
+              <div class="row"><div class="row__main">vs [Opponent]</div><span class="result result--loss">[Win or loss]</span></div>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <nav class="site-footer__links"><a href="#">Privacy</a><a href="#">Terms</a></nav>
+      <span>&copy; 2026 GlovesUP</span>
+    </div>
+  <div class="screen-note">Screen S-M1 · features F-C1, F-C3, F-C4, F-H7 · judge requests appear only for users with the Judge role</div>
+  </footer>
+</body>
+</html>

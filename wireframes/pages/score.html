@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Judge this battle — GlovesUP</title>
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/screens.css" />
+</head>
+<body class="bg-arena">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="site-header__logo" href="../index.html">Gloves<span>UP</span></a>
+      <nav class="site-nav" aria-label="Main">
+        <a class="site-nav__link" href="dashboard.html">Dashboard</a>
+        <a class="site-nav__link site-nav__link--active" href="judging-queue.html" aria-current="page">Judging</a>
+        <a class="site-nav__link" href="leaderboards.html">Leaderboards</a>
+      </nav>
+      <div class="site-header__actions"><a class="btn btn--link" href="settings.html">Settings</a><a class="avatar-btn" href="profile.html" aria-label="Your profile"><img src="../images/avatars/185.webp" alt="" /></a></div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <div class="judging-bar">
+        <div>
+          <h1>Judge this battle</h1>
+          <div class="page-head__meta"><span class="pill pill--outline">[Challenger] vs [Opponent]</span><span class="pill pill--outline">[1v1, or pairing 1 of 3]</span></div>
+        </div>
+        <span class="time-left time-left--urgent">[N] days left</span>
+      </div>
+
+      <div class="video-pair">
+        <div><div class="video-frame">YouTube video · [Challenger]</div></div>
+        <div><div class="video-frame">YouTube video · [Opponent]</div></div>
+      </div>
+
+      <div class="layout">
+        <section class="card" aria-labelledby="pk-h">
+          <div class="card__head"><h2 class="card__title" id="pk-h">1. Pick the winner</h2></div>
+          <div class="segmented" role="radiogroup" aria-label="Winner" style="margin-top:var(--space-2)">
+            <label class="segmented__opt"><input type="radio" name="pick" /><span>[Challenger]</span></label>
+            <label class="segmented__opt"><input type="radio" name="pick" checked /><span>[Opponent]</span></label>
+          </div>
+
+          <div class="card__head" style="margin-top:var(--space-6)"><h2 class="card__title">2. Give your reason</h2></div>
+          <p class="hint" style="margin-top:0">Shown after you pick. Add a typed reason, a YouTube link to a video of you watching and judging, or both. At least one is required.</p>
+          <div class="field">
+            <label class="field__label" for="why">Typed reason</label>
+            <textarea class="textarea" id="why" rows="6" placeholder="Why did they win?"></textarea>
+          </div>
+          <div class="field">
+            <label class="field__label" for="rv">Review video (YouTube link)</label>
+            <div class="input-group"><input class="input" id="rv" type="url" placeholder="https://www.youtube.com/watch?v=…" /><button class="btn btn--ghost" type="button">Check link</button></div>
+            <span class="field__hint">A video of you watching and judging the battle. Public or unlisted.</span>
+          </div>
+          <span class="state-label">State: neither provided</span>
+          <div class="notice notice--warn"><div class="notice__title">Add a reason or a review video to submit.</div></div>
+        </section>
+
+        <aside>
+          <section class="card">
+            <div class="submit-block">
+              <button class="btn btn--primary btn--block" type="button">Submit judgment</button>
+              <button class="btn btn--ghost btn--block" type="button">Recuse myself</button>
+              <p class="hint" style="margin:0">Submitting locks your judgment. Reasons become public once all three judges have finished. In a 3v3 you pick a winner for each pairing.</p>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <nav class="site-footer__links"><a href="#">Privacy</a><a href="#">Terms</a></nav>
+      <span>&copy; 2026 GlovesUP</span>
+    </div>
+  <div class="screen-note">Screen S-J2 · feature F-C4 · same flow for 1v1 and team battles (once per pairing) · also used by a moderator or admin subbing in</div>
+  </footer>
+</body>
+</html>

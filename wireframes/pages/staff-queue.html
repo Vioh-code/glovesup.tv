@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cases — GlovesUP</title>
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/screens.css" />
+</head>
+<body class="bg-arena">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="site-header__logo" href="#">Gloves<span>UP</span></a><span class="site-header__staff">Staff</span>
+      <nav class="site-nav" aria-label="Main">
+        <a class="site-nav__link site-nav__link--active" href="staff-queue.html" aria-current="page">Cases</a>
+        <a class="site-nav__link" href="staff-moderation.html">Moderation</a>
+        <a class="site-nav__link" href="staff-users.html">Users</a>
+        <a class="site-nav__link" href="staff-audit.html">Audit log</a>
+      </nav>
+      <div class="site-header__actions"><a class="avatar-btn" href="#" aria-label="Your account"><img src="../images/avatars/185.webp" alt="" /></a></div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <div class="page-head"><div><h1>Cases</h1><p class="page-head__sub">Reports, disputes and support requests.</p></div></div>
+      <div class="tabs" role="tablist">
+        <a class="tabs__tab tabs__tab--active" href="#" role="tab" aria-selected="true">Open ([N])</a>
+        <a class="tabs__tab" href="#" role="tab">Mine</a>
+        <a class="tabs__tab" href="#" role="tab">Unassigned</a>
+        <a class="tabs__tab" href="#" role="tab">Resolved</a>
+      </div>
+      <div class="toolbar">
+        <div class="toolbar__search"><label class="visually-hidden" for="q">Search</label><input class="input" id="q" type="search" placeholder="Search cases" /></div>
+        <select class="select" aria-label="Type"><option>Any type</option><option>Report</option><option>Dispute</option><option>Support</option></select>
+      </div>
+      <section class="card card--flush">
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th>Case</th><th>Type</th><th>Subject</th><th>Status</th><th>Assignee</th><th>Age</th></tr></thead>
+            <tbody>
+              <tr><td><a href="staff-case.html"><strong>[ID]</strong> [Case title]</a></td><td><span class="pill pill--outline">[Type]</span></td><td class="text-secondary">[User or battle]</td><td><span class="pill pill--action">Open</span></td><td class="text-secondary">Unassigned</td><td class="time-left">[N]h</td></tr>
+              <tr><td><a href="staff-case.html"><strong>[ID]</strong> [Case title]</a></td><td><span class="pill pill--outline">[Type]</span></td><td class="text-secondary">[User or battle]</td><td><span class="pill pill--waiting">Waiting on user</span></td><td class="text-secondary">[Staff member]</td><td class="time-left">[N]d</td></tr>
+              <tr><td><a href="staff-case.html"><strong>[ID]</strong> [Case title]</a></td><td><span class="pill pill--outline">[Type]</span></td><td class="text-secondary">[User or battle]</td><td><span class="pill pill--action">Assigned</span></td><td class="text-secondary">[Staff member]</td><td class="time-left">[N]d</td></tr>
+              <tr><td><a href="staff-case.html"><strong>[ID]</strong> [Case title]</a></td><td><span class="pill pill--outline">[Type]</span></td><td class="text-secondary">[User or battle]</td><td><span class="pill pill--success">Resolved</span></td><td class="text-secondary">[Staff member]</td><td class="time-left">[N]d</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <div class="pager"><span>Showing [N] of [N]</span><div class="pager__btns"><button class="btn btn--ghost btn--sm" type="button" disabled>Previous</button><button class="btn btn--ghost btn--sm" type="button">Next</button></div></div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <nav class="site-footer__links"><a href="#">Privacy</a><a href="#">Terms</a></nav>
+      <span>&copy; 2026 GlovesUP</span>
+    </div>
+  <div class="screen-note">Screen S-S1 · features F-G1, F-G4</div>
+  </footer>
+</body>
+</html>

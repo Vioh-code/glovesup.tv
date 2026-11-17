@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My battles — GlovesUP</title>
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/screens.css" />
+</head>
+<body class="bg-arena">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="site-header__logo" href="../index.html">Gloves<span>UP</span></a>
+      <nav class="site-nav" aria-label="Main">
+        <a class="site-nav__link" href="dashboard.html">Dashboard</a>
+        <a class="site-nav__link site-nav__link--active" href="my-battles.html" aria-current="page">Battles</a>
+        <a class="site-nav__link" href="teams.html">Teams</a>
+        <a class="site-nav__link" href="leaderboards.html">Leaderboards</a>
+      </nav>
+      <div class="site-header__actions"><a class="btn btn--link" href="settings.html">Settings</a><a class="avatar-btn" href="profile.html" aria-label="Your profile"><img src="../images/avatars/185.webp" alt="" /></a></div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <div class="page-head"><div><h1>My battles</h1><p class="page-head__sub">Everything you are in, by state.</p></div></div>
+      <div class="tabs" role="tablist"><a class="tabs__tab tabs__tab--active" href="#" role="tab">Incoming ([N])</a><a class="tabs__tab" href="#" role="tab">Outgoing</a><a class="tabs__tab" href="#" role="tab">Active</a><a class="tabs__tab" href="#" role="tab">Past</a></div>
+      <section aria-label="Battles">
+        <a class="strip strip--versus" href="callout-respond.html"><div><div class="strip__name">[Opponent] called you out</div><div class="strip__sub">[1v1 or 3v3] · [ELO or Just for fun]</div></div><div class="strip__stats"><span class="time-left time-left--urgent">[N] hours left</span><span class="pill pill--action">Needs reply</span></div></a>
+        <a class="strip strip--versus" href="battle.html"><div><div class="strip__name">[You] vs [Opponent]</div><div class="strip__sub">[1v1 or 3v3] · [ELO or Just for fun]</div></div><div class="strip__stats"><span class="time-left">[N] days left</span><span class="pill pill--action">Submissions open</span></div></a>
+        <a class="strip strip--versus" href="battle.html"><div><div class="strip__name">[Team] vs [Team]</div><div class="strip__sub">3v3 · [ELO or Just for fun]</div></div><div class="strip__stats"><span class="pill pill--waiting">Judging</span></div></a>
+      </section>
+      <p class="hint">Tabs split these by state: Incoming (call outs to answer), Outgoing (call outs you sent), Active (accepted through judging), Past (finalized, expired, declined, cancelled).</p>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <nav class="site-footer__links"><a href="#">Privacy</a><a href="#">Terms</a></nav>
+      <span>&copy; 2026 GlovesUP</span>
+    </div>
+  <div class="screen-note">Screen S-B3 · features F-C1, F-C3 · target of the Battles nav link</div>
+  </footer>
+</body>
+</html>

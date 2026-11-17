@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create a call out — GlovesUP</title>
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/screens.css" />
+</head>
+<body class="bg-arena">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="site-header__logo" href="../index.html">Gloves<span>UP</span></a>
+      <nav class="site-nav" aria-label="Main">
+        <a class="site-nav__link" href="dashboard.html">Dashboard</a>
+        <a class="site-nav__link site-nav__link--active" href="my-battles.html" aria-current="page">Battles</a>
+        <a class="site-nav__link" href="teams.html">Teams</a>
+        <a class="site-nav__link" href="leaderboards.html">Leaderboards</a>
+      </nav>
+      <div class="site-header__actions"><a class="btn btn--link" href="settings.html">Settings</a><a class="avatar-btn" href="profile.html" aria-label="Your profile"><img src="../images/avatars/185.webp" alt="" /></a></div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <div class="page-head"><div>
+        <h1>Create a call out</h1>
+        <p class="page-head__sub">Direct to a named player or team. It expires 72 hours after you send it.</p>
+      </div></div>
+
+      <div class="layout layout--sticky-rail">
+        <form class="card" onsubmit="return false">
+          <section class="step">
+            <div class="step__head"><span class="step__num">1</span><h2 class="step__title">Opponent</h2></div>
+            <div class="opponent-lookup">
+              <input class="input" type="text" placeholder="[Opponent name]" aria-label="Opponent name" />
+              <span class="stat__label">Rating <span class="num" style="color:var(--text-primary)">[ELO]</span></span>
+              <span class="pill pill--success">Within 400 points</span>
+            </div>
+            <p class="hint">ELO call outs only allow opponents within 400 points above or below you.</p>
+          </section>
+
+          <section class="step">
+            <div class="step__head"><span class="step__num">2</span><h2 class="step__title">Format</h2></div>
+            <div class="segmented" role="radiogroup" aria-label="Format">
+              <label class="segmented__opt"><input type="radio" name="format" checked /><span>Single (1v1)</span></label>
+              <label class="segmented__opt"><input type="radio" name="format" /><span>Team (3v3)</span></label>
+            </div>
+            <div class="pairings">
+              <div class="field"><span class="field__label">Pairing 1</span><select class="select" aria-label="Pairing 1"><option>[Select member]</option></select></div>
+              <div class="field" style="margin-top:0"><span class="field__label">Pairing 2</span><select class="select" aria-label="Pairing 2"><option>[Select member]</option></select></div>
+              <div class="field" style="margin-top:0"><span class="field__label">Pairing 3</span><select class="select" aria-label="Pairing 3"><option>[Select member]</option></select></div>
+            </div>
+            <p class="hint">Team call outs only. Your officers pick your three. Pairings follow the listed order: first vs first, second vs second, third vs third.</p>
+          </section>
+
+          <section class="step">
+            <div class="step__head"><span class="step__num">3</span><h2 class="step__title">Scoring and judging</h2></div>
+            <div class="segmented" role="radiogroup" aria-label="Scoring">
+              <label class="segmented__opt"><input type="radio" name="scoring" checked /><span>ELO</span></label>
+              <label class="segmented__opt"><input type="radio" name="scoring" /><span>Just for fun</span></label>
+            </div>
+            <div class="subgroup">
+              <div class="option-grid">
+                <label class="option-card"><input type="radio" name="judging" checked /><span class="option-card__body"><span class="option-card__title">Official judges</span><span class="option-card__desc">Three judges each pick a winner</span></span></label>
+                <label class="option-card"><input type="radio" name="judging" disabled /><span class="option-card__body"><span class="option-card__title">Popular vote</span><span class="option-card__desc">Just for fun only</span></span></label>
+              </div>
+            </div>
+            <p class="hint">ELO battles must use official judges, so Popular vote is available on Just for fun battles only. Judges are drawn for you.</p>
+          </section>
+
+          <section class="step">
+            <div class="step__head"><span class="step__num">4</span><h2 class="step__title">Due date for videos</h2></div>
+            <div class="field">
+              <label class="field__label" for="due">Days after accept</label>
+              <select class="select" id="due"><option>3 days</option><option selected>5 days</option><option>7 days</option></select>
+            </div>
+          </section>
+        </form>
+
+        <aside>
+          <section class="card card--accent" aria-labelledby="review-h">
+            <div class="card__head"><h2 class="card__title" id="review-h">Review</h2></div>
+            <dl class="dl">
+              <dt>Opponent</dt><dd>[Opponent name]</dd>
+              <dt>Format</dt><dd>[1v1 or 3v3]</dd>
+              <dt>Scoring</dt><dd>[ELO or Just for fun]</dd>
+              <dt>Judging</dt><dd>[Judging type]</dd>
+              <dt>Videos due</dt><dd>[N] days after accept</dd>
+              <dt>Call out expires</dt><dd>72 hours</dd>
+            </dl>
+            <div class="card__foot">
+              <button class="btn btn--primary btn--block" type="button">Send call out</button>
+              <p class="hint">You can edit or cancel until your opponent accepts. Scoring cannot change after acceptance.</p>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <nav class="site-footer__links"><a href="#">Privacy</a><a href="#">Terms</a></nav>
+      <span>&copy; 2026 GlovesUP</span>
+    </div>
+  <div class="screen-note">Screen S-B1 · feature F-C1, F-C2 · Popular vote is locked while ELO scoring is selected</div>
+  </footer>
+</body>
+</html>

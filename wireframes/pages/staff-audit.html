@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Audit log — GlovesUP</title>
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/screens.css" />
+</head>
+<body class="bg-arena">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="site-header__logo" href="#">Gloves<span>UP</span></a><span class="site-header__staff">Staff</span>
+      <nav class="site-nav" aria-label="Main">
+        <a class="site-nav__link" href="staff-queue.html">Cases</a>
+        <a class="site-nav__link" href="staff-moderation.html">Moderation</a>
+        <a class="site-nav__link" href="staff-users.html">Users</a>
+        <a class="site-nav__link site-nav__link--active" href="staff-audit.html" aria-current="page">Audit log</a>
+      </nav>
+      <div class="site-header__actions"><a class="avatar-btn" href="#" aria-label="Your account"><img src="../images/avatars/185.webp" alt="" /></a></div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <div class="page-head"><div><h1>Audit log</h1><p class="page-head__sub">Every staff action, newest first. Read only.</p></div></div>
+      <div class="toolbar"><select class="select" aria-label="Actor"><option>Any staff member</option></select><select class="select" aria-label="Action"><option>Any action</option><option>Ban</option><option>Role change</option><option>Result reversal</option><option>Content removal</option></select></div>
+      <section class="card card--flush"><div class="table-wrap"><table class="table"><thead><tr><th>When</th><th>Who</th><th>Action</th><th>Subject</th><th>Case</th></tr></thead><tbody><tr><td>[date time]</td><td>[Staff member]</td><td>[Action]</td><td>[Subject]</td><td><a href="staff-case.html">[ID]</a></td></tr></tbody></table></div></section>
+
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <nav class="site-footer__links"><a href="#">Privacy</a><a href="#">Terms</a></nav>
+      <span>&copy; 2026 GlovesUP</span>
+    </div>
+  <div class="screen-note">Screen S-S8 · feature F-H3</div>
+  </footer>
+</body>
+</html>
