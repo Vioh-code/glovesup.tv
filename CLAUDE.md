@@ -25,11 +25,11 @@ Confirmed from the Nov 13, 2026 stack report and checks on both machines. `[CONF
 
 **Machines**
 - Dev box: Ubuntu 24.04 LTS, user `edmin`, repo at `~/glovesup`, local Postgres 16. Nothing is served from it; run Node directly.
-- Production (Linode): user `matt`, repo at `/home/matt/glovesup.tv`. Nginx reverse proxy (site `glovesup.tv`), systemd service `glovesup`, Node on port 3000, Postgres. Today it runs the scrapped first attempt. [CONFIRM: Nginx and Postgres versions]
+- Production (Linode): app user `glovesup`, repo at `/home/glovesup/glovesup.tv`. The Action deploys here as `glovesup`; Matt administers as `matt` (sudo). Nginx 1.24 reverse proxy (site `glovesup.tv`, `proxy_pass http://localhost:3000`), systemd service `glovesup` (drop-in `/etc/systemd/system/glovesup.service.d/override.conf`), Node 24.22.1, Postgres 16.15, database `glovesup` owned by role `glovesup`. Runs V1 slice 0 since Nov 17, 2026.
 - Domain: glovesup.tv
 
 **Stack**
-- Runtime: Node 24 LTS. Dev box is on 24.22.3 (npm 11.19.1). The Linode must be on Node 24 before the first deploy. [CONFIRM: Linode Node version]
+- Runtime: Node 24 LTS. Dev box 24.22.3, Linode 24.22.1, npm 11.19.1 on both. `package.json` sets `engines.node` to `>=24`.
 - App: Express 4, EJS server-rendered views, Passport (local), express-session with connect-pg-simple, bcrypt.
 - Data access: plain `pg` with SQL. Shared pool in `db.js`. Sequelize and pg-hstore are removed.
 - Database: Postgres. Settings: PORT, DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME. Node loads them with `--env-file` (no dotenv). Dev box: `.env.dev` (`glovesup_dev`) and `.env.test` (`glovesup_test`), both as role `glovesup_dev`. Linode: `.env`.
@@ -46,16 +46,16 @@ Confirmed from the Nov 13, 2026 stack report and checks on both machines. `[CONF
 | Run tests | `npm test` (`node --env-file=.env.test --test`) |
 | Migrate dev | `npm run migrate` (up, all pending). `npm run migrate -- down` reverts the latest one |
 | Migrate test DB | `npm run migrate:test` (same, against `.env.test`) |
-| Migrate production (on the Linode, after a backup) | `node --env-file=.env scripts/migrate.js up` |
-| Start (production) | `npm start` (`node --env-file=.env index.js`). [CONFIRM: how the systemd unit starts the app and loads .env] |
-| Back up before any production migration | `sudo -u postgres pg_dump -Fc <DB_NAME> > ~/backups/glovesup-$(date +%F-%H%M).dump` [CONFIRM: backup directory and free disk on the Linode] |
+| Migrate production (on the Linode, after a backup) | `sudo -u glovesup bash -c 'cd /home/glovesup/glovesup.tv && node --env-file=.env scripts/migrate.js up'` |
+| Start (production) | systemd runs `/usr/bin/node --env-file=.env /home/glovesup/glovesup.tv/index.js` with `NODE_ENV=production` (drop-in `override.conf`). Restart with `sudo systemctl restart glovesup` |
+| Back up before any production migration | On the Linode as `matt`: `sudo -u postgres pg_dump -Fc glovesup > ~/backups/glovesup-$(date +%F-%H%M).dump`, then `chmod 600 ~/backups/glovesup-*.dump`. `~/backups` exists (mode 700); 17 GB free on Nov 17, 2026 |
 | Deploy | Matt merges a pull request to main. The Action in `.github/workflows/deploy.yml` SSHes to the Linode and runs `git pull --ff-only`, `npm ci --omit=dev`, `sudo systemctl restart glovesup`. |
 | Prod logs | `journalctl -u glovesup -n 50` |
 
 **Merge equals deploy**
 - The Action only pulls, installs and restarts. It does not run migrations or change `.env`, Nginx, cron or systemd. Those are manual steps on the Linode, done before Matt merges.
-- docs/, wireframes/, CLAUDE.md and OPEN_ITEMS.md must not end up on the Linode. [NOT SET UP: plan is git sparse-checkout on the server, see OPEN_ITEMS.md]
-- The Linode checkout is one commit behind with local edits to package.json and package-lock.json. Clean it before the first merge. See OPEN_ITEMS.md.
+- docs/, wireframes/, CLAUDE.md and OPEN_ITEMS.md must not end up on the Linode. Done Nov 17, 2026: git sparse-checkout is set on `/home/glovesup/glovesup.tv` and the Action skips deploys that only touch those paths (`paths-ignore`). If the checkout is ever re-cloned, set it again: `git sparse-checkout set --no-cone '/*' '!/docs/' '!/wireframes/' '!/CLAUDE.md' '!/OPEN_ITEMS.md'`
+- The deploy checkout is `/home/glovesup/glovesup.tv` (user `glovesup`). `/home/matt/glovesup.tv` is a stale leftover from the first attempt; ignore it.
 
 ## Session start (every session)
 1. `git pull`, confirm the working tree is clean and you are on a feature branch, not main.
