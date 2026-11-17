@@ -48,7 +48,7 @@ erDiagram
 | email | text, unique (case-insensitive) | Never shown to other users. Required unless status is deleted | Delete |
 | email_verified_at | timestamp | Null until verified. Every account is a Member from registration; this gates call outs and voting | Delete |
 | password_hash | text | bcrypt, cost 12. Required unless status is deleted | Delete |
-| dob_encrypted | bytes | Encrypted, not hashed, so age checks still work. Never displayed. Required unless status is deleted | Delete |
+| dob_encrypted | bytes | Encrypted, not hashed, so age checks still work: AES-256-GCM with key `DOB_ENC_KEY`, stored as version byte, IV, tag, ciphertext. The key is backed up outside the repo and the database dumps. Never displayed. Required unless status is deleted | Delete |
 | age_gate_passed | boolean | Computed at signup (13 or older on the day of signup). A refused signup writes no row | Keep |
 | terms_accepted_at | timestamp | When the user ticked the Terms and Privacy box at signup. Required unless status is deleted | Delete |
 | mfa_secret, recovery_codes | bytes | Required for staff | Delete |
