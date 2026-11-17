@@ -12,11 +12,26 @@
   <header class="site-header">
     <div class="site-header__inner">
       <a class="site-header__logo" href="/">Gloves<span>UP</span></a>
+<% if (locals.currentUser) { %>
+      <nav class="site-nav" aria-label="Main">
+        <a class="site-nav__link" href="/dashboard">Dashboard</a>
+        <a class="site-nav__link" href="/my-battles">Battles</a>
+        <a class="site-nav__link" href="/teams">Teams</a>
+        <a class="site-nav__link" href="/leaderboards">Leaderboards</a>
+      </nav>
+      <div class="site-header__actions">
+        <form method="post" action="/logout">
+          <input type="hidden" name="_csrf" value="<%= locals.csrfToken || '' %>" />
+          <button class="btn btn--link" type="submit">Log out</button>
+        </form>
+      </div>
+<% } else { %>
       <nav class="site-nav" aria-label="Main">
         <a class="site-nav__link" href="/battles">Battle log</a>
         <a class="site-nav__link" href="/teams">Teams</a>
         <a class="site-nav__link" href="/leaderboards">Leaderboards</a>
       </nav>
       <div class="site-header__actions"><a class="btn btn--link" href="/login">Log in</a><a class="btn btn--primary btn--sm" href="/register">Register</a></div>
+<% } %>
     </div>
   </header>

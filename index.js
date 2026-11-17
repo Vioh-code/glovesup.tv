@@ -1,6 +1,7 @@
 const express = require('express');
 const { pool } = require('./db');
 const { setupViews, notFound, serverError } = require('./lib/web');
+const pages = require('./routes/pages');
 
 const HOST = '127.0.0.1'; // Nginx proxies to this; never listen on all interfaces.
 
@@ -20,6 +21,7 @@ app.get('/health', async (req, res) => {
 
 // S-P1 Home (placeholder until the home slice)
 app.get('/', (req, res) => res.render('home'));
+app.use(pages);
 
 app.use(notFound);
 app.use(serverError);

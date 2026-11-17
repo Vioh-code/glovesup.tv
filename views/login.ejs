@@ -1,0 +1,19 @@
+<%- include('partials/top', { title: 'Log in' }) %>
+  <%# S-P10 Log in (F-A2), password step only. Layout: wireframes/pages/login.html.
+       Forgot password, MFA step and lockout state come in later sub-slices. %>
+  <main class="auth bg-spotlight">
+    <section class="card card--raised auth__card" aria-labelledby="t">
+      <h1 class="auth__title" id="t">Log in</h1>
+      <p class="auth__sub">Welcome back. Pick up where you left off.</p>
+<%- include('partials/form-errors') %>
+      <form method="post" action="/login" novalidate>
+        <input type="hidden" name="_csrf" value="<%= locals.csrfToken || '' %>" />
+        <div class="field"><label class="field__label" for="id">Email or username</label><input class="input" id="id" name="identifier" type="text" autocomplete="username" value="<%= locals.values ? values.identifier : '' %>" required /></div>
+        <div class="field"><label class="field__label" for="pw">Password</label><input class="input" id="pw" name="password" type="password" autocomplete="current-password" required /></div>
+        <label class="check" style="margin-top:var(--space-4)"><input type="checkbox" name="remember" value="yes" <%= locals.values && values.remember ? 'checked' : '' %> /> Keep me logged in on this device</label>
+        <button class="btn btn--primary btn--block" type="submit" style="margin-top:var(--space-5)">Log in</button>
+      </form>
+      <p class="auth__alt">New here? <a href="/register">Create an account</a></p>
+    </section>
+  </main>
+<%- include('partials/bottom') %>
