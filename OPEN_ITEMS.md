@@ -27,23 +27,17 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 - Fight card (not V1).
 - Score cards and a score card builder (future feature, not in V1).
 
-## Added Nov 13, 2026 (repo reset)
-- Node 24: dev box done (24.22.3). Linode still needs Node 24 before the first deploy. Confirm its current version.
-- Linode checkout is one commit behind with local edits to package.json and package-lock.json. Save the diff and reset to clean before the first merge.
-- Old app on the Linode listens on all interfaces (port 3000). Confirm the firewall. New app binds to 127.0.0.1.
-- Full git pull ships docs/, wireframes/, CLAUDE.md and OPEN_ITEMS.md to the Linode. Plan: sparse-checkout on the server. Decide before first deploy.
-- Hardening commit 42d1b41 (Postgres session store, cookie hardening) never reached the Linode. Old app only; not fixing.
-- Before merging chore/v1-repo-reset into main (the first deploy): clean the Linode checkout, Node 24, Nginx and DB ready, .env values, decide sparse-checkout. Slice PRs target chore/v1-repo-reset until then.
-- Optional deploy.yml hardening later: remove workflow_dispatch, add permissions: contents: read, add a test job gate. It works as is.
-- Tests run on the dev box only; the Action has no test gate.
-- Worker cron output needs a log file and rotation. Decide in the worker slice.
-- Confirm on the Linode: Nginx and Postgres versions, backup directory, free disk.
-- Old archive at ~/Downloads/Glovesup arch has Privacy_Policy.md, Terms_of_Service.md, ELO_Reference.md. Review for reuse later.
-
-## Added Nov 13, 2026 (slice 0 scaffold)
-- DB roles: split an owner role (runs migrations, owns tables) from a least-privilege app role (runtime queries). Today the dev box uses one role, `glovesup_dev`, for both dev and test databases.
-- The Linode `.env` may use the postgres superuser. Confirm, and switch to a dedicated role before the first deploy.
+## Open after the Nov 17, 2026 cutover
+- Delete the stale `/home/matt/glovesup.tv` on the Linode (first-attempt copy with local package edits). Only when Matt says so.
+- Nginx uses `proxy_pass http://localhost:3000` and the app binds 127.0.0.1. Works today (health returns 200). If 502s appear, change it to `http://127.0.0.1:3000`.
+- Confirm main blocks direct pushes (the PR page shows a rule with 0 required approvals).
+- `npm audit` shows 9 findings (4 moderate, 3 high, 2 critical) on the dev box. Review in the Dec 7 monthly update session.
+- Optional deploy.yml hardening: add `permissions: contents: read` and a test job gate. Tests run on the dev box only; the Action has no gate.
+- Worker cron output needs a log file and rotation. Decide in the worker slice. Cron runs as `glovesup` with absolute paths.
+- DB roles: split an owner role (runs migrations, owns tables) from a least-privilege app role (runtime queries). Today the dev box uses one role, `glovesup_dev`, for the dev and test databases.
+- Linode `.env` `DB_USER`: confirm it is the dedicated `glovesup` role and not the postgres superuser, before the auth slice.
 - Old databases `glovesup` and `gloveleague` on the dev box can be dropped when Matt says so. Do not drop before then.
-- The app no longer uses dotenv; Node loads env files with `--env-file`. Confirm how the systemd unit starts the app (ExecStart and EnvironmentFile). It must run `node --env-file=.env index.js` (or `npm start`) or set EnvironmentFile, or the first deploy starts with no DB settings. Remove dotenv from package.json once confirmed.
-- npm 11 skipped bcrypt's install script (node-gyp rebuild) with an install-scripts warning. bcrypt loads on the dev box today. Check `npm ci --omit=dev` on the Linode builds it, before the auth slice.
-- `.env.example` still lists reCAPTCHA keys from the old app. Trim it when auth is built.
+- Remove `dotenv` from package.json once confirmed unused (Node loads env files with `--env-file`).
+- Before the auth slice, confirm bcrypt loads on the Linode: `sudo -u glovesup node -e "require('/home/glovesup/glovesup.tv/node_modules/bcrypt')"`. npm 11 warns that bcrypt's install script is not covered by allowScripts; npm 12 blocks it by default.
+- `.env.example` still lists reCAPTCHA keys from the old app. Trim when auth is built.
+- Old archive at ~/Downloads/Glovesup arch has Privacy_Policy.md, Terms_of_Service.md, ELO_Reference.md. Review for reuse later.
