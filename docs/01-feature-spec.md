@@ -221,7 +221,7 @@ Roles and permissions live in database tables: roles, permissions, role-to-permi
 | Role | How obtained | Key abilities |
 |---|---|---|
 | Visitor | Default | Register, log in. View leaderboards, profiles, team profiles, battle logs (both videos and the judging outcome) |
-| Member | Verified email and DOB | Core loop, teams, tickets and reports |
+| Member | Every account, from registration (DOB required at signup) | Core loop, teams, tickets and reports. A verified email (`users.email_verified_at`) is also required for call outs and voting |
 | Team Officer | Promoted by owner, scoped to a team | Edit team, manage members, pick battle roster |
 | Team Owner | Creator or transfer, scoped to a team | Officer abilities plus transfer, delete, promote |
 | Judge | Application plus two-admin approval, or super admin assignment | Judge battles. Barred from ELO battles |

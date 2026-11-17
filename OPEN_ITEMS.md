@@ -44,3 +44,7 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 ## Slice 1a (register and log in), Nov 17, 2026
 - Age gate uses the server's UTC calendar date as "the day of signup". In US evening hours UTC is already the next day, so someone turning 13 tomorrow (local) can pass a few hours early. Not in the docs; left as is.
 - After an under-13 refusal nothing stops the person from going back and entering a different date. Not in the docs; no retry block built.
+- Does joining a team also need a verified email? The S-P8 subtitle says "Verify your email to call out and join teams"; spec section 8 and the verification banner name call outs and voting only. Decide before the teams slice.
+- Nav links to screens not built yet (Battle log, Teams, Leaderboards, Battles) show the 404 page until their slices.
+- A form body over 10 kB is refused, but shows the generic "Something went wrong" page (500) instead of a 413 message.
+- After registering, the user goes to the log-in page with an "Account created" notice; there is no automatic login.

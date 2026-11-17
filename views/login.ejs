@@ -5,6 +5,9 @@
     <section class="card card--raised auth__card" aria-labelledby="t">
       <h1 class="auth__title" id="t">Log in</h1>
       <p class="auth__sub">Welcome back. Pick up where you left off.</p>
+<% if (locals.registered) { %>
+      <div class="notice notice--success" role="status" style="margin-bottom:var(--space-5)">Account created. Log in to continue.</div>
+<% } %>
 <%- include('partials/form-errors') %>
       <form method="post" action="/login" novalidate>
         <input type="hidden" name="_csrf" value="<%= locals.csrfToken || '' %>" />
