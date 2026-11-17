@@ -4,6 +4,7 @@ const { pool } = require('./db');
 const { loadConfig } = require('./lib/config');
 const { configureSessions } = require('./lib/session');
 const { csrfProtection } = require('./lib/csrf');
+const { configurePassport } = require('./lib/auth');
 const { setupViews, notFound, serverError } = require('./lib/web');
 const pages = require('./routes/pages');
 const { authRoutes } = require('./routes/auth');
@@ -39,6 +40,7 @@ function createApp(env) {
   configureSessions(app, config, pool);
   app.use(express.urlencoded({ extended: false, limit: '10kb' }));
   app.use(csrfProtection); // every POST needs the session's token, even to unknown paths
+  configurePassport(app);
 
   // S-P1 Home (placeholder until the home slice)
   app.get('/', (req, res) => res.render('home'));

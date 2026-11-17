@@ -48,3 +48,6 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 - Nav links to screens not built yet (Battle log, Teams, Leaderboards, Battles) show the 404 page until their slices.
 - A form body over 10 kB is refused, but shows the generic "Something went wrong" page (500) instead of a 413 message.
 - After registering, the user goes to the log-in page with an "Account created" notice; there is no automatic login.
+- Banned, suspended and deleted accounts get the generic "Wrong email, username or password." message at login, so a banned user is not told why. How they learn about a ban and reach an appeal (F-G2) is undecided.
+- A user who is banned or suspended while logged in is treated as logged out on their next request. The session row stays until it expires; a sign-out-everywhere action comes with the session list.
+- Active-session list (S-M4, `sessions` table) not built. Deferred with MFA and lockout.

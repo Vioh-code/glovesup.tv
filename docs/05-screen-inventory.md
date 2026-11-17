@@ -1,7 +1,7 @@
 # GlovesUP V1 Screen Inventory
 
 Doc: 05-screen-inventory. Related: 01-feature-spec (F- IDs), 04-permissions-matrix (who sees what). The drawn wireframes show what is done; remaining gaps are in OPEN_ITEMS.md.
-Last updated: Nov 13, 2026. Owner: Matt.
+Last updated: Nov 17, 2026. Owner: Matt.
 
 ## Conventions (read first)
 - Screen IDs use the `S-` prefix (example: `S-B1`). Feature IDs use `F-` (example: `F-B1` is Create team; `S-B1` is Create call out).
@@ -39,7 +39,7 @@ Visitors can reach all of these without logging in. Battle detail is the most im
 | S-P7 | Battle detail | Both videos, the judging outcome, per-pairing results for team battles, judge reasons (text and review videos) once all judging is complete, and the popular vote when used. A dead video shows the gravestone | F-C8, F-C2, F-C4, F-C5 |
 | S-P8 | Register | Email, username, password, date of birth, terms checkbox. Subtitle: "Free to join. Verify your email to call out and join teams." Under-13 signups are blocked | F-A1 |
 | S-P9 | Verify email | Landing page for the emailed link, with a resend option | F-A1 |
-| S-P10 | Log in | Email and password, then an MFA code step when the account has MFA. Lockout message after repeated failures | F-A2, F-A3 |
+| S-P10 | Log in | Email or username, password, and a Keep me logged in checkbox, then an MFA code step when the account has MFA. Lockout message after repeated failures. Every failed login shows the same message | F-A2, F-A3 |
 | S-P11 | Forgot and reset password | Request form, then the reset form behind the emailed link | F-A2 |
 | S-P12 | Locked-out help | Ticket form for people who cannot log in or lost their MFA device † | F-G4 |
 | S-P13 | Legal pages | Terms of Service, Privacy Policy, community guidelines, linked from the footer and the register screen | F-A1 |
