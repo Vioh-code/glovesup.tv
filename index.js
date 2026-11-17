@@ -1,9 +1,12 @@
 const express = require('express');
+const helmet = require('helmet');
 const { pool } = require('./db');
 const { loadConfig } = require('./lib/config');
 const { configureSessions } = require('./lib/session');
+const { csrfProtection } = require('./lib/csrf');
 const { setupViews, notFound, serverError } = require('./lib/web');
 const pages = require('./routes/pages');
+const { authRoutes } = require('./routes/auth');
 
 const HOST = '127.0.0.1'; // Nginx proxies to this; never listen on all interfaces.
 
@@ -14,6 +17,13 @@ function createApp(env) {
 
   const app = express();
   app.disable('x-powered-by');
+  // helmet defaults. Outside production, drop upgrade-insecure-requests so the
+  // dev box can load CSS over plain http://127.0.0.1.
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: { upgradeInsecureRequests: config.isProduction ? [] : null },
+    },
+  }));
   setupViews(app); // static files are served before sessions, so they never touch the store
 
   app.get('/health', async (req, res) => {
@@ -27,9 +37,12 @@ function createApp(env) {
   });
 
   configureSessions(app, config, pool);
+  app.use(express.urlencoded({ extended: false, limit: '10kb' }));
+  app.use(csrfProtection); // every POST needs the session's token, even to unknown paths
 
   // S-P1 Home (placeholder until the home slice)
   app.get('/', (req, res) => res.render('home'));
+  app.use(authRoutes(config));
   app.use(pages);
 
   app.use(notFound);
