@@ -1,0 +1,16 @@
+<%- include('partials/top', { title: heading }) %>
+  <%# S-P13 Legal pages. Layout: wireframes/pages/legal.html. Text to be supplied by Matt. %>
+  <main class="page">
+    <div class="container container--sm" style="max-width:var(--content-max-width)">
+      <div class="page-head"><div><h1>Terms and Privacy</h1></div></div>
+      <div class="tabs" role="tablist">
+        <a class="tabs__tab<%= page === 'terms' ? ' tabs__tab--active' : '' %>" href="/terms" role="tab"<%- page === 'terms' ? ' aria-selected="true"' : '' %>>Terms</a>
+        <a class="tabs__tab<%= page === 'privacy' ? ' tabs__tab--active' : '' %>" href="/privacy" role="tab"<%- page === 'privacy' ? ' aria-selected="true"' : '' %>>Privacy</a>
+      </div>
+      <section class="card">
+        <h2 class="card__title"><%= heading %></h2>
+        <p>The full text is coming soon.</p>
+      </section>
+    </div>
+  </main>
+<%- include('partials/bottom') %>

@@ -1,0 +1,21 @@
+<%- include('partials/top', { title: 'Register' }) %>
+  <%# S-P8 Register (F-A1). Layout: wireframes/pages/register.html %>
+  <main class="auth bg-spotlight">
+    <section class="card card--raised auth__card" aria-labelledby="t">
+      <h1 class="auth__title" id="t">Create your account</h1>
+      <p class="auth__sub">Free to join. Verify your email to call out and join teams.</p>
+<%- include('partials/form-errors') %>
+      <form method="post" action="/register" novalidate>
+        <input type="hidden" name="_csrf" value="<%= locals.csrfToken || '' %>" />
+        <div class="field"><label class="field__label" for="u">Username</label><input class="input" id="u" name="username" type="text" autocomplete="username" maxlength="20" value="<%= locals.values ? values.username : '' %>" required /><span class="field__hint">Public. Shown on your profile and in battles. 3 to 20 letters, numbers, _ or -.</span></div>
+        <div class="field"><label class="field__label" for="e">Email</label><input class="input" id="e" name="email" type="email" autocomplete="email" value="<%= locals.values ? values.email : '' %>" required /><span class="field__hint">Never shown to other users. We send a verification link.</span></div>
+        <div class="field"><label class="field__label" for="dob">Date of birth</label><input class="input" id="dob" name="dob" type="date" required /><span class="field__hint">Never shown. Used for the age requirement only.</span></div>
+        <div class="field"><label class="field__label" for="p1">Password</label><input class="input" id="p1" name="password" type="password" autocomplete="new-password" minlength="12" required /><span class="field__hint">At least 12 characters.</span></div>
+        <div class="field"><label class="field__label" for="p2">Confirm password</label><input class="input" id="p2" name="password_confirm" type="password" autocomplete="new-password" required /></div>
+        <label class="check" style="margin-top:var(--space-4)"><input type="checkbox" name="terms" value="yes" required /> <span>I agree to the <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>.</span></label>
+        <button class="btn btn--primary btn--block" type="submit" style="margin-top:var(--space-5)">Create account</button>
+      </form>
+      <p class="auth__alt">Already have an account? <a href="/login">Log in</a></p>
+    </section>
+  </main>
+<%- include('partials/bottom') %>

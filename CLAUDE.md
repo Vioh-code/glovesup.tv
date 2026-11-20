@@ -30,7 +30,7 @@ Confirmed from the Nov 13, 2026 stack report and checks on both machines. `[CONF
 
 **Stack**
 - Runtime: Node 24 LTS. Dev box 24.22.3, Linode 24.22.1, npm 11.19.1 on both. `package.json` sets `engines.node` to `>=24`.
-- App: Express 4, EJS server-rendered views, Passport (local), express-session with connect-pg-simple, bcrypt.
+- App: Express 4, EJS server-rendered views, Passport (local), express-session with connect-pg-simple (table from a migration), bcrypt, helmet. CSRF is hand-written (`lib/csrf.js`, session-bound token, `crypto.timingSafeEqual`). The app refuses to start without `SESSION_SECRET` and `DOB_ENC_KEY` (see `.env.example`).
 - Data access: plain `pg` with SQL. Shared pool in `db.js`. Sequelize and pg-hstore are removed.
 - Database: Postgres. Settings: PORT, DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME. Node loads them with `--env-file` (no dotenv). Dev box: `.env.dev` (`glovesup_dev`) and `.env.test` (`glovesup_test`), both as role `glovesup_dev`. Linode: `.env`.
 - Migrations: node-pg-migrate 9 via `scripts/migrate.js` (runner API, reads DB_* from the env file). Files in `migrations/`, CommonJS, `<timestamp>_<name>.js`. Tracking table `pgmigrations`.
@@ -43,7 +43,7 @@ Confirmed from the Nov 13, 2026 stack report and checks on both machines. `[CONF
 |---|---|
 | Install | `npm ci` |
 | Run dev | `npm run dev` (`node --env-file=.env.dev --watch index.js`), serves http://127.0.0.1:3000/health |
-| Run tests | `npm test` (`node --env-file=.env.test --test`) |
+| Run tests | `npm test` (`node --env-file=.env.test --test --test-concurrency=1`; files share `glovesup_test`, so they run one at a time) |
 | Migrate dev | `npm run migrate` (up, all pending). `npm run migrate -- down` reverts the latest one |
 | Migrate test DB | `npm run migrate:test` (same, against `.env.test`) |
 | Migrate production (on the Linode, after a backup) | `sudo -u glovesup bash -c 'cd /home/glovesup/glovesup.tv && node --env-file=.env scripts/migrate.js up'` |

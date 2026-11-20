@@ -1,7 +1,7 @@
 # GlovesUP V1 Data Model
 
 Doc: 02-data-model. Related: 01-feature-spec (F- IDs), 03-state-flows (timers and statuses), 04-permissions-matrix.
-Last updated: Nov 13, 2026. Owner: Matt.
+Last updated: Nov 17, 2026. Owner: Matt.
 
 ## Conventions (read first)
 - `†` marks a detail inferred and not yet confirmed. Everything without `†` is decided.
@@ -43,13 +43,14 @@ erDiagram
 | Field | Type | Notes | On deletion |
 |---|---|---|---|
 | id | uuid | Primary key. Every other table points here | Keep |
-| username | text, unique | Banned-word checked | Anon |
+| username | text, unique (case-insensitive) | 3 to 20 characters: A-Z, a-z, 0-9, `_`, `-`. Banned-word checked | Anon |
 | glover_name | text | Always public | Anon |
-| email | text, unique | Never shown to other users | Delete |
-| email_verified_at | timestamp | Null until verified | Delete |
-| password_hash | text | | Delete |
-| dob_encrypted | bytes | Encrypted, not hashed, so age checks still work. Never displayed | Delete |
-| age_gate_passed | boolean | Computed at signup (13 or older) | Keep |
+| email | text, unique (case-insensitive) | Never shown to other users. Required unless status is deleted | Delete |
+| email_verified_at | timestamp | Null until verified. Every account is a Member from registration; this gates call outs and voting | Delete |
+| password_hash | text | bcrypt, cost 12. Required unless status is deleted | Delete |
+| dob_encrypted | bytes | Encrypted, not hashed, so age checks still work: AES-256-GCM with key `DOB_ENC_KEY`, stored as version byte, IV, tag, ciphertext. The key is backed up outside the repo and the database dumps. Never displayed. Required unless status is deleted | Delete |
+| age_gate_passed | boolean | Computed at signup (13 or older on the day of signup). A refused signup writes no row | Keep |
+| terms_accepted_at | timestamp | When the user ticked the Terms and Privacy box at signup. Required unless status is deleted | Delete |
 | mfa_secret, recovery_codes | bytes | Required for staff | Delete |
 | avatar_url, bio | text | Avatar is always public | Delete |
 | status | enum | active, suspended, banned, deleted | Keep (set to deleted) |
@@ -73,7 +74,8 @@ erDiagram
 ### sessions and blocks
 | Table | Fields | On deletion |
 |---|---|---|
-| sessions | user_id, device, ip, last_seen_at, revoked_at | Delete |
+| sessions | user_id, device, ip, last_seen_at, revoked_at. Active-session list (F-A2). Not built yet | Delete |
+| session | sid, sess, expire. Login session store used by connect-pg-simple. Created by a migration, never auto-created | Delete |
 | blocks | blocker_id, blocked_id, created_at | Delete |
 
 ### user_roles

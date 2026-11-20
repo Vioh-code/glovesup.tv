@@ -39,5 +39,15 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 - Old databases `glovesup` and `gloveleague` on the dev box can be dropped when Matt says so. Do not drop before then.
 - Remove `dotenv` from package.json once confirmed unused (Node loads env files with `--env-file`).
 - Before the auth slice, confirm bcrypt loads on the Linode: `sudo -u glovesup node -e "require('/home/glovesup/glovesup.tv/node_modules/bcrypt')"`. npm 11 warns that bcrypt's install script is not covered by allowScripts; npm 12 blocks it by default.
-- `.env.example` still lists reCAPTCHA keys from the old app. Trim when auth is built.
 - Old archive at ~/Downloads/Glovesup arch has Privacy_Policy.md, Terms_of_Service.md, ELO_Reference.md. Review for reuse later.
+
+## Slice 1a (register and log in), Nov 17, 2026
+- Age gate uses the server's UTC calendar date as "the day of signup". In US evening hours UTC is already the next day, so someone turning 13 tomorrow (local) can pass a few hours early. Not in the docs; left as is.
+- After an under-13 refusal nothing stops the person from going back and entering a different date. Not in the docs; no retry block built.
+- Does joining a team also need a verified email? The S-P8 subtitle says "Verify your email to call out and join teams"; spec section 8 and the verification banner name call outs and voting only. Decide before the teams slice.
+- Nav links to screens not built yet (Battle log, Teams, Leaderboards, Battles) show the 404 page until their slices.
+- A form body over 10 kB is refused, but shows the generic "Something went wrong" page (500) instead of a 413 message.
+- After registering, the user goes to the log-in page with an "Account created" notice; there is no automatic login.
+- Banned, suspended and deleted accounts get the generic "Wrong email, username or password." message at login, so a banned user is not told why. How they learn about a ban and reach an appeal (F-G2) is undecided.
+- A user who is banned or suspended while logged in is treated as logged out on their next request. The session row stays until it expires; a sign-out-everywhere action comes with the session list.
+- Active-session list (S-M4, `sessions` table) not built. Deferred with MFA and lockout.

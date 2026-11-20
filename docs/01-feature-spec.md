@@ -1,7 +1,7 @@
 # GlovesUP Feature Spec (V1)
 
 Doc: 01-feature-spec. Related: 02-data-model, 03-state-flows, 04-permissions-matrix, 05-screen-inventory.
-Last updated: Nov 13, 2026. Owner: Matt.
+Last updated: Nov 17, 2026. Owner: Matt.
 
 ## Conventions (read first)
 - Feature IDs use the `F-` prefix (example: `F-C1`). Screen IDs use `S-` and live in 05-screen-inventory (example: `S-B1`). `F-B1` (Create team) and `S-B1` (Create call out) are different things.
@@ -85,8 +85,8 @@ V1 battles that do not affect ELO (Just for fun) use official judges or popular 
 ## 4. Feature rules
 | ID | Rules |
 |---|---|
-| F-A1 | Date of birth is required at signup. Minimum age is 13; younger signups are blocked. DOB is stored encrypted, used only for age checks, and never shown to other users. The user can see their own. Self-declared in V1. |
-| F-A2 | Lockout after repeated failed logins. Staff accounts must use MFA. |
+| F-A1 | Date of birth is required at signup. Minimum age is 13; younger signups are blocked. DOB is stored encrypted, used only for age checks, and never shown to other users. The user can see their own. Self-declared in V1. Age gate: 13 or older on the day of signup (UTC calendar date); a Feb 29 birthday counts from Mar 1 in non-leap years. A refused signup writes nothing. Username: 3 to 20 characters from A-Z, a-z, 0-9, `_`, `-`; unique regardless of case. Email: unique regardless of case. Password: 12 to 72 bytes (UTF-8), not equal to the username or email (ignoring case), no composition rules, stored with bcrypt cost 12. A Terms and Privacy checkbox is required. |
+| F-A2 | Lockout after repeated failed logins. Staff accounts must use MFA. Log in with email or username. Sessions are stored in Postgres. Without "Keep me logged in" the cookie ends when the browser closes and the session expires after 12 hours idle; with it, the session lasts 30 days from login. The session cookie is HttpOnly, SameSite=Lax, and Secure in production. The app refuses to start without SESSION_SECRET and DOB_ENC_KEY. |
 | F-A3 | MFA reset is a staff action under F-H1. |
 | F-A4 | Username, Glover name and bio are checked against the banned-word list (F-G2). Profile image, username, Glover name and battle history are always public. Email and date of birth are never shown. Social links: up to 5 rows, each a platform dropdown (YouTube, Instagram, TikTok, Facebook, X, Discord, Twitch, Website) plus a URL; one public or private toggle covers all links. Users can hide any other profile field. |
 | F-A5 | Anonymization keeps battle history but hard-deletes every identifying field. The account becomes the Hung Up placeholder: a pair of darkened gloves hanging over a wire, in muted monochrome. Also covers the right to a copy of data (F-H4). |
@@ -221,7 +221,7 @@ Roles and permissions live in database tables: roles, permissions, role-to-permi
 | Role | How obtained | Key abilities |
 |---|---|---|
 | Visitor | Default | Register, log in. View leaderboards, profiles, team profiles, battle logs (both videos and the judging outcome) |
-| Member | Verified email and DOB | Core loop, teams, tickets and reports |
+| Member | Every account, from registration (DOB required at signup) | Core loop, teams, tickets and reports. A verified email (`users.email_verified_at`) is also required for call outs and voting |
 | Team Officer | Promoted by owner, scoped to a team | Edit team, manage members, pick battle roster |
 | Team Owner | Creator or transfer, scoped to a team | Officer abilities plus transfer, delete, promote |
 | Judge | Application plus two-admin approval, or super admin assignment | Judge battles. Barred from ELO battles |
