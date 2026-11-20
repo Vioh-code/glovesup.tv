@@ -35,10 +35,8 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 - Optional deploy.yml hardening: add `permissions: contents: read` and a test job gate. Tests run on the dev box only; the Action has no gate.
 - Worker cron output needs a log file and rotation. Decide in the worker slice. Cron runs as `glovesup` with absolute paths.
 - DB roles: split an owner role (runs migrations, owns tables) from a least-privilege app role (runtime queries). Today the dev box uses one role, `glovesup_dev`, for the dev and test databases.
-- Linode `.env` `DB_USER`: confirm it is the dedicated `glovesup` role and not the postgres superuser, before the auth slice.
 - Old databases `glovesup` and `gloveleague` on the dev box can be dropped when Matt says so. Do not drop before then.
 - Remove `dotenv` from package.json once confirmed unused (Node loads env files with `--env-file`).
-- Before the auth slice, confirm bcrypt loads on the Linode: `sudo -u glovesup node -e "require('/home/glovesup/glovesup.tv/node_modules/bcrypt')"`. npm 11 warns that bcrypt's install script is not covered by allowScripts; npm 12 blocks it by default.
 - Old archive at ~/Downloads/Glovesup arch has Privacy_Policy.md, Terms_of_Service.md, ELO_Reference.md. Review for reuse later.
 
 ## Slice 1a (register and log in), Nov 17, 2026
