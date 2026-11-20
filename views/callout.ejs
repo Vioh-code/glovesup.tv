@@ -1,0 +1,65 @@
+<%- include('partials/top', { title: 'Call out' }) %>
+  <%# S-B2 Call out detail (F-C1). Layout: wireframes/pages/callout-respond.html
+      Opponent view: Accept and Decline. Creator view: Edit and Cancel.
+      "Rating at stake" is hidden until slice 2d (ELO). Battles, record and
+      View profile on the opponent card wait for F-F2 and the profile slice. %>
+<% const open = b.status === 'proposed';
+   const other = role === 'opponent' ? { name: b.challenger_name, elo: b.challenger_elo } : { name: b.opponent_name, elo: b.opponent_elo }; %>
+  <main class="page">
+    <div class="container container--sm" style="max-width:var(--content-max-width-sm)">
+      <p style="margin-bottom:var(--space-3)"><a class="back-link" href="/my-battles">&larr; My battles</a></p>
+      <div class="page-head">
+        <div>
+          <h1><%= role === 'opponent' ? 'Call out from ' + b.challenger_name : 'Call out to ' + b.opponent_name %></h1>
+          <p class="page-head__sub"><% if (open) { %><%= role === 'opponent' ? 'Accept or decline. It expires if you don\'t answer in time.' : 'Waiting for your opponent to answer.' %><% } else { %><%= labels.status[b.status] %><% } %></p>
+        </div>
+<% if (countdown) { %><%- include('partials/time-left', { t: countdown, due: b.expires_at, suffix: role === 'opponent' ? 'to answer' : '' }) %><% } %>
+      </div>
+<% if (open && !verified && role === 'opponent') { %>
+      <div class="notice notice--warn" role="alert" style="margin-bottom:var(--space-5)"><%= notice %></div>
+<% } %>
+      <section class="card card--accent" aria-labelledby="d">
+        <div class="card__head"><h2 class="card__title card__title--sm" id="d">The terms</h2><span class="pill<%= open ? ' pill--action' : '' %>"><%= labels.status[b.status] %></span></div>
+        <dl class="dl">
+          <dt>Format</dt><dd><%= labels.kind[b.kind] %></dd>
+          <dt>Scoring</dt><dd><%= labels.scoring[b.scoring] %></dd>
+          <dt>Judging</dt><dd><%= labels.judging[b.judging] %></dd>
+          <dt>Videos due</dt><dd><% if (videosDue) { %><%- include('partials/time-left', { t: videosDue, due: b.submissions_due_at }) %><% } else { %><%= b.submission_days %> days after accept<% } %></dd>
+        </dl>
+<% if (open && role === 'opponent') { %>
+        <div class="card__foot">
+          <div class="cluster">
+<%   if (verified) { %>
+            <form method="post" action="/callouts/<%= b.id %>/accept"><input type="hidden" name="_csrf" value="<%= csrfToken %>" /><input type="hidden" name="terms_version" value="<%= b.version %>" /><button class="btn btn--primary" type="submit">Accept call out</button></form>
+<%   } %>
+            <form method="post" action="/callouts/<%= b.id %>/decline"><input type="hidden" name="_csrf" value="<%= csrfToken %>" /><button class="btn btn--ghost" type="submit">Decline</button></form>
+          </div>
+          <p class="hint">Accepting starts the clock for videos.</p>
+        </div>
+<% } %>
+      </section>
+
+      <section class="card" style="margin-top:var(--space-5)">
+        <div class="card__head"><h2 class="card__title card__title--sm"><%= role === 'opponent' ? 'Your opponent' : 'Opponent' %>: <%= other.name %></h2></div>
+        <div class="stat-row">
+          <div class="stat"><span class="stat__label">Rating</span><span class="stat__value"><%= other.elo %></span></div>
+        </div>
+      </section>
+
+<% if (open && role === 'creator') { %>
+      <section class="card" style="margin-top:var(--space-5)">
+        <div class="notice"><div class="notice__title">Waiting for <%= b.opponent_name %></div>You can edit or cancel until they accept.</div>
+<%   if (!verified) { %>
+        <div class="notice notice--warn" role="alert" style="margin-top:var(--space-3)"><%= notice %></div>
+<%   } %>
+        <div class="card__foot"><div class="cluster">
+<%   if (verified) { %>
+          <a class="btn btn--ghost" href="/callouts/<%= b.id %>/edit">Edit call out</a>
+<%   } %>
+          <form method="post" action="/callouts/<%= b.id %>/cancel"><input type="hidden" name="_csrf" value="<%= csrfToken %>" /><button class="btn btn--danger" type="submit">Cancel call out</button></form>
+        </div></div>
+      </section>
+<% } %>
+    </div>
+  </main>
+<%- include('partials/bottom') %>
