@@ -140,7 +140,7 @@ Every battle has one or more slots. A 1v1 has one slot. A team battle has three,
 | submission_days | integer | 3, 5, or 7, chosen by the creator from a dropdown |
 | created_at, updated_at | timestamp | updated_at changes on every edit; accept checks it so the opponent accepts the terms they saw |
 | expires_at | timestamp | Creation plus 72 hours. Editing does not move it |
-| accepted_at, submissions_due_at, judging_due_at, finalized_at | timestamp | Due dates computed from acceptance and from the second submission |
+| accepted_at, submissions_due_at, judging_due_at, finalized_at | timestamp | Due dates computed from acceptance and from the second submission. A day is a fixed 24 hours (no daylight saving shift) |
 | result | enum | challenger, opponent, or void |
 | forfeited_by | uuid | User or team that forfeited, or null |
 | forfeit_reason | enum | explicit or missed_deadline |

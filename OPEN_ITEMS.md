@@ -64,3 +64,4 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 - Expiry runs without the worker: actions refuse a call out past `expires_at`, and call out page loads mark every past-due call out expired (one query). The worker slice takes this over.
 - No limit on how many call outs one member can send (spam risk). Not in the docs; decide a cap or rate limit later.
 - S-B2 "Your opponent" card shows the rating only. Battles, record and View profile wait for user stats (F-F2) and the profile slice. The wireframe's "Accepting draws three judges at random" hint is reworded until judges are drawn (slice 2c).
+- A call out from a member who is banned, suspended or deleted after sending it can still be accepted (accept checks only the opponent). Decide in the moderation slice (F-G2) what a ban does to that member's open call outs and battles.

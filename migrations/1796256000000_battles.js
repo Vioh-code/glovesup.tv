@@ -3,6 +3,8 @@
 // Every field from the data model is created now so later slices do not
 // reshape the table. Team ids get their foreign keys in the teams slice.
 // The `stuck` status is left out until F-H6 (ALTER TYPE ... ADD VALUE then).
+// Day counts are fixed 24-hour days (make_interval(hours => 24 * N)) so due
+// dates never depend on the session TimeZone or daylight saving.
 
 exports.up = (pgm) => {
   pgm.createType('battle_kind', ['single', 'team']);
@@ -63,12 +65,14 @@ exports.up = (pgm) => {
   });
   pgm.addConstraint('battles', 'battles_due_after_accept', {
     check: `(accepted_at IS NULL) = (submissions_due_at IS NULL)
-            AND (accepted_at IS NULL OR submissions_due_at = accepted_at + make_interval(days => submission_days))
+            AND (accepted_at IS NULL OR submissions_due_at = accepted_at + make_interval(hours => 24 * submission_days))
             AND ((accepted_at IS NULL) = (status IN ('proposed', 'declined', 'cancelled', 'expired')))`,
   });
 
   pgm.createIndex('battles', ['opponent_user_id', 'status']);
   pgm.createIndex('battles', ['challenger_user_id', 'status']);
+  // Expiry sweep (page loads now, the worker later) touches only proposed rows.
+  pgm.createIndex('battles', 'expires_at', { name: 'battles_proposed_expiry', where: "status = 'proposed'" });
 };
 
 exports.down = (pgm) => {

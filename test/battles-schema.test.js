@@ -113,3 +113,22 @@ test('an accepted battle has its videos due exactly N days after acceptance', as
   );
   assert.equal(a.submissions_due_at - a.accepted_at, 3 * 24 * 3600 * 1000);
 });
+
+test('due dates are fixed 24-hour days, whatever the session timezone (DST week)', async () => {
+  const { rows: [b] } = await insert({ submission_days: 5 });
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query("SET LOCAL TimeZone = 'America/Chicago'"); // DST ends Nov 1, 2026
+    await client.query(
+      `UPDATE battles SET status = 'accepted', accepted_at = '2026-10-31 12:00-05',
+       submissions_due_at = timestamptz '2026-10-31 12:00-05' + interval '120 hours' WHERE id = $1`, [b.id],
+    );
+    await client.query("UPDATE battles SET judging_due_at = now() WHERE id = $1", [b.id]); // later updates still pass
+    await client.query('COMMIT');
+  } finally {
+    client.release();
+  }
+  const { rows: [a] } = await pool.query('SELECT * FROM battles WHERE id = $1', [b.id]);
+  assert.equal(a.submissions_due_at - a.accepted_at, 120 * 3600 * 1000);
+});

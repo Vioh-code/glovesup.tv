@@ -487,3 +487,32 @@ test('edit and accept at the same time: the accept never lands on terms the oppo
     else assert.equal(row.status, 'proposed', `round ${i}`);
   }
 });
+
+// --- Review fixes ---
+
+test('every status change moves updated_at forward', async () => {
+  const ids2 = [await callout('alice', 'bob'), await callout('alice', 'bob'), await callout('alice', 'bob')];
+  const before = await Promise.all(ids2.map(battle));
+  const bob = await as('Bob');
+  const alice = await as('Alice');
+  await bob.post(`/callouts/${ids2[0]}/decline`, { _csrf: bob.token });
+  await alice.post(`/callouts/${ids2[1]}/cancel`, { _csrf: alice.token });
+  await accept(bob, ids2[2]);
+  const after = await Promise.all(ids2.map(battle));
+  after.forEach((a, i) => assert.ok(a.updated_at > before[i].updated_at, a.status));
+});
+
+test('an old open call out is never pushed off the lists by many newer past ones', async () => {
+  const old = await callout('carol', 'alice');
+  await pool.query("UPDATE battles SET created_at = now() - interval '1 hour', expires_at = now() + interval '71 hours' WHERE id = $1", [old]);
+  await pool.query(
+    `INSERT INTO battles (kind, scoring, judging, challenger_user_id, opponent_user_id, created_by, submission_days, status)
+     SELECT 'single', 'fun', 'official', $1, $2, $1, 5, 'declined' FROM generate_series(1, 60)`,
+    [ids.alice, ids.bob],
+  );
+  const a = await as('Alice');
+  assert.match((await a.get('/dashboard')).html, new RegExp(old));
+  assert.match((await a.get('/my-battles?tab=incoming')).html, new RegExp(old));
+  const past = (await a.get('/my-battles?tab=past')).html;
+  assert.equal((past.match(/class="strip strip--versus"/g) || []).length, 50);
+});

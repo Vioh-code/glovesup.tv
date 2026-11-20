@@ -6,7 +6,7 @@ const { pool } = require('../db');
 const { requireLogin } = require('../lib/auth');
 const { timeLeft } = require('../lib/callouts');
 const { LABELS: labels } = require('../lib/labels');
-const { myBattles, markExpired } = require('./callouts');
+const { openBattles, markExpired } = require('../lib/battles');
 
 const router = express.Router();
 
@@ -14,7 +14,7 @@ router.get('/dashboard', requireLogin, async (req, res, next) => {
   try {
     await markExpired();
     const [lists, { rows: [me] }] = await Promise.all([
-      myBattles(req.user.id),
+      openBattles(req.user.id),
       pool.query('SELECT elo_rating FROM users WHERE id = $1', [req.user.id]),
     ]);
     res.render('dashboard', {

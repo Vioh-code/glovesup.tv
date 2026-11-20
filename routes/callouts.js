@@ -9,10 +9,13 @@
 const express = require('express');
 const { pool } = require('../db');
 const { requireLogin } = require('../lib/auth');
+const { notFound: notFoundPage } = require('../lib/web');
 const { parseCalloutForm, eloBandOk, timeLeft } = require('../lib/callouts');
 const { LABELS: labels } = require('../lib/labels');
+const {
+  VERSION_SQL, TOUCH_SQL, markExpired, viewer, findOpponent, loadCallout, myBattles,
+} = require('../lib/battles');
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const VERSION_RE = /^\d{1,20}$/;
 
 const VERIFY = 'Verify your email to send or accept call outs.';
@@ -22,54 +25,10 @@ const OUT_OF_BAND = 'ELO call outs need an opponent within 400 points of your ra
 const TERMS_CHANGED = 'The terms changed. Review them again.';
 const CLOSED = 'This call out is no longer open.';
 
-// updated_at as whole microseconds, so the value round-trips exactly through a form.
-const VERSION_SQL = '(extract(epoch FROM updated_at) * 1000000)::bigint::text';
-const ACTIVE = ['accepted', 'awaiting_panel', 'submissions_open', 'judging'];
-const PAST = ['declined', 'cancelled', 'expired', 'finalized', 'forfeited', 'voided'];
-
-// Marks every past-due proposed call out expired. Stands in for the worker.
-const markExpired = () => pool.query(
-  "UPDATE battles SET status = 'expired' WHERE status = 'proposed' AND expires_at <= now()",
-);
-
-async function viewer(userId) {
-  const { rows } = await pool.query(
-    'SELECT id, username, elo_rating, email_verified_at IS NOT NULL AS verified FROM users WHERE id = $1',
-    [userId],
-  );
-  return rows[0];
-}
-
-// Active, verified members only. Every miss gets the same message.
-async function findOpponent(username) {
-  const { rows } = await pool.query(
-    `SELECT id, username, elo_rating FROM users
-     WHERE lower(username) = lower($1) AND status = 'active' AND email_verified_at IS NOT NULL`,
-    [username],
-  );
-  return rows[0] || null;
-}
-
-async function loadCallout(id) {
-  if (!UUID_RE.test(id)) return null;
-  const { rows } = await pool.query(
-    `SELECT b.*, ${VERSION_SQL} AS version,
-            c.username AS challenger_name, c.elo_rating AS challenger_elo,
-            o.username AS opponent_name, o.elo_rating AS opponent_elo
-     FROM battles b
-     JOIN users c ON c.id = b.challenger_user_id
-     JOIN users o ON o.id = b.opponent_user_id
-     WHERE b.id = $1 AND b.kind = 'single'`,
-    [id],
-  );
-  return rows[0] || null;
-}
-
 function calloutRoutes() {
   const router = express.Router();
 
   const fail = (res, status, heading, message, link) => res.status(status).render('error', { heading, message, link });
-  const notFound = (res) => fail(res, 404, 'Page not found', 'That page does not exist or was moved.');
   const forbidden = (res, message = 'You cannot do that on this call out.') => fail(res, 403, 'Not allowed', message);
   const closed = (res, id, message = CLOSED) => fail(res, 409, 'Call out closed', message, `/callouts/${id}`);
 
@@ -83,10 +42,10 @@ function calloutRoutes() {
     try {
       await markExpired();
       const [b, me] = await Promise.all([loadCallout(req.params.id), viewer(req.user.id)]);
-      if (!b || !me) return notFound(res);
+      if (!b || !me) return notFoundPage(req, res);
       if (b.created_by === me.id) req.role = 'creator';
       else if (b.opponent_user_id === me.id) req.role = 'opponent';
-      else return notFound(res);
+      else return notFoundPage(req, res);
       req.callout = b;
       req.viewer = me;
       return next();
@@ -224,7 +183,7 @@ function calloutRoutes() {
       // updated_at always moves forward, so an accept holding the old version fails.
       const { rowCount } = await pool.query(
         `UPDATE battles SET scoring = $1, judging = $2, submission_days = $3, elo_band_ok = $4,
-                updated_at = greatest(clock_timestamp(), updated_at + interval '1 microsecond')
+                ${TOUCH_SQL}
          WHERE id = $5 AND created_by = $6 AND status = 'proposed' AND expires_at > now()`,
         [v.scoring, v.judging, v.submission_days, r.band, b.id, req.viewer.id],
       );
@@ -244,7 +203,7 @@ function calloutRoutes() {
         ? req.body.terms_version : null;
       const { rowCount } = await pool.query(
         `UPDATE battles SET status = 'accepted', accepted_at = now(),
-                submissions_due_at = now() + make_interval(days => submission_days)
+                submissions_due_at = now() + make_interval(hours => 24 * submission_days), ${TOUCH_SQL}
          WHERE id = $1 AND opponent_user_id = $2 AND status = 'proposed' AND expires_at > now()
            AND ${VERSION_SQL} = $3`,
         [b.id, req.viewer.id, seen],
@@ -263,7 +222,7 @@ function calloutRoutes() {
     try {
       const b = req.callout;
       const { rowCount } = await pool.query(
-        `UPDATE battles SET status = $1
+        `UPDATE battles SET status = $1, ${TOUCH_SQL}
          WHERE id = $2 AND ${column} = $3 AND status = 'proposed' AND expires_at > now()`,
         [status, b.id, req.viewer.id],
       );
@@ -295,27 +254,4 @@ function calloutRoutes() {
   return router;
 }
 
-// Every 1v1 battle the user is in, split into the four S-B3 tabs.
-async function myBattles(userId) {
-  const { rows } = await pool.query(
-    `SELECT b.id, b.status, b.scoring, b.judging, b.expires_at, b.submissions_due_at, b.created_at,
-            b.challenger_user_id = $1 AS mine,
-            CASE WHEN b.challenger_user_id = $1 THEN o.username ELSE c.username END AS other_name
-     FROM battles b
-     JOIN users c ON c.id = b.challenger_user_id
-     JOIN users o ON o.id = b.opponent_user_id
-     WHERE b.kind = 'single' AND (b.challenger_user_id = $1 OR b.opponent_user_id = $1)
-     ORDER BY b.created_at DESC
-     LIMIT 200`,
-    [userId],
-  );
-  const lists = { incoming: [], outgoing: [], active: [], past: [] };
-  for (const r of rows) {
-    if (r.status === 'proposed') lists[r.mine ? 'outgoing' : 'incoming'].push(r);
-    else if (ACTIVE.includes(r.status)) lists.active.push(r);
-    else if (PAST.includes(r.status)) lists.past.push(r);
-  }
-  return lists;
-}
-
-module.exports = { calloutRoutes, myBattles, markExpired };
+module.exports = { calloutRoutes };
