@@ -51,3 +51,8 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 - Banned, suspended and deleted accounts get the generic "Wrong email, username or password." message at login, so a banned user is not told why. How they learn about a ban and reach an appeal (F-G2) is undecided.
 - A user who is banned or suspended while logged in is treated as logged out on their next request. The session row stays until it expires; a sign-out-everywhere action comes with the session list.
 - Active-session list (S-M4, `sessions` table) not built. Deferred with MFA and lockout.
+
+## Production
+- A test account exists in the production database. Delete it before launch, only when Matt says so.
+- The Linode has 20 pending OS updates (3 security) and needs a reboot. Do both in the Dec 7, 2026 monthly update session.
+- The production DOB_ENC_KEY is stored in Matt's password manager. Losing it loses every stored DOB.
