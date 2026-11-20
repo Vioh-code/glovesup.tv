@@ -516,3 +516,47 @@ test('an old open call out is never pushed off the lists by many newer past ones
   const past = (await a.get('/my-battles?tab=past')).html;
   assert.equal((past.match(/class="strip strip--versus"/g) || []).length, 50);
 });
+
+// --- Refusals must not read like success (browser test, Nov 20) ---
+// Matt clicked Cancel on a page opened before the opponent accepted. The server
+// refused (409), but the page said "Call out closed", which read as a confirmation.
+
+test('a refused cancel says it was not cancelled and why, never "Call out closed"', async () => {
+  const id = await callout('alice', 'bob');
+  const alice = await as('Alice');
+  const stale = await alice.get(`/callouts/${id}`); // page still shows Cancel
+  assert.match(stale.html, /Cancel call out/);
+  await accept(await as('Bob'), id);
+  const r = await alice.post(`/callouts/${id}/cancel`, { _csrf: alice.token });
+  assert.equal(r.status, 409);
+  assert.match(r.html, /Not cancelled/);
+  assert.match(r.html, /was not cancelled\. It has already been accepted\./);
+  assert.doesNotMatch(r.html, /Call out closed/);
+  assert.equal((await battle(id)).status, 'accepted');
+});
+
+test('every refused action names the action and the current status', async () => {
+  const id = await callout('alice', 'bob');
+  await pool.query("UPDATE battles SET status = 'declined' WHERE id = $1", [id]);
+  const alice = await as('Alice');
+  const bob = await as('Bob');
+  const cases = [
+    [bob, 'accept', 'Not accepted', 'was not accepted. It has already been declined.'],
+    [bob, 'decline', 'Not declined', 'was not declined. It has already been declined.'],
+    [alice, 'cancel', 'Not cancelled', 'was not cancelled. It has already been declined.'],
+  ];
+  for (const [who, action, heading, message] of cases) {
+    const r = await who.post(`/callouts/${id}/${action}`, { _csrf: who.token, terms_version: '1' });
+    assert.equal(r.status, 409, action);
+    assert.match(r.html, new RegExp(heading), action);
+    assert.match(r.html, new RegExp(message.replace(/\./g, '\\.')), action);
+  }
+  const e = await alice.post(`/callouts/${id}`, { ...terms, _csrf: alice.token });
+  assert.equal(e.status, 409);
+  assert.match(e.html, /Not saved/);
+  assert.match(e.html, /changes were not saved\. It has already been declined\./);
+  const ex = await callout('alice', 'bob');
+  await expire(ex);
+  const x = await alice.post(`/callouts/${ex}/cancel`, { _csrf: alice.token });
+  assert.match(x.html, /was not cancelled\. It has already expired\./);
+});

@@ -23,14 +23,41 @@ const NOT_AVAILABLE = 'That member cannot be called out.';
 const SELF = 'You cannot call yourself out.';
 const OUT_OF_BAND = 'ELO call outs need an opponent within 400 points of your rating.';
 const TERMS_CHANGED = 'The terms changed. Review them again.';
-const CLOSED = 'This call out is no longer open.';
+
+// A refusal names the action that did not happen and the call out's current
+// state, so it never reads like a confirmation (browser test, Nov 20).
+const REFUSED = {
+  accept: { heading: 'Not accepted', lead: 'This call out was not accepted.' },
+  decline: { heading: 'Not declined', lead: 'This call out was not declined.' },
+  cancel: { heading: 'Not cancelled', lead: 'This call out was not cancelled.' },
+  edit: { heading: 'Cannot edit', lead: 'This call out can no longer be edited.' },
+  save: { heading: 'Not saved', lead: 'Your changes were not saved.' },
+};
+const ALREADY = {
+  declined: 'It has already been declined.',
+  cancelled: 'It has already been cancelled.',
+  expired: 'It has already expired.',
+  finalized: 'It has already finished.',
+  forfeited: 'It has already finished.',
+  voided: 'It has already finished.',
+};
+const already = (status) => ALREADY[status] || 'It has already been accepted.';
 
 function calloutRoutes() {
   const router = express.Router();
 
   const fail = (res, status, heading, message, link) => res.status(status).render('error', { heading, message, link });
   const forbidden = (res, message = 'You cannot do that on this call out.') => fail(res, 403, 'Not allowed', message);
-  const closed = (res, id, message = CLOSED) => fail(res, 409, 'Call out closed', message, `/callouts/${id}`);
+  // 409 for an action that lost to the call out's state. Re-reads the state
+  // (after marking any expiry) so the message is current.
+  const refuse = async (res, id, action) => {
+    await markExpired();
+    const now = await loadCallout(id);
+    const { heading, lead } = REFUSED[action];
+    let why = already(now.status);
+    if (now.status === 'proposed') why = action === 'accept' ? TERMS_CHANGED : 'Reload the page and try again.';
+    return fail(res, 409, heading, `${lead} ${why}`, `/callouts/${id}`);
+  };
 
   const renderForm = (req, res, status, locals) => res.status(status).render('callout-form', {
     labels, errors: [], values: { scoring: 'elo', judging: 'official', submission_days: '5' }, review: null, edit: null, ...locals,
@@ -149,18 +176,18 @@ function calloutRoutes() {
 
   const editGuards = [requireLogin, participantOnly, onlyRole('creator'), verifiedOnly];
 
-  router.get('/callouts/:id/edit', ...editGuards, (req, res) => {
+  router.get('/callouts/:id/edit', ...editGuards, async (req, res, next) => {
     const b = req.callout;
-    if (b.status !== 'proposed') return closed(res, b.id);
+    if (b.status !== 'proposed') return refuse(res, b.id, 'edit').catch(next);
     return renderForm(req, res, 200, {
       edit: editLocals(b),
       values: { scoring: b.scoring, judging: b.judging, submission_days: String(b.submission_days) },
     });
   });
 
-  router.post('/callouts/:id/review', ...editGuards, (req, res) => {
+  router.post('/callouts/:id/review', ...editGuards, async (req, res, next) => {
     const b = req.callout;
-    if (b.status !== 'proposed') return closed(res, b.id);
+    if (b.status !== 'proposed') return refuse(res, b.id, 'save').catch(next);
     const r = checkEdit(b, req.viewer, req.body);
     const edit = editLocals(b);
     if (r.errors.length) return renderForm(req, res, 400, { edit, errors: r.errors, values: r.redisplay });
@@ -174,7 +201,7 @@ function calloutRoutes() {
   router.post('/callouts/:id', ...editGuards, async (req, res, next) => {
     try {
       const b = req.callout;
-      if (b.status !== 'proposed') return closed(res, b.id);
+      if (b.status !== 'proposed') return await refuse(res, b.id, 'save');
       const r = checkEdit(b, req.viewer, req.body);
       if (r.errors.length) {
         return renderForm(req, res, 400, { edit: editLocals(b), errors: r.errors, values: r.redisplay });
@@ -187,7 +214,7 @@ function calloutRoutes() {
          WHERE id = $5 AND created_by = $6 AND status = 'proposed' AND expires_at > now()`,
         [v.scoring, v.judging, v.submission_days, r.band, b.id, req.viewer.id],
       );
-      if (!rowCount) return closed(res, b.id);
+      if (!rowCount) return await refuse(res, b.id, 'save');
       return res.redirect(303, `/callouts/${b.id}`);
     } catch (err) {
       return next(err);
@@ -209,16 +236,14 @@ function calloutRoutes() {
         [b.id, req.viewer.id, seen],
       );
       if (rowCount) return res.redirect(303, `/callouts/${b.id}`);
-      // Refused: say why. Re-read after marking any expiry.
-      await markExpired();
-      const now = await loadCallout(b.id);
-      return closed(res, b.id, now.status === 'proposed' ? TERMS_CHANGED : CLOSED);
+      // Still proposed after the refusal means the terms changed since the page was opened.
+      return await refuse(res, b.id, 'accept');
     } catch (err) {
       return next(err);
     }
   });
 
-  const close = (column, status) => async (req, res, next) => {
+  const close = (action, column, status) => async (req, res, next) => {
     try {
       const b = req.callout;
       const { rowCount } = await pool.query(
@@ -226,15 +251,15 @@ function calloutRoutes() {
          WHERE id = $2 AND ${column} = $3 AND status = 'proposed' AND expires_at > now()`,
         [status, b.id, req.viewer.id],
       );
-      if (!rowCount) return closed(res, b.id);
+      if (!rowCount) return await refuse(res, b.id, action);
       return res.redirect(303, `/callouts/${b.id}`);
     } catch (err) {
       return next(err);
     }
   };
 
-  router.post('/callouts/:id/decline', requireLogin, participantOnly, onlyRole('opponent'), close('opponent_user_id', 'declined'));
-  router.post('/callouts/:id/cancel', requireLogin, participantOnly, onlyRole('creator'), close('created_by', 'cancelled'));
+  router.post('/callouts/:id/decline', requireLogin, participantOnly, onlyRole('opponent'), close('decline', 'opponent_user_id', 'declined'));
+  router.post('/callouts/:id/cancel', requireLogin, participantOnly, onlyRole('creator'), close('cancel', 'created_by', 'cancelled'));
 
   // --- S-B3 My battles ---
 
