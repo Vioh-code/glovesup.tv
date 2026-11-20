@@ -54,3 +54,11 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 - A test account exists in the production database. Delete it before launch, only when Matt says so.
 - The Linode has 20 pending OS updates (3 security) and needs a reboot. Do both in the Dec 7, 2026 monthly update session.
 - The production DOB_ENC_KEY is stored in Matt's password manager. Losing it loses every stored DOB.
+
+## Slice 2a (call outs), Nov 20, 2026
+- More than one open call out between the same two players is allowed. The docs do not say whether to limit it.
+- The 400-point band is checked when the call out is created or edited, not again at accept. Ratings do not move until slice 2d; decide before then whether accept rechecks it.
+- "Rating at stake +N −N" on S-B2 is hidden until slice 2d (ELO). `lib/elo.js` is built there.
+- Team call outs (3v3) wait for the teams slice. `battles.challenger_team_id` and `opponent_team_id` get their foreign keys then.
+- Rules not enforced yet because their tables do not exist: judges barred from ELO call outs (roles), blocked users cannot call out the blocker (blocks), call out emails (F-H7), audit log rows for call out actions (F-H3).
+- Expiry runs without the worker: actions refuse a call out past `expires_at`, and page loads mark the viewer's past-due call outs expired. The worker slice takes this over.
