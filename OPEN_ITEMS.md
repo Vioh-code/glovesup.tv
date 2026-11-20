@@ -61,4 +61,6 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 - "Rating at stake +N −N" on S-B2 is hidden until slice 2d (ELO). `lib/elo.js` is built there.
 - Team call outs (3v3) wait for the teams slice. `battles.challenger_team_id` and `opponent_team_id` get their foreign keys then.
 - Rules not enforced yet because their tables do not exist: judges barred from ELO call outs (roles), blocked users cannot call out the blocker (blocks), call out emails (F-H7), audit log rows for call out actions (F-H3).
-- Expiry runs without the worker: actions refuse a call out past `expires_at`, and page loads mark the viewer's past-due call outs expired. The worker slice takes this over.
+- Expiry runs without the worker: actions refuse a call out past `expires_at`, and call out page loads mark every past-due call out expired (one query). The worker slice takes this over.
+- No limit on how many call outs one member can send (spam risk). Not in the docs; decide a cap or rate limit later.
+- S-B2 "Your opponent" card shows the rating only. Battles, record and View profile wait for user stats (F-F2) and the profile slice. The wireframe's "Accepting draws three judges at random" hint is reworded until judges are drawn (slice 2c).

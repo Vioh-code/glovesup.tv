@@ -8,6 +8,8 @@ const { configurePassport } = require('./lib/auth');
 const { setupViews, notFound, serverError } = require('./lib/web');
 const pages = require('./routes/pages');
 const { authRoutes } = require('./routes/auth');
+const { calloutRoutes } = require('./routes/callouts');
+const dashboard = require('./routes/dashboard');
 
 const HOST = '127.0.0.1'; // Nginx proxies to this; never listen on all interfaces.
 
@@ -45,6 +47,8 @@ function createApp(env) {
   // S-P1 Home (placeholder until the home slice)
   app.get('/', (req, res) => res.render('home'));
   app.use(authRoutes(config));
+  app.use(dashboard);
+  app.use(calloutRoutes());
   app.use(pages);
 
   app.use(notFound);
