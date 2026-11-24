@@ -66,3 +66,4 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 - A call out from a member who is banned, suspended or deleted after sending it can still be accepted (accept checks only the opponent). Decide in the moderation slice (F-G2) what a ban does to that member's open call outs and battles.
 - Repeat Send: the same creator sending the same terms to the same opponent within 10 seconds lands on the call out already made (double-click or resubmit). A second identical call out after that is allowed. The window is not in the docs.
 - Edit does not recheck the opponent's status or verification, only the 400-point band. A creator can still edit a call out to an opponent who was banned, suspended or unverified after it was sent, including switching it to ELO. Decide with the ban note above (moderation slice, F-G2).
+- Per-user time zone setting on the profile page (later slice).

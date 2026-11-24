@@ -99,9 +99,9 @@ test('countdown: days round down, so a fresh 72-hour call out reads 2 days', () 
   assert.equal(c.timeLeft(after(0.99), now).text, 'Less than 1 hour left');
 });
 
-test('countdown: the exact due date is shown in UTC and labelled UTC', () => {
-  assert.equal(c.dueText(new Date(Date.UTC(2026, 10, 27, 22, 54, 59))), 'Due Nov 27, 22:54 UTC');
-  assert.equal(c.dueText(new Date(Date.UTC(2027, 0, 3, 4, 5, 0))), 'Due Jan 3, 04:05 UTC');
+test('countdown: the no-JavaScript date text is UTC and labelled UTC', () => {
+  assert.equal(c.utcText(new Date(Date.UTC(2026, 10, 27, 22, 54, 59))), 'Nov 27, 22:54 UTC');
+  assert.equal(c.utcText(new Date(Date.UTC(2027, 0, 3, 4, 5, 0))), 'Jan 3, 04:05 UTC');
 });
 
 test('countdown: at or past the due time it is expired', () => {

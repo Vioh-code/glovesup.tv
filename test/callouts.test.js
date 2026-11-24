@@ -694,9 +694,11 @@ test('Save changes uses only the terms shown on the Review card', async () => {
 
 // --- Countdown and list order (Nov 24 decisions) ---
 
-const dueOf = (d) => `Due ${d.toLocaleString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}, ${d.toISOString().slice(11, 16)} UTC`;
-// The due date is page text, not only a title tooltip.
-const shownAsText = (html, text) => new RegExp(`>[^<]*${text}[^<]*<`).test(html);
+// UTC fallback text, computed independently of lib/callouts.
+const utcOf = (d) => `${d.toLocaleString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}, ${d.toISOString().slice(11, 16)} UTC`;
+// The due date is page text inside a <time> element, not only a title tooltip.
+const dueOf = (d) => `Due <time datetime="${d.toISOString()}">${utcOf(d)}</time>`;
+const shownAsText = (html, markup) => html.includes(markup);
 
 test('the exact due date shows as page text on S-B2, the dashboard and My battles', async () => {
   const id = await callout('alice', 'bob');
@@ -737,4 +739,66 @@ test('Past lists an expired call out by when it expired, not when it was marked'
   const past = (await (await as('Bob')).get('/my-battles?tab=past')).html; // this load marks it expired
   assert.equal((await battle(expired)).status, 'expired');
   assert.ok(past.indexOf(`/callouts/${declined}"`) < past.indexOf(`/callouts/${expired}"`));
+});
+
+// --- Dates in the viewer's time zone (Nov 24) ---
+// The server writes every date as <time datetime="ISO UTC">UTC text</time>;
+// public/js/local-time.js rewrites the text in the browser. Without JavaScript
+// the UTC text stays.
+
+const TIME_RE = /<time datetime="([^"]*)">([^<]*)<\/time>/g;
+const DATE_TEXT = /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{1,2}\b|\d\d:\d\d|\bUTC\b/;
+const SCRIPT_TAG = '<script src="/js/local-time.js" defer></script>';
+
+function checkDates(html, page) {
+  const found = [...html.matchAll(TIME_RE)];
+  for (const [, iso, text] of found) {
+    assert.match(iso, /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/, `${page}: datetime is ISO UTC`);
+    assert.equal(text, utcOf(new Date(iso)), `${page}: fallback text is the UTC date`);
+  }
+  assert.equal((html.match(/<time\b/g) || []).length, found.length, `${page}: every <time> has datetime and text only`);
+  // Outside <time> elements no date or time is written on the page.
+  const rest = html.replace(TIME_RE, '').replace(/<[^>]*>/g, ' ');
+  assert.doesNotMatch(rest, DATE_TEXT, `${page}: a date outside <time>`);
+  assert.ok(html.includes(SCRIPT_TAG), `${page}: loads local-time.js`);
+  assert.doesNotMatch(html, /<script(?![^>]*\ssrc=)/, `${page}: no inline script`);
+  return found.length;
+}
+
+test('every displayed date is a <time> element with a UTC datetime and UTC fallback text', async () => {
+  const open = await callout('carol', 'bob');
+  const acc = await callout('alice', 'bob');
+  const bob = await as('Bob');
+  await accept(bob, acc);
+  const alice = await as('Alice');
+  const pages = [
+    [bob, `/callouts/${open}`, 1], [alice, `/callouts/${acc}`, 1],
+    [bob, '/dashboard', 2], [alice, '/dashboard', 1],
+    [bob, '/my-battles?tab=incoming', 1], [alice, '/my-battles?tab=active', 1],
+  ];
+  for (const [who, page, n] of pages) {
+    assert.equal(checkDates((await who.get(page)).html, page), n, page);
+  }
+});
+
+test('time left and the due date are two items in one countdown group', async () => {
+  const acc = await callout('alice', 'bob');
+  await accept(await as('Bob'), acc);
+  const alice = await as('Alice');
+  for (const page of [`/callouts/${acc}`, '/dashboard', '/my-battles?tab=active']) {
+    const html = (await alice.get(page)).html;
+    const groups = html.match(/<span class="countdown"><span class="time-left[^"]*">[^<]+<\/span><span class="time-left countdown__due">Due <time /g) || [];
+    assert.equal(groups.length, (html.match(/<time /g) || []).length, page);
+    assert.ok(groups.length > 0, page);
+  }
+});
+
+test('local-time.js is served and the CSP allows only same-origin scripts', async () => {
+  const r = await fetch(`${base}/js/local-time.js`);
+  assert.equal(r.status, 200);
+  assert.match(r.headers.get('content-type'), /javascript/);
+  assert.match(await r.text(), /Intl\.DateTimeFormat/);
+  const csp = r.headers.get('content-security-policy');
+  const scriptSrc = csp.split(';').find((d) => d.startsWith('script-src '));
+  assert.equal(scriptSrc, "script-src 'self'");
 });
