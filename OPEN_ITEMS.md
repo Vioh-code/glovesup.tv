@@ -56,7 +56,7 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 - Active-session list (S-M4, `sessions` table) not built. Deferred with MFA and lockout.
 
 ## Production
-- A test account (gloverb) exists in the production database, email marked verified by hand on Nov 24, 2026. Delete it before launch, only when Matt says so.
+- A test account (glovera) exists in the production database, email marked verified by hand on Nov 24, 2026. gloverb and gloverc exist only on the dev box. Delete it before launch, only when Matt says so.
 - No password reset flow yet; production test account password was reset by hand on the Linode (Nov 24).
 - The Linode has 20 pending OS updates (3 security) and needs a reboot. Do both in the Dec 7, 2026 monthly update session.
 - The production DOB_ENC_KEY is stored in Matt's password manager. Losing it loses every stored DOB.
