@@ -108,7 +108,7 @@ Designed once, reused everywhere.
 |---|---|---|
 | Gravestone | Battle detail and any video slot | Replaces a video whose YouTube link is dead or private. Shows the saved title and thumbnail † and a note that the video is gone |
 | Hung Up placeholder | Battle logs, rosters, leaderboard history | Darkened gloves hanging over a wire in muted monochrome. Replaces the name and avatar of a deleted account. Not clickable |
-| Countdown | Call out, judge response, submission, judging | Shows time left and the exact due date. Turns urgent in the last 24 hours † |
+| Countdown | Call out, judge response, submission, judging | Shows time left and the exact due date. Time left is whole days, rounded down, from 48 hours out ("2 days left"), whole hours below that ("47 hours left"), and "Less than 1 hour left" under an hour. The due date is page text, not only a tooltip, in UTC and labelled UTC ("Due Nov 27, 22:54 UTC") until there is a per-user time zone. Turns urgent in the last 24 hours, inclusive |
 | Report button | Profiles, battles, submissions | Opens S-M9 with the subject filled in |
 | ELO badge | Profiles, leaderboards, call outs | Shows rating, and a small mark for team versus player |
 | Empty states | Every list | A plain sentence and one next action, such as Create a call out |

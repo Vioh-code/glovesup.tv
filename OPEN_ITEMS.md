@@ -14,7 +14,6 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 
 ## Decisions still open
 - S-B4 Judge panel: own page or a section of S-B7 (marked with a dagger in the Screen Inventory).
-- Countdown urgent state (last 24 hours): wireframes set it by hand. Build must compute it.
 
 ## Content to supply
 - Terms and Privacy text (S-P13).

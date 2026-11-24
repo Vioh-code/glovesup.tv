@@ -1,2 +1,3 @@
-<%# Countdown shared element: t = timeLeft(...) result, suffix optional, due = Date for the exact time. %>
-<span class="time-left<%= t.urgent ? ' time-left--urgent' : '' %>"<% if (locals.due) { %> title="<%= due.toISOString().replace('T', ' ').slice(0, 16) %> UTC"<% } %>><%= t.text %><%= !t.expired && locals.suffix ? ' ' + suffix : '' %></span>
+<%# Countdown shared element: t = timeLeft(...) result, suffix optional, due = Date shown as the exact due date (UTC). %>
+<span class="time-left<%= t.urgent ? ' time-left--urgent' : '' %>"><%= t.text %><%= !t.expired && locals.suffix ? ' ' + suffix : '' %></span>
+<% if (locals.due) { %><time class="time-left" datetime="<%= due.toISOString() %>"><%= dueText(due) %></time><% } %>

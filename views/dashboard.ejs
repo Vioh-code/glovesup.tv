@@ -33,7 +33,7 @@
               <p class="hint">No active battles.</p>
 <% } %>
 <% active.forEach(function (r) { %>
-              <div class="row"><div class="row__main"><div class="row__title">You vs <%= r.other_name %></div></div><div class="row__aside"><span class="pill pill--action"><%= labels.status[r.status] %></span><a class="card__link" href="/callouts/<%= r.id %>">Open</a></div></div>
+              <div class="row"><div class="row__main"><div class="row__title">You vs <%= r.other_name %></div></div><div class="row__aside"><% if (r.submissions_due_at) { %><%- include('partials/time-left', { t: timeLeft(r.submissions_due_at), due: r.submissions_due_at, suffix: 'for videos' }) %><% } %><span class="pill pill--action"><%= labels.status[r.status] %></span><a class="card__link" href="/callouts/<%= r.id %>">Open</a></div></div>
 <% }) %>
             </div>
           </section>

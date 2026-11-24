@@ -691,3 +691,50 @@ test('Save changes uses only the terms shown on the Review card', async () => {
   const ok = await alice.post(`/callouts/${id}`, { ...terms, scoring: 'fun', reviewed, _csrf: alice.token });
   assert.equal(ok.status, 303);
 });
+
+// --- Countdown and list order (Nov 24 decisions) ---
+
+const dueOf = (d) => `Due ${d.toLocaleString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}, ${d.toISOString().slice(11, 16)} UTC`;
+// The due date is page text, not only a title tooltip.
+const shownAsText = (html, text) => new RegExp(`>[^<]*${text}[^<]*<`).test(html);
+
+test('the exact due date shows as page text on S-B2, the dashboard and My battles', async () => {
+  const id = await callout('alice', 'bob');
+  const { expires_at: due } = await battle(id);
+  const bob = await as('Bob');
+  for (const page of [`/callouts/${id}`, '/dashboard', '/my-battles?tab=incoming']) {
+    assert.ok(shownAsText((await bob.get(page)).html, dueOf(due)), page);
+  }
+});
+
+test('dashboard Active rows show the countdown for videos and its due date', async () => {
+  const id = await callout('alice', 'bob', { submission_days: 3 });
+  await accept(await as('Bob'), id);
+  const { submissions_due_at: due } = await battle(id);
+  const html = (await (await as('Alice')).get('/dashboard')).html;
+  const row = html.slice(html.indexOf('id="active-h"'));
+  assert.match(row, /2 days left for videos/);
+  assert.ok(shownAsText(row, dueOf(due)));
+});
+
+test('open call outs list soonest to expire first (dashboard, Incoming, Outgoing)', async () => {
+  const newer = await callout('alice', 'bob');
+  const older = await callout('alice', 'bob');
+  await pool.query("UPDATE battles SET created_at = now() - interval '70 hours', expires_at = now() + interval '2 hours' WHERE id = $1", [older]);
+  const first = (html) => html.indexOf(`/callouts/${older}"`) < html.indexOf(`/callouts/${newer}"`);
+  const bob = await as('Bob');
+  const alice = await as('Alice');
+  assert.ok(first((await bob.get('/dashboard')).html), 'dashboard');
+  assert.ok(first((await bob.get('/my-battles?tab=incoming')).html), 'incoming');
+  assert.ok(first((await alice.get('/my-battles?tab=outgoing')).html), 'outgoing');
+});
+
+test('Past lists an expired call out by when it expired, not when it was marked', async () => {
+  const expired = await callout('alice', 'bob');
+  await pool.query("UPDATE battles SET created_at = now() - interval '75 hours', expires_at = now() - interval '3 hours' WHERE id = $1", [expired]);
+  const declined = await callout('alice', 'bob');
+  await pool.query("UPDATE battles SET status = 'declined', updated_at = now() - interval '1 hour' WHERE id = $1", [declined]);
+  const past = (await (await as('Bob')).get('/my-battles?tab=past')).html; // this load marks it expired
+  assert.equal((await battle(expired)).status, 'expired');
+  assert.ok(past.indexOf(`/callouts/${declined}"`) < past.indexOf(`/callouts/${expired}"`));
+});
