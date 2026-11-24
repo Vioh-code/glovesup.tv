@@ -51,7 +51,9 @@
           <section class="card">
             <div class="card__head"><h2 class="card__title card__title--sm">Battle status</h2></div>
 <%- include('partials/video-status', { state: state, opponent: opponent }) %>
+<% if (open) { %>
             <p class="hint">You can replace your video until the due date. Once both videos are in, both are locked.</p>
+<% } %>
           </section>
         </aside>
       </div>

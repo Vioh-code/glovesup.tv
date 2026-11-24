@@ -427,3 +427,23 @@ test('the CSP allows images from this site, data URLs and i.ytimg.com only', asy
   const img = r.headers.get('content-security-policy').split(';').find((d) => d.startsWith('img-src '));
   assert.equal(img, "img-src 'self' data: https://i.ytimg.com");
 });
+
+// Browser test, Nov 24: the sidebar kept saying videos could be replaced after the lock.
+test('the Battle status hint about replacing shows only while the video can still change', async () => {
+  const HINT = /You can replace your video until the due date/;
+  const id = await battle();
+  const a = await as('Alice');
+  const b = await as('Bob');
+  assert.match((await a.get(page(id))).html, HINT);
+  await submit(a, id, vid(1));
+  assert.match((await a.get(page(id))).html, HINT);
+  await submit(b, id, vid(2));
+  for (const who of [a, b]) {
+    const html = (await who.get(page(id))).html;
+    assert.doesNotMatch(html, HINT);
+    assert.match(html, /Both videos are in\. Submissions are locked\./);
+  }
+  const late = await battle('carol', 'alice');
+  await pool.query("UPDATE battles SET submissions_due_at = now() - interval '1 minute', accepted_at = now() - interval '120 hours 1 minute' WHERE id = $1", [late]);
+  assert.doesNotMatch((await a.get(page(late))).html, HINT);
+});
