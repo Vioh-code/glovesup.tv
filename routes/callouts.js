@@ -10,7 +10,7 @@ const express = require('express');
 const { pool } = require('../db');
 const { requireLogin } = require('../lib/auth');
 const { notFound: notFoundPage } = require('../lib/web');
-const { parseCalloutForm, eloBandOk, timeLeft } = require('../lib/callouts');
+const { parseCalloutForm, eloBandOk, timeLeft, reviewKey } = require('../lib/callouts');
 const { LABELS: labels } = require('../lib/labels');
 const {
   VERSION_SQL, TOUCH_SQL, markExpired, viewer, findOpponent, loadCallout, myBattles,
@@ -23,6 +23,10 @@ const NOT_AVAILABLE = 'That member cannot be called out.';
 const SELF = 'You cannot call yourself out.';
 const OUT_OF_BAND = 'ELO call outs need an opponent within 400 points of your rating.';
 const TERMS_CHANGED = 'The terms changed. Review them again.';
+const UNREVIEWED = 'You changed the terms after Review. Check them below and send again.';
+// A repeat of the same Send within this window is the same click (double-click
+// or resubmit), so it lands on the call out already made instead of a copy.
+const DUPLICATE_WINDOW = '10 seconds';
 
 // A refusal names the action that did not happen and the call out's current
 // state, so it never reads like a confirmation (browser test, Nov 20).
@@ -42,6 +46,9 @@ const ALREADY = {
   voided: 'It has already finished.',
 };
 const already = (status) => ALREADY[status] || 'It has already been accepted.';
+// The status each action leaves. Finding it already there means this viewer's
+// own earlier click did it (only one role can take each action).
+const DONE = { accept: 'accepted', decline: 'declined', cancel: 'cancelled' };
 
 function calloutRoutes() {
   const router = express.Router();
@@ -53,6 +60,7 @@ function calloutRoutes() {
   const refuse = async (res, id, action) => {
     await markExpired();
     const now = await loadCallout(id);
+    if (DONE[action] && now.status === DONE[action]) return res.redirect(303, `/callouts/${id}`);
     const { heading, lead } = REFUSED[action];
     let why = already(now.status);
     if (now.status === 'proposed') why = action === 'accept' ? TERMS_CHANGED : 'Reload the page and try again.';
@@ -109,6 +117,47 @@ function calloutRoutes() {
 
   // --- S-B1 Create ---
 
+  const reviewNew = (r) => ({
+    values: r.redisplay,
+    review: { ...r.values, opponent: r.opponent.username, opponentElo: r.opponent.elo_rating },
+    reviewed: reviewKey({ ...r.values, opponent: r.opponent.username }),
+  });
+
+  // Inserts the call out unless the same creator sent the same terms to the
+  // same opponent within DUPLICATE_WINDOW; then returns that one. The advisory
+  // lock (per creator) makes simultaneous clicks wait for each other.
+  async function insertOnce(creatorId, opponentId, v, band) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query("SELECT pg_advisory_xact_lock(hashtext('callout:' || $1))", [creatorId]);
+      const { rows: [dup] } = await client.query(
+        `SELECT id FROM battles
+         WHERE created_by = $1 AND opponent_user_id = $2 AND status = 'proposed'
+           AND scoring = $3 AND judging = $4 AND submission_days = $5
+           AND created_at > clock_timestamp() - interval '${DUPLICATE_WINDOW}'
+         ORDER BY created_at DESC LIMIT 1`,
+        [creatorId, opponentId, v.scoring, v.judging, v.submission_days],
+      );
+      let id = dup && dup.id;
+      if (!id) {
+        ({ rows: [{ id }] } = await client.query(
+          `INSERT INTO battles (kind, scoring, judging, challenger_user_id, opponent_user_id, created_by,
+                                elo_band_ok, submission_days)
+           VALUES ('single', $1, $2, $3, $4, $3, $5, $6) RETURNING id`,
+          [v.scoring, v.judging, creatorId, opponentId, band, v.submission_days],
+        ));
+      }
+      await client.query('COMMIT');
+      return id;
+    } catch (err) {
+      await client.query('ROLLBACK').catch(() => {});
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+
   router.get('/callouts/new', requireLogin, loadViewer, (req, res) => {
     if (!req.viewer.verified) return renderForm(req, res, 200, { unverified: VERIFY });
     return renderForm(req, res, 200, {});
@@ -119,10 +168,7 @@ function calloutRoutes() {
       if (!req.viewer.verified) return renderForm(req, res, 403, { unverified: VERIFY });
       const r = await checkNew(req.viewer, req.body);
       if (r.errors.length) return renderForm(req, res, 400, { errors: r.errors, values: r.redisplay });
-      return renderForm(req, res, 200, {
-        values: r.redisplay,
-        review: { ...r.values, opponent: r.opponent.username, opponentElo: r.opponent.elo_rating },
-      });
+      return renderForm(req, res, 200, reviewNew(r));
     } catch (err) {
       return next(err);
     }
@@ -133,14 +179,9 @@ function calloutRoutes() {
       if (!req.viewer.verified) return renderForm(req, res, 403, { unverified: VERIFY });
       const r = await checkNew(req.viewer, req.body);
       if (r.errors.length) return renderForm(req, res, 400, { errors: r.errors, values: r.redisplay });
-      const v = r.values;
-      const { rows: [b] } = await pool.query(
-        `INSERT INTO battles (kind, scoring, judging, challenger_user_id, opponent_user_id, created_by,
-                              elo_band_ok, submission_days)
-         VALUES ('single', $1, $2, $3, $4, $3, $5, $6) RETURNING id`,
-        [v.scoring, v.judging, req.viewer.id, r.opponent.id, r.band, v.submission_days],
-      );
-      return res.redirect(303, `/callouts/${b.id}`);
+      if (req.body.reviewed !== reviewKey(r.values)) return renderForm(req, res, 400, { ...reviewNew(r), errors: [UNREVIEWED] });
+      const id = await insertOnce(req.viewer.id, r.opponent.id, r.values, r.band);
+      return res.redirect(303, `/callouts/${id}`);
     } catch (err) {
       return next(err);
     }
@@ -164,6 +205,12 @@ function calloutRoutes() {
   // --- Edit (creator only, before acceptance) ---
 
   const editLocals = (b) => ({ id: b.id, opponent: b.opponent_name, opponentElo: b.opponent_elo });
+  const reviewEdit = (b, r) => ({
+    edit: editLocals(b),
+    values: r.redisplay,
+    review: { ...r.values, opponent: b.opponent_name, opponentElo: b.opponent_elo },
+    reviewed: reviewKey({ ...r.values, opponent: b.opponent_name }),
+  });
 
   // Rechecks the band against the opponent's current rating.
   function checkEdit(b, me, body) {
@@ -189,13 +236,8 @@ function calloutRoutes() {
     const b = req.callout;
     if (b.status !== 'proposed') return refuse(res, b.id, 'save').catch(next);
     const r = checkEdit(b, req.viewer, req.body);
-    const edit = editLocals(b);
-    if (r.errors.length) return renderForm(req, res, 400, { edit, errors: r.errors, values: r.redisplay });
-    return renderForm(req, res, 200, {
-      edit,
-      values: r.redisplay,
-      review: { ...r.values, opponent: b.opponent_name, opponentElo: b.opponent_elo },
-    });
+    if (r.errors.length) return renderForm(req, res, 400, { edit: editLocals(b), errors: r.errors, values: r.redisplay });
+    return renderForm(req, res, 200, reviewEdit(b, r));
   });
 
   router.post('/callouts/:id', ...editGuards, async (req, res, next) => {
@@ -205,6 +247,9 @@ function calloutRoutes() {
       const r = checkEdit(b, req.viewer, req.body);
       if (r.errors.length) {
         return renderForm(req, res, 400, { edit: editLocals(b), errors: r.errors, values: r.redisplay });
+      }
+      if (req.body.reviewed !== reviewKey({ ...r.values, opponent: b.opponent_name })) {
+        return renderForm(req, res, 400, { ...reviewEdit(b, r), errors: [UNREVIEWED] });
       }
       const v = r.values;
       // updated_at always moves forward, so an accept holding the old version fails.

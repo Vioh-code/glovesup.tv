@@ -8,6 +8,7 @@ const { pool } = require('../db');
 const { hashPassword } = require('../lib/passwords');
 const { encryptDob, parseKey } = require('../lib/dob-crypto');
 const { Browser, listen } = require('./helpers/http');
+const { reviewKey } = require('../lib/callouts');
 
 const PASSWORD = 'a long passphrase';
 const NOT_AVAILABLE = 'That member cannot be called out.';
@@ -86,6 +87,17 @@ async function expire(id) {
      WHERE id = $1`, [id],
   );
 }
+
+const reviewedFrom = (html) => (/name="reviewed" value="([^"]*)"/.exec(html) || [])[1];
+
+// Sends a call out the way the form does: Review, then Send with the reviewed terms.
+async function send(b, opponent, fields = {}) {
+  const review = await b.post('/callouts/review', { ...terms, ...fields, opponent, _csrf: b.token });
+  return b.post('/callouts', { ...terms, ...fields, opponent, reviewed: reviewedFrom(review.html) || '', _csrf: b.token });
+}
+
+// Saves an edit the way the form does. The opponent never changes on edit.
+const withReview = (opponent, fields) => ({ ...terms, ...fields, reviewed: reviewKey({ ...terms, ...fields, opponent }) });
 
 async function accept(b, id) {
   const page = await b.get(`/callouts/${id}`);
@@ -176,7 +188,7 @@ test('review shows the opponent and rating without saving anything', async () =>
 
 test('send creates a proposed call out with the chosen terms; username ignores case', async () => {
   const b = await as('Alice');
-  const r = await b.post('/callouts', { ...terms, submission_days: '7', opponent: 'bOB', _csrf: b.token });
+  const r = await send(b, 'bOB', { submission_days: '7' });
   assert.equal(r.status, 303);
   const [, id] = /^\/callouts\/([0-9a-f-]{36})$/.exec(r.location);
   const row = await battle(id);
@@ -219,7 +231,7 @@ test('ELO call out: opponent exactly 400 away is allowed, 401 is refused', async
   await pool.query('UPDATE users SET elo_rating = 1400 WHERE id = $1', [ids.bob]);
   await pool.query('UPDATE users SET elo_rating = 599 WHERE id = $1', [ids.carol]);
   const b = await as('Alice');
-  assert.equal((await b.post('/callouts', { ...terms, opponent: 'Bob', _csrf: b.token })).status, 303);
+  assert.equal((await send(b, 'Bob')).status, 303);
   const r = await b.post('/callouts', { ...terms, opponent: 'Carol', _csrf: b.token });
   assert.equal(r.status, 400);
   assert.match(r.html, /within 400 points/);
@@ -229,7 +241,7 @@ test('ELO call out: opponent exactly 400 away is allowed, 401 is refused', async
 test('Just for fun ignores the band and stores elo_band_ok as null', async () => {
   await pool.query('UPDATE users SET elo_rating = 2000 WHERE id = $1', [ids.bob]);
   const b = await as('Alice');
-  const r = await b.post('/callouts', { ...terms, scoring: 'fun', judging: 'popular', opponent: 'Bob', _csrf: b.token });
+  const r = await send(b, 'Bob', { scoring: 'fun', judging: 'popular' });
   assert.equal(r.status, 303);
   const row = (await pool.query('SELECT * FROM battles')).rows[0];
   assert.equal(row.elo_band_ok, null);
@@ -326,7 +338,7 @@ test('nothing can be done to a call out that is no longer proposed', async () =>
   const bob = await as('Bob');
   assert.equal((await accept(bob, id)).status, 303);
   assert.equal((await bob.post(`/callouts/${id}/decline`, { _csrf: bob.token })).status, 409);
-  assert.equal((await accept(bob, id)).status, 409);
+  assert.equal((await accept(bob, id)).status, 303); // a repeat of his own accept just shows the battle
   const alice = await as('Alice');
   assert.equal((await alice.post(`/callouts/${id}/cancel`, { _csrf: alice.token })).status, 409);
   assert.equal((await alice.get(`/callouts/${id}/edit`)).status, 409);
@@ -367,7 +379,7 @@ test('edit changes the terms but not the opponent or the 72-hour clock', async (
   const before = await battle(id);
   const alice = await as('Alice');
   const r = await alice.post(`/callouts/${id}`, {
-    ...terms, scoring: 'fun', judging: 'popular', submission_days: '3', opponent: 'Carol', _csrf: alice.token,
+    ...withReview('Bob', { scoring: 'fun', judging: 'popular', submission_days: '3' }), opponent: 'Carol', _csrf: alice.token,
   });
   assert.equal(r.status, 303);
   const after = await battle(id);
@@ -393,7 +405,7 @@ test('accept is refused if the creator changed the terms after the page was open
   const bob = await as('Bob');
   const page = await bob.get(`/callouts/${id}`);
   const alice = await as('Alice');
-  await alice.post(`/callouts/${id}`, { ...terms, scoring: 'fun', submission_days: '7', _csrf: alice.token });
+  await alice.post(`/callouts/${id}`, { ...withReview('Bob', { scoring: 'fun', submission_days: '7' }), _csrf: alice.token });
   const r = await bob.post(`/callouts/${id}/accept`, { _csrf: bob.token, terms_version: versionFrom(page.html) });
   assert.equal(r.status, 409);
   assert.match(r.html, /The terms changed\. Review them again\./);
@@ -451,7 +463,8 @@ test('two accepts at the same time: exactly one succeeds', async () => {
     b1.post(`/callouts/${id}/accept`, { _csrf: b1.token, terms_version: v1 }),
     b2.post(`/callouts/${id}/accept`, { _csrf: b2.token, terms_version: v2 }),
   ]);
-  assert.deepEqual(results.map((r) => r.status).sort(), [303, 409]);
+  // One UPDATE lands; the other finds it already accepted by him and shows the battle.
+  assert.deepEqual(results.map((r) => r.status), [303, 303]);
   assert.equal((await battle(id)).status, 'accepted');
 });
 
@@ -479,7 +492,7 @@ test('edit and accept at the same time: the accept never lands on terms the oppo
     const v = versionFrom((await bob.get(`/callouts/${id}`)).html);
     const [acc, ed] = await Promise.all([
       bob.post(`/callouts/${id}/accept`, { _csrf: bob.token, terms_version: v }),
-      alice.post(`/callouts/${id}`, { ...terms, scoring: 'fun', submission_days: '7', _csrf: alice.token }),
+      alice.post(`/callouts/${id}`, { ...withReview('Bob', { scoring: 'fun', submission_days: '7' }), _csrf: alice.token }),
     ]);
     assert.deepEqual([acc.status, ed.status].sort(), [303, 409], `round ${i}`);
     const row = await battle(id);
@@ -542,7 +555,6 @@ test('every refused action names the action and the current status', async () =>
   const bob = await as('Bob');
   const cases = [
     [bob, 'accept', 'Not accepted', 'was not accepted. It has already been declined.'],
-    [bob, 'decline', 'Not declined', 'was not declined. It has already been declined.'],
     [alice, 'cancel', 'Not cancelled', 'was not cancelled. It has already been declined.'],
   ];
   for (const [who, action, heading, message] of cases) {
@@ -559,13 +571,20 @@ test('every refused action names the action and the current status', async () =>
   await expire(ex);
   const x = await alice.post(`/callouts/${ex}/cancel`, { _csrf: alice.token });
   assert.match(x.html, /was not cancelled\. It has already expired\./);
+  // Decline on a declined call out is his own repeat (it redirects), so check it on a cancelled one.
+  const cx = await callout('alice', 'bob');
+  await pool.query("UPDATE battles SET status = 'cancelled' WHERE id = $1", [cx]);
+  const d = await bob.post(`/callouts/${cx}/decline`, { _csrf: bob.token });
+  assert.equal(d.status, 409);
+  assert.match(d.html, /Not declined/);
+  assert.match(d.html, /was not declined\. It has already been cancelled\./);
 });
 
 // --- Browser test step 7 (Nov 24): a cancelled call out shows on Past ---
 
 test('a cancelled call out shows as Cancelled on Past for both accounts, and nowhere else', async () => {
   const alice = await as('Alice');
-  const sent = await alice.post('/callouts', { ...terms, opponent: 'Bob', _csrf: alice.token });
+  const sent = await send(alice, 'Bob');
   assert.equal(sent.status, 303);
   const id = sent.location.split('/').pop();
   const c = await alice.post(`/callouts/${id}/cancel`, { _csrf: alice.token });
@@ -581,4 +600,94 @@ test('a cancelled call out shows as Cancelled on Past for both accounts, and now
       assert.doesNotMatch((await who.get(`/my-battles?tab=${tab}`)).html, new RegExp(`/callouts/${id}"`), tab);
     }
   }
+});
+
+// --- Second review fixes (Nov 24) ---
+
+test('double-clicking Send creates one call out and both clicks land on it', async () => {
+  const alice = await as('Alice');
+  const body = { ...terms, opponent: 'Bob', _csrf: alice.token, reviewed: reviewKey({ ...terms, opponent: 'Bob' }) };
+  const [r1, r2] = await Promise.all([alice.post('/callouts', body), alice.post('/callouts', body)]);
+  assert.equal(r1.status, 303);
+  assert.equal(r2.status, 303);
+  assert.equal(r1.location, r2.location);
+  const r3 = await alice.post('/callouts', body); // resubmitted after a slow response
+  assert.equal(r3.location, r1.location);
+  assert.equal(await count(), 1);
+});
+
+test('a second identical call out sent later is a new call out', async () => {
+  const alice = await as('Alice');
+  const first = await send(alice, 'Bob');
+  await pool.query("UPDATE battles SET created_at = created_at - interval '1 minute', expires_at = expires_at - interval '1 minute' WHERE id = $1",
+    [first.location.split('/').pop()]);
+  const second = await send(alice, 'Bob');
+  assert.notEqual(second.location, first.location);
+  assert.equal(await count(), 2);
+});
+
+test('repeating a successful accept, decline or cancel shows the call out, not a refusal', async () => {
+  const bob = await as('Bob');
+  const alice = await as('Alice');
+  const a = await callout('alice', 'bob');
+  assert.equal((await accept(bob, a)).status, 303);
+  const a2 = await bob.post(`/callouts/${a}/accept`, { _csrf: bob.token, terms_version: '1' });
+  assert.equal(a2.status, 303);
+  assert.equal(a2.location, `/callouts/${a}`);
+  for (const [who, action, status] of [[bob, 'decline', 'declined'], [alice, 'cancel', 'cancelled']]) {
+    const id = await callout('alice', 'bob');
+    assert.equal((await who.post(`/callouts/${id}/${action}`, { _csrf: who.token })).status, 303);
+    const again = await who.post(`/callouts/${id}/${action}`, { _csrf: who.token });
+    assert.equal(again.status, 303, action);
+    assert.equal(again.location, `/callouts/${id}`, action);
+    assert.equal((await battle(id)).status, status);
+  }
+});
+
+test('Past lists battles by when they closed, so one closed today is never cut off', async () => {
+  const old = await callout('alice', 'bob');
+  await pool.query("UPDATE battles SET created_at = now() - interval '2 days', expires_at = now() + interval '1 day' WHERE id = $1", [old]);
+  await pool.query(
+    `INSERT INTO battles (kind, scoring, judging, challenger_user_id, opponent_user_id, created_by, submission_days,
+                          status, created_at, expires_at, updated_at)
+     SELECT 'single', 'fun', 'official', $1, $2, $1, 5, 'declined', now() - interval '1 day',
+            now() + interval '2 days', now() - interval '1 hour' FROM generate_series(1, 60)`,
+    [ids.alice, ids.bob],
+  );
+  const bob = await as('Bob');
+  assert.equal((await bob.post(`/callouts/${old}/decline`, { _csrf: bob.token })).status, 303);
+  const past = (await bob.get('/my-battles?tab=past')).html;
+  assert.match(past, new RegExp(`/callouts/${old}"`));
+  assert.equal((past.match(/class="strip strip--versus"/g) || []).length, 50);
+});
+
+test('Send uses only the terms shown on the Review card', async () => {
+  const alice = await as('Alice');
+  const review = await alice.post('/callouts/review', { ...terms, opponent: 'Bob', _csrf: alice.token });
+  const reviewed = reviewedFrom(review.html);
+  assert.ok(reviewed);
+  const r = await alice.post('/callouts', { ...terms, opponent: 'Carol', reviewed, _csrf: alice.token });
+  assert.equal(r.status, 400);
+  assert.match(r.html, /changed the terms after Review/);
+  assert.match(r.html, /Carol/); // the Review card now shows what would be sent
+  assert.equal(await count(), 0);
+  const missing = await alice.post('/callouts', { ...terms, opponent: 'Bob', _csrf: alice.token });
+  assert.equal(missing.status, 400);
+  assert.equal(await count(), 0);
+  const ok = await alice.post('/callouts', { ...terms, opponent: 'Bob', reviewed, _csrf: alice.token });
+  assert.equal(ok.status, 303);
+  assert.equal(await count(), 1);
+});
+
+test('Save changes uses only the terms shown on the Review card', async () => {
+  const id = await callout('alice', 'bob');
+  const alice = await as('Alice');
+  const review = await alice.post(`/callouts/${id}/review`, { ...terms, scoring: 'fun', _csrf: alice.token });
+  const reviewed = reviewedFrom(review.html);
+  const r = await alice.post(`/callouts/${id}`, { ...terms, scoring: 'fun', submission_days: '7', reviewed, _csrf: alice.token });
+  assert.equal(r.status, 400);
+  assert.match(r.html, /changed the terms after Review/);
+  assert.equal((await battle(id)).submission_days, 5);
+  const ok = await alice.post(`/callouts/${id}`, { ...terms, scoring: 'fun', reviewed, _csrf: alice.token });
+  assert.equal(ok.status, 303);
 });

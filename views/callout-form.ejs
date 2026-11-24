@@ -88,6 +88,7 @@
                 <dt>Call out expires</dt><dd><%= edit ? '72 hours after it was sent' : '72 hours' %></dd>
               </dl>
               <div class="card__foot">
+                <input type="hidden" name="reviewed" value="<%= locals.reviewed || '' %>" />
                 <button class="btn btn--primary btn--block" type="submit" formaction="<%= base %>"><%= edit ? 'Save changes' : 'Send call out' %></button>
                 <p class="hint">You can edit or cancel until your opponent accepts. Scoring cannot change after acceptance.</p>
               </div>
