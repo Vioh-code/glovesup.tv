@@ -77,3 +77,6 @@ Built: S-B1, S-B2, S-B3, S-M1 call out parts; F-C1, F-C2 (1v1 only). Migration 1
 - No rate limit on Check link. Each Check and Submit makes one oEmbed request from the server; only the two players of an open, unlocked battle can trigger it.
 - A link must include http:// or https://. "youtu.be/ID" typed without it is refused with the format message.
 - Team battles get three slots in the teams slice; today accept creates slot 1 only.
+
+## Slice 2c (judges), not started
+- S-B5 closed-reason wording (second review of slice 2b, finding 3): the "Submissions are closed" notice picks its reason from `accepted_at`, while a refusal picks it from the battle status. Once a battle moves past `accepted` (judging in 2c, or forfeited and voided in the worker slice) with a due date still in the future, the page says "The due date has passed." and a refused POST says "Videos open once the call out is accepted." Use one reason for both, with wording for a battle that has moved on.
