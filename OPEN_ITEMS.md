@@ -14,6 +14,12 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 
 ## Decisions still open
 - S-B4 Judge panel: own page or a section of S-B7 (marked with a dagger in the Screen Inventory).
+- Does accept recheck the 400-point band? Today it is checked at create and edit only. Decide before slice 2d (ELO), when ratings start to move.
+- Limit open call outs between the same two players? More than one is allowed today; the docs do not say.
+- Cap or rate limit on call outs one member can send (spam risk). Not in the docs.
+- What a ban, suspension or deletion does to that member's open call outs and battles (moderation slice, F-G2). Today a call out from a member banned after sending can still be accepted, and edit does not recheck the opponent's status or verification (only the band), so a creator can still edit, even to ELO, against an opponent banned after it was sent.
+- Repeat Send window: a same-terms Send within 10 seconds lands on the call out already made. The window is not in the docs; confirm or change it.
+- Does joining a team also need a verified email? The S-P8 subtitle says "Verify your email to call out and join teams"; spec section 8 and the verification banner name call outs and voting only. Decide before the teams slice (from slice 1a).
 
 ## Content to supply
 - Terms and Privacy text (S-P13).
@@ -25,6 +31,7 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 - Logging design (separate chat).
 - Fight card (not V1).
 - Score cards and a score card builder (future feature, not in V1).
+- Per-user time zone setting on the profile page (later slice). Dates show in the browser's time zone until then.
 
 ## Open after the Nov 17, 2026 cutover
 - Delete the stale `/home/matt/glovesup.tv` on the Linode (first-attempt copy with local package edits). Only when Matt says so.
@@ -41,7 +48,6 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 ## Slice 1a (register and log in), Nov 17, 2026
 - Age gate uses the server's UTC calendar date as "the day of signup". In US evening hours UTC is already the next day, so someone turning 13 tomorrow (local) can pass a few hours early. Not in the docs; left as is.
 - After an under-13 refusal nothing stops the person from going back and entering a different date. Not in the docs; no retry block built.
-- Does joining a team also need a verified email? The S-P8 subtitle says "Verify your email to call out and join teams"; spec section 8 and the verification banner name call outs and voting only. Decide before the teams slice.
 - Nav links to screens not built yet (Battle log, Teams, Leaderboards, Battles) show the 404 page until their slices.
 - A form body over 10 kB is refused, but shows the generic "Something went wrong" page (500) instead of a 413 message.
 - After registering, the user goes to the log-in page with an "Account created" notice; there is no automatic login.
@@ -50,21 +56,16 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 - Active-session list (S-M4, `sessions` table) not built. Deferred with MFA and lockout.
 
 ## Production
-- A test account exists in the production database. Delete it before launch, only when Matt says so.
+- A test account (gloverb) exists in the production database, email marked verified by hand on Nov 24, 2026. Delete it before launch, only when Matt says so.
+- No password reset flow yet; production test account password was reset by hand on the Linode (Nov 24).
 - The Linode has 20 pending OS updates (3 security) and needs a reboot. Do both in the Dec 7, 2026 monthly update session.
 - The production DOB_ENC_KEY is stored in Matt's password manager. Losing it loses every stored DOB.
 
-## Slice 2a (call outs), Nov 20, 2026
-- More than one open call out between the same two players is allowed. The docs do not say whether to limit it.
-- The 400-point band is checked when the call out is created or edited, not again at accept. Ratings do not move until slice 2d; decide before then whether accept rechecks it.
+## Slice 2a (call outs): done, live Nov 24, 2026 (PR #7)
+Built: S-B1, S-B2, S-B3, S-M1 call out parts; F-C1, F-C2 (1v1 only). Migration 1796256000000_battles ran on the Linode Nov 24. Open decisions from this slice moved to "Decisions still open". Known gaps left:
 - "Rating at stake +N −N" on S-B2 is hidden until slice 2d (ELO). `lib/elo.js` is built there.
 - Team call outs (3v3) wait for the teams slice. `battles.challenger_team_id` and `opponent_team_id` get their foreign keys then.
 - Rules not enforced yet because their tables do not exist: judges barred from ELO call outs (roles), blocked users cannot call out the blocker (blocks), call out emails (F-H7), audit log rows for call out actions (F-H3).
-- Expiry runs without the worker: actions refuse a call out past `expires_at`, and call out page loads mark every past-due call out expired (one query). The worker slice takes this over.
-- No limit on how many call outs one member can send (spam risk). Not in the docs; decide a cap or rate limit later.
+- Expiry runs without the worker: actions refuse a call out past `expires_at`, and call out page loads mark every past-due call out expired (one query). The worker slice takes this over. Until then an expired call out sorts on Past by `expires_at`.
 - S-B2 "Your opponent" card shows the rating only. Battles, record and View profile wait for user stats (F-F2) and the profile slice. The wireframe's "Accepting draws three judges at random" hint is reworded until judges are drawn (slice 2c).
-- A call out from a member who is banned, suspended or deleted after sending it can still be accepted (accept checks only the opponent). Decide in the moderation slice (F-G2) what a ban does to that member's open call outs and battles.
-- Repeat Send: the same creator sending the same terms to the same opponent within 10 seconds lands on the call out already made (double-click or resubmit). A second identical call out after that is allowed. The window is not in the docs.
-- Edit does not recheck the opponent's status or verification, only the 400-point band. A creator can still edit a call out to an opponent who was banned, suspended or unverified after it was sent, including switching it to ELO. Decide with the ban note above (moderation slice, F-G2).
-- Per-user time zone setting on the profile page (later slice).
 - Header nav is clipped at phone width (375 px); LEADERBOARDS is cut off.
