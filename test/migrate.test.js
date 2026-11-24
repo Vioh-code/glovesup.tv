@@ -2,6 +2,7 @@ const { test, after } = require('node:test');
 const assert = require('node:assert/strict');
 const { execFileSync } = require('node:child_process');
 const path = require('node:path');
+const { requireTestDatabase } = require('./helpers/guard'); // refuses a non-test DB on load
 const { pool } = require('../db');
 
 const root = path.join(__dirname, '..');
@@ -10,6 +11,7 @@ after(() => pool.end());
 
 // Same command the npm migrate scripts run, pointed at the test env file.
 function migrate(direction) {
+  requireTestDatabase();
   return execFileSync(
     process.execPath,
     ['--env-file=.env.test', 'scripts/migrate.js', direction],
