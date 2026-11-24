@@ -560,3 +560,25 @@ test('every refused action names the action and the current status', async () =>
   const x = await alice.post(`/callouts/${ex}/cancel`, { _csrf: alice.token });
   assert.match(x.html, /was not cancelled\. It has already expired\./);
 });
+
+// --- Browser test step 7 (Nov 24): a cancelled call out shows on Past ---
+
+test('a cancelled call out shows as Cancelled on Past for both accounts, and nowhere else', async () => {
+  const alice = await as('Alice');
+  const sent = await alice.post('/callouts', { ...terms, opponent: 'Bob', _csrf: alice.token });
+  assert.equal(sent.status, 303);
+  const id = sent.location.split('/').pop();
+  const c = await alice.post(`/callouts/${id}/cancel`, { _csrf: alice.token });
+  assert.equal(c.status, 303);
+  assert.equal((await battle(id)).status, 'cancelled');
+  const bob = await as('Bob');
+  for (const [who, line] of [[alice, 'You vs Bob'], [bob, 'You vs Alice']]) {
+    const past = (await who.get('/my-battles?tab=past')).html;
+    assert.match(past, new RegExp(`href="/callouts/${id}"`));
+    assert.match(past, new RegExp(line));
+    assert.match(past, /<span class="pill">Cancelled<\/span>/);
+    for (const tab of ['incoming', 'outgoing', 'active']) {
+      assert.doesNotMatch((await who.get(`/my-battles?tab=${tab}`)).html, new RegExp(`/callouts/${id}"`), tab);
+    }
+  }
+});
