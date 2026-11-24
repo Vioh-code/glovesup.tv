@@ -447,3 +447,40 @@ test('the Battle status hint about replacing shows only while the video can stil
   await pool.query("UPDATE battles SET submissions_due_at = now() - interval '1 minute', accepted_at = now() - interval '120 hours 1 minute' WHERE id = $1", [late]);
   assert.doesNotMatch((await a.get(page(late))).html, HINT);
 });
+
+// --- Second review fixes (Nov 24) ---
+
+test('double-clicking Submit on the second video saves it once, locks both, and never says "not saved"', async () => {
+  for (let i = 0; i < 4; i += 1) {
+    await clearBattles(pool);
+    const id = await battle();
+    const a = await as('Alice');
+    const b = await as('Bob');
+    await direct(a, id, vid(1));
+    const [r1, r2] = await Promise.all([direct(b, id, vid(2)), direct(b, id, vid(2))]);
+    assert.deepEqual([r1.status, r2.status], [303, 303], `round ${i}`);
+    const mine = await live('bob');
+    assert.equal(mine.length, 1, `round ${i}`);
+    assert.ok(mine[0].locked_at, `round ${i}`);
+    const again = await direct(b, id, vid(2)); // back, then Submit again after the lock
+    assert.equal(again.status, 303, `round ${i}`);
+    assert.equal(again.location, page(id), `round ${i}`);
+    assert.equal((await rows()).length, 2, `round ${i}`);
+  }
+});
+
+test('a blank Check link while replacing keeps the replace form and shows the message', async () => {
+  const id = await battle();
+  const a = await as('Alice');
+  await submit(a, id, vid(1));
+  for (const youtube_url of ['', '   ']) {
+    const r = await a.post(`${page(id)}/check`, { youtube_url, _csrf: a.token });
+    assert.equal(r.status, 400, JSON.stringify(youtube_url));
+    assert.match(r.html, /Paste a YouTube link/, JSON.stringify(youtube_url));
+    assert.match(r.html, /name="youtube_url"/, JSON.stringify(youtube_url));
+  }
+  const s = await a.post(page(id), { youtube_url: '', checked: '', _csrf: a.token });
+  assert.equal(s.status, 400);
+  assert.match(s.html, /Paste a YouTube link/);
+  assert.equal((await live('alice'))[0].video_id, vid(1));
+});

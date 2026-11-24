@@ -80,7 +80,8 @@ function submissionRoutes() {
       opponent,
       state,
       open: !blocked(req, state),
-      replacing: req.query.replace === '1' || Boolean(form.url),
+      // Any Check or Submit result keeps the form open, even with a blank link.
+      replacing: req.query.replace === '1' || Boolean(form.url || form.preview || (form.errors && form.errors.length)),
       countdown: b.submissions_due_at && !req.pastDue ? timeLeft(b.submissions_due_at) : null,
       form: { url: '', errors: [], preview: null, ...form },
     });
@@ -124,13 +125,14 @@ function submissionRoutes() {
   router.post('/battles/:id/video', requireLogin, playersOnly, async (req, res, next) => {
     try {
       const state = req.slot ? await subs.videoState(req.slot.id, req.user.id, req.pastDue) : {};
-      const why = blocked(req, state);
-      if (why) return refuse(res, req.battle.id, 'save', why);
       const parsed = youtube.parseYouTubeUrl(req.body.youtube_url);
-      // The live video again (a double-click or resubmit): nothing to save, no YouTube call.
+      // The live video again (a double-click or resubmit, even after it locked
+      // both): nothing to save, no YouTube call, no refusal.
       if (parsed && state.mine && state.mine.video_id === parsed.videoId && req.body.checked === parsed.videoId) {
         return res.redirect(303, page(req));
       }
+      const why = blocked(req, state);
+      if (why) return refuse(res, req.battle.id, 'save', why);
       const video = await checkLink(req, res);
       if (!video) return undefined;
       if (req.body.checked !== video.videoId) {

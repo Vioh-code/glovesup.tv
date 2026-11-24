@@ -21,6 +21,9 @@ exports.up = (pgm) => {
   pgm.addConstraint('battle_slots', 'battle_slots_battle_id_position', { unique: ['battle_id', 'position'] });
   pgm.addConstraint('battle_slots', 'battle_slots_position', { check: 'position BETWEEN 1 AND 3' });
   pgm.addConstraint('battle_slots', 'battle_slots_participants', { check: 'challenger_user_id <> opponent_user_id' });
+  // A player's slots (dashboard "Submit your video", slot lookups), as battles has.
+  pgm.createIndex('battle_slots', ['challenger_user_id']);
+  pgm.createIndex('battle_slots', ['opponent_user_id']);
 
   pgm.createTable('submissions', {
     id: { type: 'uuid', primaryKey: true, default: pgm.func('gen_random_uuid()') },

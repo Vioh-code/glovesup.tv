@@ -112,3 +112,10 @@ test('battles with slots, and slots with submissions, cannot be deleted', async 
   await assert.rejects(pool.query('DELETE FROM battle_slots WHERE id = $1', [s.id]), /foreign key/);
   await assert.rejects(pool.query('DELETE FROM battles WHERE id = $1', [battleId]), /foreign key/);
 });
+
+test('battle_slots are indexed by each player, for the dashboard and slot lookups', async () => {
+  const { rows } = await pool.query("SELECT indexdef FROM pg_indexes WHERE tablename = 'battle_slots'");
+  const defs = rows.map((r) => r.indexdef).join('\n');
+  assert.match(defs, /\(challenger_user_id\)/);
+  assert.match(defs, /\(opponent_user_id\)/);
+});
