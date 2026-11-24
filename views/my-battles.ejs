@@ -1,0 +1,34 @@
+<%- include('partials/top', { title: 'My battles' }) %>
+  <%# S-B3 My battles (F-C1). Layout: wireframes/pages/my-battles.html
+      Incoming: call outs to answer. Outgoing: call outs you sent.
+      Active: accepted through judging. Past: finalized, expired, declined, cancelled. %>
+<% const names = { incoming: 'Incoming', outgoing: 'Outgoing', active: 'Active', past: 'Past' }; %>
+  <main class="page">
+    <div class="container">
+      <div class="page-head"><div><h1>My battles</h1><p class="page-head__sub">Everything you are in, by state.</p></div><a class="btn btn--primary btn--sm" href="/callouts/new">Create a call out</a></div>
+      <div class="tabs" role="tablist">
+<% tabs.forEach(function (t) { %>
+        <a class="tabs__tab<%= t === tab ? ' tabs__tab--active' : '' %>" href="/my-battles?tab=<%= t %>" role="tab"<%= t === tab ? ' aria-selected="true"' : '' %>><%= names[t] %><%= t === 'incoming' && lists.incoming.length ? ' (' + lists.incoming.length + ')' : '' %></a>
+<% }) %>
+      </div>
+      <section aria-label="Battles">
+<% if (!lists[tab].length) { %>
+        <p class="hint">Nothing here yet. <a href="/callouts/new">Create a call out</a></p>
+<% } %>
+<% lists[tab].forEach(function (r) { %>
+        <a class="strip strip--versus" href="/callouts/<%= r.id %>">
+          <div>
+            <div class="strip__name"><%= tab === 'incoming' ? r.other_name + ' called you out' : (tab === 'outgoing' ? 'You called out ' + r.other_name : 'You vs ' + r.other_name) %></div>
+            <div class="strip__sub">1v1 · <%= labels.scoring[r.scoring] %> · <%= labels.judging[r.judging] %></div>
+          </div>
+          <div class="strip__stats">
+<%   if (r.status === 'proposed') { %><%- include('partials/time-left', { t: timeLeft(r.expires_at), due: r.expires_at }) %><% } %>
+<%   if (r.status === 'accepted' && r.submissions_due_at) { %><%- include('partials/time-left', { t: timeLeft(r.submissions_due_at), due: r.submissions_due_at, suffix: 'for videos' }) %><% } %>
+            <span class="pill<%= tab === 'incoming' ? ' pill--action' : (tab === 'past' ? '' : ' pill--waiting') %>"><%= tab === 'incoming' ? 'Needs reply' : labels.status[r.status] %></span>
+          </div>
+        </a>
+<% }) %>
+      </section>
+    </div>
+  </main>
+<%- include('partials/bottom') %>

@@ -4,7 +4,7 @@
     <section class="card card--raised auth__card" style="text-align:center">
       <h1 class="auth__title"><%= heading %></h1>
       <p class="auth__sub"><%= message %></p>
-      <a class="btn btn--primary" href="/">Back to home</a>
+      <% if (locals.link) { %><a class="btn btn--primary" href="<%= link %>">Back</a><% } else { %><a class="btn btn--primary" href="/">Back to home</a><% } %>
     </section>
   </main>
 <%- include('partials/bottom') %>

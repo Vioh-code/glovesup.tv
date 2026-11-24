@@ -33,7 +33,7 @@ Confirmed from the Nov 13, 2026 stack report and checks on both machines. `[CONF
 - App: Express 4, EJS server-rendered views, Passport (local), express-session with connect-pg-simple (table from a migration), bcrypt, helmet. CSRF is hand-written (`lib/csrf.js`, session-bound token, `crypto.timingSafeEqual`). The app refuses to start without `SESSION_SECRET` and `DOB_ENC_KEY` (see `.env.example`).
 - Data access: plain `pg` with SQL. Shared pool in `db.js`. Sequelize and pg-hstore are removed.
 - Database: Postgres. Settings: PORT, DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME. Node loads them with `--env-file` (no dotenv). Dev box: `.env.dev` (`glovesup_dev`) and `.env.test` (`glovesup_test`), both as role `glovesup_dev`. Linode: `.env`.
-- Migrations: node-pg-migrate 9 via `scripts/migrate.js` (runner API, reads DB_* from the env file). Files in `migrations/`, CommonJS, `<timestamp>_<name>.js`. Tracking table `pgmigrations`.
+- Migrations: node-pg-migrate 9 via `scripts/migrate.js` (runner API, reads DB_* from the env file). Files in `migrations/`, CommonJS, `<timestamp>_<name>.js`. Tracking table `pgmigrations`. Pick migration timestamps by hand, 10 days after the previous one.
 - Tests: Node's built-in runner (`node --test`, files in `test/*.test.js`) against `glovesup_test`. No linter.
 - Timers: one-minute worker over `scheduled_jobs`, run by cron with `flock -n` so runs never overlap. Cron has a bare PATH, so use absolute paths. [NOT SET UP]
 - Bind the app to 127.0.0.1 behind Nginx. The old app listened on all interfaces.

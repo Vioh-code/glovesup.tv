@@ -1,0 +1,4 @@
+<%# Countdown shared element: t = timeLeft(...) result, suffix optional, due = Date of the exact due date.
+    Time left and the due date are two items in one group that wraps on narrow screens. The date is a
+    <time> with UTC text; public/js/local-time.js shows it in the viewer's time zone. %>
+<span class="countdown"><span class="time-left<%= t.urgent ? ' time-left--urgent' : '' %>"><%= t.text %><%= !t.expired && locals.suffix ? ' ' + suffix : '' %></span><% if (locals.due) { %><span class="time-left countdown__due">Due <time datetime="<%= due.toISOString() %>"><%= utcText(due) %></time></span><% } %></span>

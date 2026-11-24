@@ -1,12 +1,52 @@
 <%- include('partials/top', { title: 'Dashboard' }) %>
-  <%# S-M1 Dashboard stub. Layout: wireframes/pages/dashboard.html (page head only).
-      The action list, active battles and results come with the battle slices. %>
+  <%# S-M1 Dashboard. Layout: wireframes/pages/dashboard.html
+      Slice 2a: call outs to answer, active battles, rating, Create a call out.
+      Video, judge request, team and result items come with their slices. %>
   <main class="page">
     <div class="container">
       <div class="page-head"><div>
         <h1>Dashboard</h1>
-        <p class="page-head__sub">Logged in as <strong><%= currentUser.username %></strong>.</p>
+        <p class="page-head__sub">Logged in as <strong><%= currentUser.username %></strong>. Everything waiting on you, with the time left on each.</p>
       </div></div>
+
+      <div class="layout">
+        <div>
+          <section class="card" aria-labelledby="needs-h">
+            <div class="card__head"><h2 class="card__title" id="needs-h">Needs your action</h2></div>
+            <div class="row-list">
+<% if (!incoming.length) { %>
+              <p class="hint">Nothing waiting on you. <a href="/callouts/new">Create a call out</a></p>
+<% } %>
+<% incoming.forEach(function (r) { %>
+              <div class="row row--action">
+                <div class="row__main"><div class="row__title">Call out from <%= r.other_name %></div><div class="row__meta">1v1 · <%= labels.scoring[r.scoring] %> · <%= labels.judging[r.judging] %></div></div>
+                <div class="row__aside"><%- include('partials/time-left', { t: timeLeft(r.expires_at), due: r.expires_at, suffix: 'to answer' }) %><a class="btn btn--primary btn--sm" href="/callouts/<%= r.id %>">Review</a></div>
+              </div>
+<% }) %>
+            </div>
+          </section>
+
+          <section class="card" aria-labelledby="active-h">
+            <div class="card__head"><h2 class="card__title" id="active-h">Active battles</h2><a class="card__link" href="/my-battles">All my battles</a></div>
+            <div class="row-list">
+<% if (!active.length) { %>
+              <p class="hint">No active battles.</p>
+<% } %>
+<% active.forEach(function (r) { %>
+              <div class="row"><div class="row__main"><div class="row__title">You vs <%= r.other_name %></div></div><div class="row__aside"><% if (r.submissions_due_at) { %><%- include('partials/time-left', { t: timeLeft(r.submissions_due_at), due: r.submissions_due_at, suffix: 'for videos' }) %><% } %><span class="pill pill--action"><%= labels.status[r.status] %></span><a class="card__link" href="/callouts/<%= r.id %>">Open</a></div></div>
+<% }) %>
+            </div>
+          </section>
+        </div>
+
+        <aside>
+          <section class="card rating-card">
+            <span class="stat__label">Your rating</span>
+            <span class="stat__value"><%= rating %></span>
+            <a class="btn btn--primary btn--block" href="/callouts/new">Create a call out</a>
+          </section>
+        </aside>
+      </div>
     </div>
   </main>
 <%- include('partials/bottom') %>

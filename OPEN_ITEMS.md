@@ -14,7 +14,6 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 
 ## Decisions still open
 - S-B4 Judge panel: own page or a section of S-B7 (marked with a dagger in the Screen Inventory).
-- Countdown urgent state (last 24 hours): wireframes set it by hand. Build must compute it.
 
 ## Content to supply
 - Terms and Privacy text (S-P13).
@@ -35,10 +34,8 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 - Optional deploy.yml hardening: add `permissions: contents: read` and a test job gate. Tests run on the dev box only; the Action has no gate.
 - Worker cron output needs a log file and rotation. Decide in the worker slice. Cron runs as `glovesup` with absolute paths.
 - DB roles: split an owner role (runs migrations, owns tables) from a least-privilege app role (runtime queries). Today the dev box uses one role, `glovesup_dev`, for the dev and test databases.
-- Linode `.env` `DB_USER`: confirm it is the dedicated `glovesup` role and not the postgres superuser, before the auth slice.
 - Old databases `glovesup` and `gloveleague` on the dev box can be dropped when Matt says so. Do not drop before then.
 - Remove `dotenv` from package.json once confirmed unused (Node loads env files with `--env-file`).
-- Before the auth slice, confirm bcrypt loads on the Linode: `sudo -u glovesup node -e "require('/home/glovesup/glovesup.tv/node_modules/bcrypt')"`. npm 11 warns that bcrypt's install script is not covered by allowScripts; npm 12 blocks it by default.
 - Old archive at ~/Downloads/Glovesup arch has Privacy_Policy.md, Terms_of_Service.md, ELO_Reference.md. Review for reuse later.
 
 ## Slice 1a (register and log in), Nov 17, 2026
@@ -56,3 +53,18 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 - A test account exists in the production database. Delete it before launch, only when Matt says so.
 - The Linode has 20 pending OS updates (3 security) and needs a reboot. Do both in the Dec 7, 2026 monthly update session.
 - The production DOB_ENC_KEY is stored in Matt's password manager. Losing it loses every stored DOB.
+
+## Slice 2a (call outs), Nov 20, 2026
+- More than one open call out between the same two players is allowed. The docs do not say whether to limit it.
+- The 400-point band is checked when the call out is created or edited, not again at accept. Ratings do not move until slice 2d; decide before then whether accept rechecks it.
+- "Rating at stake +N −N" on S-B2 is hidden until slice 2d (ELO). `lib/elo.js` is built there.
+- Team call outs (3v3) wait for the teams slice. `battles.challenger_team_id` and `opponent_team_id` get their foreign keys then.
+- Rules not enforced yet because their tables do not exist: judges barred from ELO call outs (roles), blocked users cannot call out the blocker (blocks), call out emails (F-H7), audit log rows for call out actions (F-H3).
+- Expiry runs without the worker: actions refuse a call out past `expires_at`, and call out page loads mark every past-due call out expired (one query). The worker slice takes this over.
+- No limit on how many call outs one member can send (spam risk). Not in the docs; decide a cap or rate limit later.
+- S-B2 "Your opponent" card shows the rating only. Battles, record and View profile wait for user stats (F-F2) and the profile slice. The wireframe's "Accepting draws three judges at random" hint is reworded until judges are drawn (slice 2c).
+- A call out from a member who is banned, suspended or deleted after sending it can still be accepted (accept checks only the opponent). Decide in the moderation slice (F-G2) what a ban does to that member's open call outs and battles.
+- Repeat Send: the same creator sending the same terms to the same opponent within 10 seconds lands on the call out already made (double-click or resubmit). A second identical call out after that is allowed. The window is not in the docs.
+- Edit does not recheck the opponent's status or verification, only the 400-point band. A creator can still edit a call out to an opponent who was banned, suspended or unverified after it was sent, including switching it to ELO. Decide with the ban note above (moderation slice, F-G2).
+- Per-user time zone setting on the profile page (later slice).
+- Header nav is clipped at phone width (375 px); LEADERBOARDS is cut off.

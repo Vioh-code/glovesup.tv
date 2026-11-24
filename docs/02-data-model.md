@@ -1,7 +1,7 @@
 # GlovesUP V1 Data Model
 
 Doc: 02-data-model. Related: 01-feature-spec (F- IDs), 03-state-flows (timers and statuses), 04-permissions-matrix.
-Last updated: Nov 17, 2026. Owner: Matt.
+Last updated: Nov 20, 2026. Owner: Matt.
 
 ## Conventions (read first)
 - `†` marks a detail inferred and not yet confirmed. Everything without `†` is decided.
@@ -135,11 +135,12 @@ Every battle has one or more slots. A 1v1 has one slot. A team battle has three,
 | challenger_user_id, opponent_user_id | uuid | Single battles |
 | challenger_team_id, opponent_team_id | uuid | Team battles |
 | created_by | uuid | Who sent the call out |
-| status | enum | proposed, accepted, declined, cancelled, expired, awaiting_panel, submissions_open, judging, finalized, forfeited, voided, stuck † |
-| elo_band_ok | boolean | Opponent was within 400 ELO at creation † |
+| status | enum | proposed, accepted, declined, cancelled, expired, awaiting_panel, submissions_open, judging, finalized, forfeited, voided. `stuck` is added with F-H6 |
+| elo_band_ok | boolean | Opponent was within 400 ELO (inclusive) when the call out was created or last edited. Must be true on ELO battles; null on Just for fun |
 | submission_days | integer | 3, 5, or 7, chosen by the creator from a dropdown |
-| expires_at | timestamp | Creation plus 72 hours |
-| accepted_at, submissions_due_at, judging_due_at, finalized_at | timestamp | Due dates computed from acceptance and from the second submission |
+| created_at, updated_at | timestamp | updated_at changes on every edit; accept checks it so the opponent accepts the terms they saw |
+| expires_at | timestamp | Creation plus 72 hours. Editing does not move it |
+| accepted_at, submissions_due_at, judging_due_at, finalized_at | timestamp | Due dates computed from acceptance and from the second submission. A day is a fixed 24 hours (no daylight saving shift) |
 | result | enum | challenger, opponent, or void |
 | forfeited_by | uuid | User or team that forfeited, or null |
 | forfeit_reason | enum | explicit or missed_deadline |

@@ -29,9 +29,22 @@ test('migrate script runs down and up cleanly on glovesup_test', () => {
   assert.match(migrate('up'), /No migrations to run/); // up is idempotent
 });
 
-test('session and users migrations each revert cleanly, then reapply', async () => {
+async function typeExists(name) {
+  const { rows } = await pool.query('SELECT 1 FROM pg_type WHERE typname = $1', [name]);
+  return rows.length > 0;
+}
+
+test('battles, session and users migrations each revert cleanly, then reapply', async () => {
   migrate('up');
   assert.ok(await tableExists('users'));
+  assert.ok(await tableExists('session'));
+  assert.ok(await tableExists('battles'));
+
+  migrate('down'); // battles and its enums
+  assert.ok(!(await tableExists('battles')));
+  for (const t of ['battle_kind', 'battle_scoring', 'battle_judging', 'battle_status', 'battle_result', 'forfeit_reason']) {
+    assert.ok(!(await typeExists(t)), t);
+  }
   assert.ok(await tableExists('session'));
 
   migrate('down'); // session
@@ -40,10 +53,10 @@ test('session and users migrations each revert cleanly, then reapply', async () 
 
   migrate('down'); // users and its enum
   assert.ok(!(await tableExists('users')));
-  const { rows } = await pool.query("SELECT 1 FROM pg_type WHERE typname = 'user_status'");
-  assert.equal(rows.length, 0);
+  assert.ok(!(await typeExists('user_status')));
 
   migrate('up');
   assert.ok(await tableExists('users'));
   assert.ok(await tableExists('session'));
+  assert.ok(await tableExists('battles'));
 });

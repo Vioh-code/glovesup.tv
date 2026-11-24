@@ -1,4 +1,4 @@
-// F-A1 / S-P8 Register, F-A2 / S-P10 Log in and log out, S-M1 dashboard stub.
+// F-A1 / S-P8 Register, F-A2 / S-P10 Log in and log out. S-M1 is routes/dashboard.js.
 // Never log request bodies, passwords, DOBs or email addresses.
 const express = require('express');
 const { pool } = require('../db');
@@ -6,7 +6,7 @@ const { csrfToken } = require('../lib/csrf');
 const { validateRegistration } = require('../lib/validate');
 const { hashPassword } = require('../lib/passwords');
 const { encryptDob } = require('../lib/dob-crypto');
-const { passport, requireLogin, visitorsOnly } = require('../lib/auth');
+const { passport, visitorsOnly } = require('../lib/auth');
 const { rememberDevice, COOKIE_NAME } = require('../lib/session');
 
 const DUPLICATE = 'That username or email is not available.';
@@ -89,9 +89,6 @@ function authRoutes({ dobKey }) {
       return res.redirect(303, '/');
     });
   });
-
-  // S-M1 Dashboard: stub until the dashboard slice.
-  router.get('/dashboard', requireLogin, (req, res) => res.render('dashboard'));
 
   return router;
 }

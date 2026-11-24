@@ -1,0 +1,105 @@
+<%- include('partials/top', { title: edit ? 'Edit call out' : 'Create a call out' }) %>
+  <%# S-B1 Create call out (F-C1, F-C2), also used to edit. Layout: wireframes/pages/create-callout.html
+      No JavaScript: Review posts the form and the server fills in the opponent's rating and the Review card.
+      The opponent is a typed username; members are never listed. %>
+<% const base = edit ? '/callouts/' + edit.id : '/callouts'; %>
+  <main class="page">
+    <div class="container">
+      <% if (edit) { %><p style="margin-bottom:var(--space-3)"><a class="back-link" href="/callouts/<%= edit.id %>">&larr; Call out</a></p><% } %>
+      <div class="page-head"><div>
+        <h1><%= edit ? 'Edit call out' : 'Create a call out' %></h1>
+        <p class="page-head__sub"><%= edit ? 'Change the terms until your opponent accepts. The 72-hour clock keeps running.' : 'Direct to a named player. It expires 72 hours after you send it.' %></p>
+      </div></div>
+<% if (locals.unverified) { %>
+      <div class="notice notice--warn" role="alert"><%= unverified %></div>
+<% } else { %>
+<%- include('partials/form-errors') %>
+      <form method="post" action="<%= base %>/review" novalidate>
+        <input type="hidden" name="_csrf" value="<%= locals.csrfToken || '' %>" />
+        <div class="layout layout--sticky-rail">
+          <div class="card">
+            <section class="step">
+              <div class="step__head"><span class="step__num">1</span><h2 class="step__title">Opponent</h2></div>
+              <div class="opponent-lookup">
+<% if (edit) { %>
+                <span class="strip__name"><%= edit.opponent %></span>
+                <span class="stat__label">Rating <span class="num" style="color:var(--text-primary)"><%= edit.opponentElo %></span></span>
+<% } else { %>
+                <input class="input" type="text" name="opponent" maxlength="20" autocomplete="off" placeholder="Opponent's username" aria-label="Opponent's username" value="<%= values.opponent || '' %>" required />
+<%   if (review) { %>
+                <span class="stat__label">Rating <span class="num" style="color:var(--text-primary)"><%= review.opponentElo %></span></span>
+<%   } %>
+<% } %>
+<% if (review && review.scoring === 'elo') { %>
+                <span class="pill pill--success">Within 400 points</span>
+<% } %>
+              </div>
+              <p class="hint"><%= edit ? 'To call out someone else, cancel this call out and send a new one.' : 'Type their exact username.' %> ELO call outs only allow opponents within 400 points above or below you.</p>
+            </section>
+
+            <section class="step">
+              <div class="step__head"><span class="step__num">2</span><h2 class="step__title">Format</h2></div>
+              <div class="segmented" role="radiogroup" aria-label="Format">
+                <label class="segmented__opt"><input type="radio" name="format" value="single" checked /><span>Single (1v1)</span></label>
+                <label class="segmented__opt"><input type="radio" name="format" value="team" disabled /><span>Team (3v3)</span></label>
+              </div>
+              <p class="hint">Team call outs open once teams are available.</p>
+            </section>
+
+            <section class="step">
+              <div class="step__head"><span class="step__num">3</span><h2 class="step__title">Scoring and judging</h2></div>
+              <div class="segmented" role="radiogroup" aria-label="Scoring">
+                <label class="segmented__opt"><input type="radio" name="scoring" value="elo"<%= values.scoring === 'elo' ? ' checked' : '' %> /><span>ELO</span></label>
+                <label class="segmented__opt"><input type="radio" name="scoring" value="fun"<%= values.scoring === 'fun' ? ' checked' : '' %> /><span>Just for fun</span></label>
+              </div>
+              <div class="subgroup">
+                <div class="option-grid">
+                  <label class="option-card"><input type="radio" name="judging" value="official"<%= values.judging === 'official' ? ' checked' : '' %> /><span class="option-card__body"><span class="option-card__title">Official judges</span><span class="option-card__desc">Three judges each pick a winner</span></span></label>
+                  <label class="option-card"><input type="radio" name="judging" value="popular"<%= values.judging === 'popular' ? ' checked' : '' %> /><span class="option-card__body"><span class="option-card__title">Popular vote</span><span class="option-card__desc">Just for fun only</span></span></label>
+                </div>
+              </div>
+              <p class="hint">ELO battles must use official judges, so Popular vote is available on Just for fun battles only. Judges are drawn for you.</p>
+            </section>
+
+            <section class="step">
+              <div class="step__head"><span class="step__num">4</span><h2 class="step__title">Due date for videos</h2></div>
+              <div class="field">
+                <label class="field__label" for="due">Days after accept</label>
+                <select class="select" id="due" name="submission_days">
+<% ['3', '5', '7'].forEach(function (d) { %>
+                  <option value="<%= d %>"<%= values.submission_days === d ? ' selected' : '' %>><%= d %> days</option>
+<% }) %>
+                </select>
+              </div>
+            </section>
+            <div class="card__foot"><button class="btn btn--ghost" type="submit">Review</button></div>
+          </div>
+
+          <aside>
+            <section class="card card--accent" aria-labelledby="review-h">
+              <div class="card__head"><h2 class="card__title" id="review-h">Review</h2></div>
+<% if (review) { %>
+              <dl class="dl">
+                <dt>Opponent</dt><dd><%= review.opponent %></dd>
+                <dt>Format</dt><dd><%= labels.kind[review.kind] %></dd>
+                <dt>Scoring</dt><dd><%= labels.scoring[review.scoring] %></dd>
+                <dt>Judging</dt><dd><%= labels.judging[review.judging] %></dd>
+                <dt>Videos due</dt><dd><%= review.submission_days %> days after accept</dd>
+                <dt>Call out expires</dt><dd><%= edit ? '72 hours after it was sent' : '72 hours' %></dd>
+              </dl>
+              <div class="card__foot">
+                <input type="hidden" name="reviewed" value="<%= locals.reviewed || '' %>" />
+                <button class="btn btn--primary btn--block" type="submit" formaction="<%= base %>"><%= edit ? 'Save changes' : 'Send call out' %></button>
+                <p class="hint">You can edit or cancel until your opponent accepts. Scoring cannot change after acceptance.</p>
+              </div>
+<% } else { %>
+              <p class="hint">Fill in the steps, then press Review to check your opponent and the terms.</p>
+<% } %>
+            </section>
+          </aside>
+        </div>
+      </form>
+<% } %>
+    </div>
+  </main>
+<%- include('partials/bottom') %>
