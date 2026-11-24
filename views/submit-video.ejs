@@ -1,0 +1,60 @@
+<%- include('partials/top', { title: 'Submit your video' }) %>
+  <%# S-B5 Submit video (F-C3). Layout: wireframes/pages/submit-video.html
+      No JavaScript: Check link posts the form and the server shows the preview; Submit checks the
+      link with YouTube again and saves only what YouTube returned. Replace and Cancel until the due
+      date or until both videos are in (the second video locks both). %>
+<% const page = '/battles/' + b.id + '/video'; const mine = state.mine; %>
+  <main class="page">
+    <div class="container">
+      <p style="margin-bottom:var(--space-3)"><a class="back-link" href="/callouts/<%= b.id %>">&larr; Battle</a></p>
+      <div class="page-head">
+        <div><h1>Submit your video</h1><div class="page-head__meta"><span class="pill pill--outline">You vs <%= opponent %></span><span class="pill pill--outline"><%= labels.scoring[b.scoring] %></span></div></div>
+<% if (countdown) { %><%- include('partials/time-left', { t: countdown, due: b.submissions_due_at }) %><% } %>
+      </div>
+      <div class="layout">
+        <section class="card">
+<% if (state.locked) { %>
+          <div class="notice"><div class="notice__title">Both videos are in</div>Submissions are locked. Neither video can be replaced or cancelled.</div>
+<% } else if (!open) { %>
+          <div class="notice"><div class="notice__title">Submissions are closed</div><%= !b.accepted_at ? 'Videos open once the call out is accepted.' : 'The due date has passed.' %></div>
+<% } else if (mine && !replacing) { %>
+          <div class="notice"><div class="notice__title">Your video is in: <%= mine.title_snapshot %></div>You can replace it or cancel the submission until the due date, or until your opponent's video is in.</div>
+          <div class="form-actions">
+            <a class="btn btn--ghost" href="<%= page %>?replace=1">Replace video</a>
+            <form method="post" action="<%= page %>/cancel"><input type="hidden" name="_csrf" value="<%= csrfToken %>" /><button class="btn btn--danger" type="submit">Cancel submission</button></form>
+          </div>
+<% } else { %>
+<%- include('partials/form-errors', { errors: form.errors }) %>
+          <form method="post" action="<%= page %>/check" novalidate>
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <div class="field">
+              <label class="field__label" for="yt">YouTube link</label>
+              <div class="input-group"><input class="input" id="yt" name="youtube_url" type="url" maxlength="200" autocomplete="off" placeholder="https://www.youtube.com/watch?v=…" value="<%= form.url %>" required /><button class="btn btn--ghost" type="submit">Check link</button></div>
+              <span class="field__hint">Public or unlisted. It must stay up until the battle is finalized.</span>
+            </div>
+<%   if (form.preview) { %>
+            <div class="link-preview" style="margin-top:var(--space-5)">
+              <div class="link-preview__thumb"><% if (form.preview.thumbnail) { %><img src="<%= form.preview.thumbnail %>" alt="" /><% } else { %>No thumbnail<% } %></div>
+              <div><div class="text-xs text-secondary">Link check result</div><div class="row__title" style="margin-top:var(--space-1)"><%= form.preview.title %></div><span class="pill pill--success" style="margin-top:var(--space-2)">Link works</span></div>
+            </div>
+            <input type="hidden" name="checked" value="<%= form.preview.videoId %>" />
+<%   } %>
+            <div class="form-actions">
+<%   if (form.preview) { %><button class="btn btn--primary" type="submit" formaction="<%= page %>"><%= mine ? 'Replace video' : 'Submit video' %></button><% } %>
+              <a class="btn btn--ghost" href="<%= mine ? page : '/callouts/' + b.id %>">Back</a>
+            </div>
+          </form>
+<% } %>
+<% if (mine) { %><%- include('partials/video', { v: mine, label: 'Your video' }) %><% } %>
+        </section>
+        <aside>
+          <section class="card">
+            <div class="card__head"><h2 class="card__title card__title--sm">Battle status</h2></div>
+<%- include('partials/video-status', { state: state, opponent: opponent }) %>
+            <p class="hint">You can replace your video until the due date. Once both videos are in, both are locked.</p>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </main>
+<%- include('partials/bottom') %>

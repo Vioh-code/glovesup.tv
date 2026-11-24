@@ -152,7 +152,7 @@ Every battle has one or more slots. A 1v1 has one slot. A team battle has three,
 |---|---|---|
 | battle_id | uuid | |
 | position | integer | 1 to 3. Pairs first listed vs first listed, and so on |
-| challenger_user_id, opponent_user_id | uuid | Who fights in this slot |
+| challenger_user_id, opponent_user_id | uuid | Who fights in this slot. A 1v1 slot (position 1) is created in the same statement as the accept |
 | result | enum | challenger, opponent, or void |
 
 ### submissions
@@ -160,10 +160,10 @@ Every battle has one or more slots. A 1v1 has one slot. A team battle has three,
 |---|---|---|
 | slot_id, user_id | uuid | |
 | youtube_url, video_id | text | YouTube links only |
-| title_snapshot, thumbnail_snapshot | text | Saved at submission so a dead link still shows context |
+| title_snapshot, thumbnail_snapshot | text | Saved at submission so a dead link still shows context. The thumbnail is kept only from https://i.ytimg.com (the one image host the CSP allows), otherwise null |
 | status | enum | submitted, replaced, cancelled, dead_link |
 | last_checked_at | timestamp | Last time the link was re-checked (see 03-state-flows) |
-| submitted_at, locked_at | timestamp | |
+| submitted_at, locked_at | timestamp | locked_at is set on both live submissions, in one statement, when the second video goes in. One live submission (submitted or dead_link) per player per slot; replaced and cancelled rows stay as history |
 
 ### judge_assignments
 One panel of three judges per battle. A team battle uses the same three for all its slots.

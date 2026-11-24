@@ -9,6 +9,7 @@ const { setupViews, notFound, serverError } = require('./lib/web');
 const pages = require('./routes/pages');
 const { authRoutes } = require('./routes/auth');
 const { calloutRoutes } = require('./routes/callouts');
+const { submissionRoutes } = require('./routes/submissions');
 const dashboard = require('./routes/dashboard');
 
 const HOST = '127.0.0.1'; // Nginx proxies to this; never listen on all interfaces.
@@ -24,7 +25,11 @@ function createApp(env) {
   // dev box can load CSS over plain http://127.0.0.1.
   app.use(helmet({
     contentSecurityPolicy: {
-      directives: { upgradeInsecureRequests: config.isProduction ? [] : null },
+      directives: {
+        upgradeInsecureRequests: config.isProduction ? [] : null,
+        // F-C3 video thumbnails. Only YouTube's image host, nothing broader (Matt, Nov 24).
+        imgSrc: ["'self'", 'data:', 'https://i.ytimg.com'],
+      },
     },
   }));
   setupViews(app); // static files are served before sessions, so they never touch the store
@@ -49,6 +54,7 @@ function createApp(env) {
   app.use(authRoutes(config));
   app.use(dashboard);
   app.use(calloutRoutes());
+  app.use(submissionRoutes());
   app.use(pages);
 
   app.use(notFound);

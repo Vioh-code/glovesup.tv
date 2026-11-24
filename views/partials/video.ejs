@@ -1,0 +1,6 @@
+<%# A saved video (F-C3): v = submission row, label = small caption. Link and thumbnail come
+    from the database (canonical watch url; thumbnail only from https://i.ytimg.com). %>
+<div class="link-preview" style="margin-top:var(--space-4)">
+  <a class="link-preview__thumb" href="<%= v.youtube_url %>" target="_blank" rel="noopener noreferrer"><% if (v.thumbnail_snapshot) { %><img src="<%= v.thumbnail_snapshot %>" alt="" loading="lazy" /><% } else { %>No thumbnail<% } %></a>
+  <div><div class="text-xs text-secondary"><%= label %></div><div class="row__title" style="margin-top:var(--space-1)"><a href="<%= v.youtube_url %>" target="_blank" rel="noopener noreferrer"><%= v.title_snapshot %></a></div></div>
+</div>

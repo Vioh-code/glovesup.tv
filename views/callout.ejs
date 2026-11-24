@@ -46,6 +46,14 @@
         </div>
       </section>
 
+<% if (videos) { %>
+      <section class="card" style="margin-top:var(--space-5)" aria-labelledby="vs">
+        <div class="card__head"><h2 class="card__title card__title--sm" id="vs">Battle status</h2><a class="btn btn--primary btn--sm" href="/battles/<%= b.id %>/video"><%= videos.mine ? 'Your video' : 'Submit video' %></a></div>
+<%- include('partials/video-status', { state: videos, opponent: other.name }) %>
+<%   if (videos.mine) { %><%- include('partials/video', { v: videos.mine, label: 'Your video' }) %><% } %>
+      </section>
+<% } %>
+
 <% if (open && role === 'creator') { %>
       <section class="card" style="margin-top:var(--space-5)">
         <div class="notice"><div class="notice__title">Waiting for <%= b.opponent_name %></div>You can edit or cancel until they accept.</div>

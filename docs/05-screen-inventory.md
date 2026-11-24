@@ -78,7 +78,7 @@ These follow the battle lifecycle in order. Every screen shows its countdown.
 | S-B2 | Call out detail | The proposal, a 72-hour countdown, and the buttons that fit the viewer: Accept and Decline for the opponent, Edit and Cancel for the creator | F-C1 |
 | S-B3 | My battles | Tabs for Incoming, Outgoing, Active, and Past. Past links to battle detail. Target of the Battles nav link | F-C1, F-C8 |
 | S-B4 | Panel status | Read-only. The three drawn judges with their response status and a countdown. Shows a waiting message when fewer than 3 have accepted. No buttons. Can be a section of S-B7 instead of its own page † | F-C4 |
-| S-B5 | Submit video | Paste a YouTube link, preview with the saved title and thumbnail, Replace and Cancel before the lock, and the due-date countdown | F-C3 |
+| S-B5 | Submit video | Paste a YouTube link, preview with the saved title and thumbnail, Replace and Cancel before the lock (the due date, or the second video going in), and the due-date countdown. The opponent shows as Waiting or Submitted; their video appears once both are in or the due date passes | F-C3 |
 | S-B6 | Forfeit confirmation | A confirmation dialog on the battle page. States the ELO loss on ELO battles, and for team battles who is forfeiting | F-C6 |
 | S-B7 | Battle detail, member view | The public battle detail (S-P7) plus participant actions: Submit video, Forfeit, Report or dispute the result. Eligible voters see the vote buttons when popular vote is on | F-C3, F-C6, F-C2, F-G1 |
 

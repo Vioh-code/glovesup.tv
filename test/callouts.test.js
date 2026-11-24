@@ -774,7 +774,8 @@ test('every displayed date is a <time> element with a UTC datetime and UTC fallb
   const alice = await as('Alice');
   const pages = [
     [bob, `/callouts/${open}`, 1], [alice, `/callouts/${acc}`, 1],
-    [bob, '/dashboard', 2], [alice, '/dashboard', 1],
+    // Dashboards: + one "Submit your video" item each since slice 2b.
+    [bob, '/dashboard', 3], [alice, '/dashboard', 2], [alice, `/battles/${acc}/video`, 1],
     [bob, '/my-battles?tab=incoming', 1], [alice, '/my-battles?tab=active', 1],
   ];
   for (const [who, page, n] of pages) {

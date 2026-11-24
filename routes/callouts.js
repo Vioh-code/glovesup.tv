@@ -15,6 +15,7 @@ const { LABELS: labels } = require('../lib/labels');
 const {
   VERSION_SQL, TOUCH_SQL, markExpired, viewer, findOpponent, loadCallout, myBattles,
 } = require('../lib/battles');
+const subs = require('../lib/submissions');
 
 const VERSION_RE = /^\d{1,20}$/;
 
@@ -189,9 +190,18 @@ function calloutRoutes() {
 
   // --- S-B2 Detail ---
 
-  router.get('/callouts/:id', requireLogin, participantOnly, (req, res) => {
+  router.get('/callouts/:id', requireLogin, participantOnly, async (req, res, next) => {
     const b = req.callout;
-    res.render('callout', {
+    // F-C3 battle status card once accepted (same hiding rule as S-B5).
+    let videos = null;
+    try {
+      const slot = await subs.slotFor(b.id, req.viewer.id);
+      if (slot) videos = await subs.videoState(slot.id, req.viewer.id, b.submissions_due_at <= new Date());
+    } catch (err) {
+      return next(err);
+    }
+    return res.render('callout', {
+      videos,
       labels,
       b,
       role: req.role,
