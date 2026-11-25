@@ -318,7 +318,7 @@ test('accept starts the videos clock: due exactly N days after acceptance', asyn
   assert.equal(r.status, 303);
   assert.equal(r.location, `/callouts/${id}`);
   const row = await battle(id);
-  assert.equal(row.status, 'accepted');
+  assert.equal(row.status, 'awaiting_panel');
   assert.ok(row.accepted_at);
   assert.equal(row.submissions_due_at - row.accepted_at, 3 * 24 * 3600 * 1000);
 });
@@ -344,7 +344,7 @@ test('nothing can be done to a call out that is no longer proposed', async () =>
   assert.equal((await alice.post(`/callouts/${id}/cancel`, { _csrf: alice.token })).status, 409);
   assert.equal((await alice.get(`/callouts/${id}/edit`)).status, 409);
   assert.equal((await alice.post(`/callouts/${id}`, { ...terms, _csrf: alice.token })).status, 409);
-  assert.equal((await battle(id)).status, 'accepted');
+  assert.equal((await battle(id)).status, 'awaiting_panel');
 });
 
 // --- 72-hour expiry ---
@@ -421,7 +421,7 @@ test('My battles: each tab lists the right call outs, and never anyone else\'s',
   const outgoing = await callout('alice', 'bob');
   const active = await callout('bob', 'alice');
   await pool.query(
-    `UPDATE battles SET status = 'accepted', accepted_at = now(), submissions_due_at = now() + interval '5 days'
+    `UPDATE battles SET status = 'awaiting_panel', accepted_at = now(), submissions_due_at = now() + interval '5 days'
      WHERE id = $1`, [active],
   );
   const past = await callout('alice', 'carol');
@@ -466,7 +466,7 @@ test('two accepts at the same time: exactly one succeeds', async () => {
   ]);
   // One UPDATE lands; the other finds it already accepted by him and shows the battle.
   assert.deepEqual(results.map((r) => r.status), [303, 303]);
-  assert.equal((await battle(id)).status, 'accepted');
+  assert.equal((await battle(id)).status, 'awaiting_panel');
 });
 
 test('accept and cancel at the same time: exactly one succeeds', async () => {
@@ -481,7 +481,7 @@ test('accept and cancel at the same time: exactly one succeeds', async () => {
     ]);
     assert.deepEqual([acc.status, can.status].sort(), [303, 409], `round ${i}`);
     const { status } = await battle(id);
-    assert.equal(status, acc.status === 303 ? 'accepted' : 'cancelled', `round ${i}`);
+    assert.equal(status, acc.status === 303 ? 'awaiting_panel' : 'cancelled', `round ${i}`);
   }
 });
 
@@ -546,7 +546,7 @@ test('a refused cancel says it was not cancelled and why, never "Call out closed
   assert.match(r.html, /Not cancelled/);
   assert.match(r.html, /was not cancelled\. It has already been accepted\./);
   assert.doesNotMatch(r.html, /Call out closed/);
-  assert.equal((await battle(id)).status, 'accepted');
+  assert.equal((await battle(id)).status, 'awaiting_panel');
 });
 
 test('every refused action names the action and the current status', async () => {
@@ -834,4 +834,73 @@ test('declined, cancelled and expired call outs get no slot', async () => {
   await expire(e);
   await accept(bob, e);
   assert.equal(Number((await pool.query('SELECT count(*) FROM battle_slots')).rows[0].count), 0);
+});
+
+// --- Judges barred from ELO battles (04-permissions-matrix "NO"; F-E1) ---
+
+const JUDGE_SELF = 'Judges cannot enter ELO battles. Pick Just for fun.';
+const JUDGE_OPP = 'That member is a judge and cannot enter ELO battles. Pick Just for fun.';
+const JUDGE_ACCEPT = 'This ELO call out cannot be accepted: judges cannot enter ELO battles.';
+const makeJudge = (who) => pool.query(
+  "INSERT INTO user_roles (user_id, role_id) SELECT $1, id FROM roles WHERE key = 'judge'", [ids[who]],
+);
+
+test('a judge cannot review or send an ELO call out, but can send Just for fun', async () => {
+  await makeJudge('alice');
+  const a = await as('Alice');
+  const review = await a.post('/callouts/review', { ...terms, opponent: 'Bob', _csrf: a.token });
+  assert.equal(review.status, 400);
+  assert.match(review.html, new RegExp(JUDGE_SELF.replace(/\./g, '\\.')));
+  const sent = await a.post('/callouts', { ...terms, opponent: 'Bob', reviewed: reviewKey({ ...terms, opponent: 'Bob' }), _csrf: a.token });
+  assert.equal(sent.status, 400);
+  assert.equal(await count(), 0);
+  const fun = await send(a, 'Bob', { scoring: 'fun' });
+  assert.equal(fun.status, 303);
+  assert.equal(await count(), 1);
+});
+
+test('a member cannot send an ELO call out to a judge, but can send Just for fun', async () => {
+  await makeJudge('bob');
+  const a = await as('Alice');
+  const r = await send(a, 'Bob');
+  assert.equal(r.status, 400);
+  assert.match(r.html, new RegExp(JUDGE_OPP.replace(/\./g, '\\.')));
+  assert.equal(await count(), 0);
+  assert.equal((await send(a, 'Bob', { scoring: 'fun' })).status, 303);
+});
+
+test('editing a Just for fun call out to ELO is refused when either side is a judge', async () => {
+  for (const [judge, msg] of [['alice', JUDGE_SELF], ['bob', JUDGE_OPP]]) {
+    await pool.query('DELETE FROM user_roles');
+    await makeJudge(judge);
+    const id = await callout('alice', 'bob');
+    const a = await as('Alice');
+    const review = await a.post(`/callouts/${id}/review`, { ...terms, _csrf: a.token });
+    assert.equal(review.status, 400, judge);
+    assert.match(review.html, new RegExp(msg.replace(/\./g, '\\.')), judge);
+    const save = await a.post(`/callouts/${id}`, { ...withReview('Bob', { scoring: 'elo' }), _csrf: a.token });
+    assert.equal(save.status, 400, judge);
+    assert.equal((await battle(id)).scoring, 'fun', judge);
+  }
+});
+
+test('an ELO call out cannot be accepted if either side is now a judge; it stays proposed', async () => {
+  for (const judge of ['bob', 'alice']) {
+    await pool.query('DELETE FROM user_roles');
+    const id = await callout('alice', 'bob', { scoring: 'elo', elo_band_ok: true });
+    await makeJudge(judge); // after the call out was sent
+    const r = await accept(await as('Bob'), id);
+    assert.equal(r.status, 403, judge);
+    assert.match(r.html, new RegExp(JUDGE_ACCEPT.replace(/\./g, '\\.')), judge);
+    const row = await battle(id);
+    assert.equal(row.status, 'proposed', judge);
+    assert.equal(row.accepted_at, null, judge);
+  }
+});
+
+test('a judge can still accept a Just for fun call out', async () => {
+  await makeJudge('bob');
+  const id = await callout('alice', 'bob');
+  assert.equal((await accept(await as('Bob'), id)).status, 303);
+  assert.equal((await battle(id)).status, 'awaiting_panel');
 });

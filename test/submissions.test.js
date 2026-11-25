@@ -80,7 +80,7 @@ async function battle(from = 'alice', to = 'bob', hours = 120) {
   const { rows: [b] } = await pool.query(
     `INSERT INTO battles (kind, scoring, judging, challenger_user_id, opponent_user_id, created_by, submission_days,
                           status, accepted_at, submissions_due_at)
-     VALUES ('single', 'fun', 'official', $1, $2, $1, 5, 'accepted', now() - interval '120 hours' + make_interval(hours => $3),
+     VALUES ('single', 'fun', 'official', $1, $2, $1, 5, 'awaiting_panel', now() - interval '120 hours' + make_interval(hours => $3),
              now() + make_interval(hours => $3)) RETURNING id`,
     [ids[from], ids[to], hours],
   );
@@ -483,4 +483,58 @@ test('a blank Check link while replacing keeps the replace form and shows the me
   assert.equal(s.status, 400);
   assert.match(s.html, /Paste a YouTube link/);
   assert.equal((await live('alice'))[0].video_id, vid(1));
+});
+
+// --- Slice 2c-1: submit gate by battle status, one closed reason ---
+
+test('videos can be submitted while the battle waits for judges and once the panel is complete', async () => {
+  for (const status of ['awaiting_panel', 'submissions_open']) {
+    await clearBattles(pool);
+    const id = await battle();
+    await pool.query('UPDATE battles SET status = $1 WHERE id = $2', [status, id]);
+    const a = await as('Alice');
+    assert.equal((await direct(a, id, vid(1))).status, 303, status);
+    assert.equal((await live('alice')).length, 1, status);
+    assert.equal((await cancel(a, id)).status, 303, status);
+  }
+});
+
+// Review finding 3 (slice 2b): the page notice and a refused POST give the
+// same reason, worded for where the battle is now, even with the due date
+// still in the future.
+test('the closed notice and a refusal give the same reason in every state', async () => {
+  const cases = [
+    ['forfeited', 'This battle is over.'],
+    ['voided', 'This battle is over.'],
+    ['finalized', 'This battle is over.'],
+    ['judging', 'Both videos are in, so submissions are locked.'],
+  ];
+  for (const [status, reason] of cases) {
+    await clearBattles(pool);
+    const id = await battle();
+    if (status === 'judging') {
+      await pool.query("UPDATE battles SET status = 'judging', judging_due_at = now() + interval '5 days' WHERE id = $1", [id]);
+    } else {
+      await pool.query('UPDATE battles SET status = $1 WHERE id = $2', [status, id]);
+    }
+    const a = await as('Alice');
+    const re = new RegExp(reason.replace(/\./g, '\\.'));
+    const pageHtml = (await a.get(page(id))).html;
+    assert.match(pageHtml, re, `${status} notice`);
+    assert.doesNotMatch(pageHtml, /The due date has passed|Videos open once/, `${status} notice`);
+    for (const r of [await direct(a, id, vid(1)), await cancel(a, id),
+      await a.post(`${page(id)}/check`, { youtube_url: watch(vid(1)), _csrf: a.token })]) {
+      assert.equal(r.status, 409, status);
+      assert.match(r.html, re, `${status} refusal`);
+    }
+  }
+  assert.equal(checks.length, 0);
+});
+
+test('past the due date the notice and the refusal both say the due date has passed', async () => {
+  const id = await battle();
+  await pool.query("UPDATE battles SET submissions_due_at = now() - interval '1 minute', accepted_at = now() - interval '120 hours 1 minute' WHERE id = $1", [id]);
+  const a = await as('Alice');
+  assert.match((await a.get(page(id))).html, /The due date has passed\./);
+  assert.match((await direct(a, id, vid(1))).html, /The due date has passed\./);
 });
