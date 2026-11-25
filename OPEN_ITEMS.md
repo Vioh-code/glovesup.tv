@@ -29,8 +29,7 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 
 ## Deferred to later
 - ELO test cases and seed data.
-- Slice 2d (ELO) notes: add the elo_ledger rows inside `finalize()` in `lib/judging.js` (marked "Slice 2d hook"), in the same transaction, for `scoring = 'elo'` only. No ELO call outs in production until 2d is live (see Decisions still open). Decide the 400-band recheck at accept first.
-- Timer and job details beyond the one-minute worker over scheduled_jobs.
+- Slice 2d (ELO) notes: add the elo_ledger rows inside `finalize()` in `lib/judging.js` (marked "Slice 2d hook"), in the same transaction, for `scoring = 'elo'` only. Also at the "Slice 2d hook" in `closeSubmissions()` in `lib/worker.js`: a missed-due-date forfeit on an ELO battle adds rows with reason `forfeit` (forfeited_by loses); a void adds none. Decide whether a forfeit uses the normal expected-score formula for the loss. No ELO call outs in production until 2d is live (see Decisions still open). Decide the 400-band recheck at accept first.
 - Logging design (separate chat).
 - Fight card (not V1).
 - Score cards and a score card builder (future feature, not in V1).
@@ -42,7 +41,7 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 - Confirm main blocks direct pushes (the PR page shows a rule with 0 required approvals).
 - `npm audit` shows 9 findings (4 moderate, 3 high, 2 critical) on the dev box. Review in the Dec 7 monthly update session.
 - Optional deploy.yml hardening: add `permissions: contents: read` and a test job gate. Tests run on the dev box only; the Action has no gate.
-- Worker cron output needs a log file and rotation. Decide in the worker slice. Cron runs as `glovesup` with absolute paths.
+- Worker cron: decided in the worker slice (Matt, Nov 25): cron as `glovesup`, `flock -n`, absolute paths, output appended to `/var/log/glovesup/worker.log`, logrotate daily, 14 kept. Set up on the Linode with the worker slice PR (see that section).
 - DB roles: split an owner role (runs migrations, owns tables) from a least-privilege app role (runtime queries). Today the dev box uses one role, `glovesup_dev`, for the dev and test databases.
 - Dev box has no backup of `glovesup_dev` (it was wiped by a test run on Nov 24; tests now refuse any database not ending in `_test`). Take a `pg_dump -Fc` before any destructive dev step. Dev accounts gloverb and gloverc are recreated with `~/dev-seed.js` (outside the repo).
 - Old databases `glovesup` and `gloveleague` on the dev box can be dropped when Matt says so. Do not drop before then.
@@ -73,13 +72,13 @@ Built: S-B1, S-B2, S-B3, S-M1 call out parts; F-C1, F-C2 (1v1 only). Migration 1
 - "Rating at stake +N −N" on S-B2 is hidden until slice 2d (ELO). `lib/elo.js` is built there.
 - Team call outs (3v3) wait for the teams slice. `battles.challenger_team_id` and `opponent_team_id` get their foreign keys then.
 - Rules not enforced yet because their tables do not exist: blocked users cannot call out the blocker (blocks), call out emails (F-H7), audit log rows for call out actions (F-H3). Judges barred from ELO call outs is enforced from slice 2c-1.
-- Expiry runs without the worker: actions refuse a call out past `expires_at`, and call out page loads mark every past-due call out expired (one query). The worker slice takes this over. Until then an expired call out sorts on Past by `expires_at`.
+- Expiry: the worker expires call outs every minute (worker slice). Actions still refuse a call out past `expires_at`, and page loads still mark past-due call outs expired, so a page is never a minute behind. An expired call out sorts on Past by `expires_at`.
 - S-B2 "Your opponent" card shows the rating only. Battles, record and View profile wait for user stats (F-F2) and the profile slice. The wireframe's "Accepting draws three judges at random" hint is back from slice 2c-1 (Official judges only).
 - Header nav is clipped at phone width (375 px); LEADERBOARDS is cut off.
 
 ## Slice 2b (submit videos): done, live Nov 25, 2026 (PR #9)
 Built: S-B5, S-B2 Battle status card, S-M1 "Submit your video"; F-C3 (1v1). Migration 1797120000000_submissions ran on the Linode Nov 25 after a backup (indexes and constraints checked). Open decisions from this slice moved to "Decisions still open". Known gaps left:
-- Timer work waits for the worker slice: forfeit or void at a missed submission due date, the daily oEmbed re-check that sets `dead_link`, and the gravestone. Until then a battle past its due date stays `awaiting_panel` or `submissions_open` and shows "Submissions are closed".
+- Forfeit or void at a missed due date, the daily oEmbed recheck (`dead_link`) and the gravestone came with the worker slice. Between the due date and the next worker run (under a minute) the battle shows "Submissions are closed".
 - Battle statuses after accept came with slice 2c-1 (awaiting_panel, submissions_open, judging). The popular vote clock waits for the popular vote slice.
 - The battle page for players (S-B7) is the S-B2 call out page plus a Battle status card for now. The public battle detail (S-P7) and embedded players come with the battle log slice.
 - Team battles get three slots in the teams slice; today accept creates slot 1 only.
@@ -88,14 +87,14 @@ Built: S-B5, S-B2 Battle status card, S-M1 "Submit your video"; F-C3 (1v1). Migr
 Migration `1797984000000_judge_panel` ran on the Linode before the merge, after a backup (6 roles, judge_assignments and the migration record checked; smoke test passed). PR #11 also carried c8fd628 from docs/slice-2b-close, so that commit is already in main and docs/slice-2b-close needs no PR of its own.
 Built: roles tables (F-H2 part), the random draw of 3 judges at accept, S-J1 Judge dashboard (Accept and Decline), S-B4 as a section of the battle page, the Judging nav link, the S-M1 judge request item, the ELO bar for judges, `scripts/grant-role.js`, and one transactional status function (awaiting_panel, submissions_open, judging). Migration `1797984000000_judge_panel`. The S-B5 closed-reason wording (slice 2b review finding 3) is fixed: one reason for the notice and every refusal. Known gaps left:
 - Recusal came with slice 2c-2.
-- No timers yet. A judge who never replies blocks the battle until the worker slice replaces judges (48 hours) and judges who do not pick (5 days). Until then a reply after `respond_by` is still taken (Matt, Nov 25).
-- Fewer than 3 free judges: the battle waits. Topping up the panel when judges become free is the worker slice's job. The "moderators and admins are notified" step needs staff roles in use and email (F-H7).
+- Timers came with the worker slice: a judge past `respond_by` (48 hours) or `score_due_at` (5 days) is replaced when a free judge exists; until then a late reply or pick is still taken (Matt, Nov 25).
+- Fewer than 3 free judges: the battle waits and the worker tops up the panel when judges become free. The "moderators and admins are notified" step is a daily stuck line in the worker log until staff sub-ins and email (F-H7).
 - Moderator and admin sub-ins are deferred (`replaced_by`, `replaced_reason` exist, unused).
 - Judges get no email about a request (F-H7). The S-J1 list and the S-M1 item are the only notice.
-- The 5-day judging clock is set (`judging_due_at`, `score_due_at`) but nothing acts on it. S-J2 came with slice 2c-2.
-- Battles accepted before this slice (dev box only; production had 0) moved to `awaiting_panel` with no judges drawn; they get a panel only from the worker's top-up.
+- The 5-day judging clock (`score_due_at`) is acted on by the worker slice. `judging_due_at` triggers nothing; it is the panel's latest date.
+- Battles accepted before this slice (dev box only; production had 0) moved to `awaiting_panel` with no judges drawn; the worker's top-up draws their panel on its first run (if their due date has not passed; otherwise they are forfeited or voided first).
 - Do not build yet (Matt, Nov 25): what happens when the judge role is granted to a member who already has open ELO call outs or battles as a player. Today the grant goes through; that member's open ELO call outs can no longer be accepted, and ELO battles already accepted carry on.
-- A judge whose role is revoked, or who is banned or suspended, while on a panel keeps the assignment (it still counts toward the 3) but can no longer reply. Not in the docs.
+- A judge whose role is revoked, or who is banned or suspended, while on a panel keeps the assignment (it still counts toward the 3) but can no longer reply. The worker replaces them only through the normal clocks (48 hours drawn, 5 days in judging); an accepted one in `submissions_open` has no clock until judging starts. Not in the docs (worker slice: note only).
 - Only the permissions this slice enforces are seeded (`battle.elo.enter`, `judge.assignment.respond`). Each later slice adds its own rows. No revoke script; revoke is the admin slice (S-S5).
 - `scripts/grant-role.js` grants site roles only. Production use is a manual Linode step, only when Matt says so.
 - Team battles: the same 3 judges for all pairings, with the teams slice.
@@ -106,8 +105,8 @@ Migration `1798848000000_judgments` ran on the Linode before the merge, after a 
 Built: S-J2 (pick plus a typed reason, a checked YouTube review video, or both; Check link; Submit locks), the 2-of-3 majority and finalize (slot and battle result, finalized_at, reasons_public_at; team rule as a tested function for the teams slice), recusal (S-J1 and S-J2), the outcome card on the battle page with judge usernames after finalize, "Judged" on S-B4, S-J1 Ready to judge, Judge and View, and the S-M1 "Judge this battle" item. The settle() fix: a seat is an accepted or scored assignment. Migration `1798848000000_judgments` (judgments, judgment_pick, judge_assignments.recused_at, the battles finalized check, the judge.judgment.submit seed). Known gaps left:
 - ELO does not move on finalize (slice 2d hook in `finalize()`).
 - Picks, recusals and finalize write no audit log rows (F-H3 not built) and send no email (F-H7).
-- A judge who never picks blocks finalize until the worker slice replaces them after `score_due_at`; a pick after it is still taken. No replacement free: the battle waits (stuck battles, F-H6, later).
-- Dead-link rechecks of battle and review videos during judging are the worker's job; judges judge whatever is linked.
+- A judge who never picks is replaced by the worker after `score_due_at` when a free judge exists; until then a pick after it is still taken. No replacement free: the battle waits and shows in the daily stuck log (the `stuck` status and S-S10 come with F-H6).
+- Battle videos are rechecked daily by the worker (judges judge whatever is linked; a dead one shows the gravestone). Judge review videos are not rechecked (Matt, Nov 25): they are hidden until finalize and rechecks stop at finalize.
 - Moderator and admin sub-ins stay deferred: those roles hold `judge.judgment.submit` but there is no route to sub in.
 - The outcome shows to the two players and the panel judges only. Visitors read it on the public battle page (S-P7) in the battle log slice, which reads `reasons_public_at`.
 - S-J2 shows video thumbnails and links, no embedded players (CSP frame-src, battle log slice).
@@ -116,3 +115,16 @@ Built: S-J2 (pick plus a typed reason, a checked YouTube review video, or both; 
 - Team battle judging waits for the teams slice: `finalize()` and `teamResult()` handle three slots, but the S-J2 form and submit take one slot, so a team battle throws until the teams slice builds the three-pick form.
 - The S-B4 hint and the S-B3 Past tab do not show who won yet (Past shows "Finalized"). Recent results on S-M1 wait for a later slice.
 - Production: no judge role granted yet, so the judging flow is untested there (see Production). The rule stands: no ELO call outs in production until slice 2d is live.
+
+## Worker slice (timers): built Nov 25, 2026, not live
+Built: `scripts/worker.js` and `lib/worker.js` (the one-minute worker, sweeping the due columns; no `scheduled_jobs` table), call out expiry, forfeit or void at a missed due date (F-C1, F-C3, F-C6 part), judge replacement after 48 hours and 5 days, panel top-up, the daily oEmbed recheck (`dead_link` and back), the gravestone on S-B5, S-B2 and S-J2, the S-B2 Result card for forfeits and voids, the S-J1 "Time ran out" message, `npm run worker:dev`. Migration `1799712000000_worker` (`judge_assignments.replaced_at`, the replaced_reason, forfeit and void checks, four partial indexes). Known gaps left:
+- Linode not set up: migration, log folder, logrotate, crontab. Steps are in the PR. Until the cron runs, production has no timers (it has no battles today).
+- The explicit Forfeit button (F-C6, S-B6) comes in a later slice (after 2d, since it states the ELO loss).
+- Team battles: the due-date close logs an error for a team battle and leaves it (teams slice); replacement, top-up and the stuck report skip team battles.
+- No `stuck` status: stuck battles are a daily log line (12:00 UTC) until F-H6. If the 12:00 or a minute-0 run is skipped (flock), that day's report or that hour's heartbeat is missed.
+- A battle that stays stuck is looked at again every minute. Each handler takes at most 100 battles per run, so with over 100 stuck battles newer ones would wait. Not a concern at today's size.
+- Error lines in the log carry the database error message, which can include a value from the row. The log is readable by `glovesup` only (0640). The separate logging design chat may change the format.
+- The gravestone shows the saved title, not the saved thumbnail (05 marks the thumbnail †).
+- Popular vote battles with both videos in stay `awaiting_panel` until the popular vote slice; the worker leaves them alone.
+- Dev box: run `npm run migrate` before using the new code on `glovesup_dev`.
+

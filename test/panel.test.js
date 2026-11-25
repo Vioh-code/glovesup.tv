@@ -6,7 +6,7 @@
 //   battle, and no assignment row on that battle in any status. No cap;
 // - fewer than 3 free: draw who exists, accept never fails;
 // - decline: a replacement is drawn at once, no timer;
-// - a reply after respond_by is still taken until the worker slice;
+// - a reply after respond_by is still taken until the worker replaces the judge;
 // - players see each judge's status, never names; a judge sees only their own row;
 // - every status move runs in one transaction holding the battle row lock.
 const { test, before, after, beforeEach } = require('node:test');
@@ -284,7 +284,7 @@ test('a judge who declined is never drawn again for that battle', async () => {
   for (const n of declined) assert.ok(!live.some((x) => x.username === n), n);
 });
 
-test('a reply after respond_by is still taken (the worker slice replaces silent judges)', async () => {
+test('a reply after respond_by is still taken while the worker has not replaced the judge', async () => {
   await judges('J1', 'J2', 'J3');
   const id = await acceptedBattle();
   const [a] = await panel(id);
@@ -300,7 +300,7 @@ test('a reply on a battle that is no longer active is refused', async () => {
   await judges('J1', 'J2', 'J3');
   const id = await acceptedBattle();
   const [a] = await panel(id);
-  await pool.query("UPDATE battles SET status = 'voided' WHERE id = $1", [id]);
+  await pool.query("UPDATE battles SET status = 'voided', result = 'void', finalized_at = now() WHERE id = $1", [id]);
   assert.equal((await reply(await as(a.username), a.id, 'accept')).status, 409);
   assert.equal((await assignment(id, a.username)).status, 'drawn');
 });

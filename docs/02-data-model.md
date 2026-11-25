@@ -1,7 +1,7 @@
 # GlovesUP V1 Data Model
 
 Doc: 02-data-model. Related: 01-feature-spec (F- IDs), 03-state-flows (timers and statuses), 04-permissions-matrix.
-Last updated: Nov 25, 2026. Owner: Matt.
+Last updated: Nov 25, 2026 (worker slice). Owner: Matt.
 
 ## Conventions (read first)
 - `†` marks a detail inferred and not yet confirmed. Everything without `†` is decided.
@@ -140,10 +140,12 @@ Every battle has one or more slots. A 1v1 has one slot. A team battle has three,
 | submission_days | integer | 3, 5, or 7, chosen by the creator from a dropdown |
 | created_at, updated_at | timestamp | updated_at changes on every edit; accept checks it so the opponent accepts the terms they saw |
 | expires_at | timestamp | Creation plus 72 hours. Editing does not move it |
-| accepted_at, submissions_due_at, judging_due_at, finalized_at | timestamp | Due dates computed from acceptance and from the second submission. A day is a fixed 24 hours (no daylight saving shift) |
-| result | enum | challenger, opponent, or void. Set at finalize (CHECK: a finalized battle has result and finalized_at) |
-| forfeited_by | uuid | User or team that forfeited, or null |
-| forfeit_reason | enum | explicit or missed_deadline |
+| accepted_at, submissions_due_at, judging_due_at, finalized_at | timestamp | Due dates computed from acceptance and from the second submission. A day is a fixed 24 hours (no daylight saving shift). finalized_at is when the result became final: the third judgment, or the due date on a forfeit or void (worker slice) |
+| result | enum | challenger, opponent, or void. Set at finalize (CHECK: a finalized battle has result and finalized_at), and on a forfeit (the side that submitted) or a void (void) |
+| forfeited_by | uuid | User or team that forfeited, or null. Set exactly when status is forfeited (CHECK battles_forfeit, with forfeit_reason, a challenger or opponent result and finalized_at) |
+| forfeit_reason | enum | explicit or missed_deadline. The worker sets missed_deadline; the explicit Forfeit button (F-C6) comes in a later slice |
+
+A missed due date (worker slice): one side in, the other side forfeits (status forfeited); neither in, the battle is voided (status voided, result void; CHECK battles_voided). The slot result matches.
 
 `awaiting_panel` means the 3 judges have not all accepted yet. Submissions are open in this state. `submissions_open` means the panel is complete and videos are still coming in. `judging` means both videos are in and 3 judges have accepted; `judging_due_at` is set (5 days) when the battle enters it (CHECK: judging needs judging_due_at). Every status move runs in one transaction holding the battle row lock.
 
@@ -153,7 +155,7 @@ Every battle has one or more slots. A 1v1 has one slot. A team battle has three,
 | battle_id | uuid | |
 | position | integer | 1 to 3. Pairs first listed vs first listed, and so on |
 | challenger_user_id, opponent_user_id | uuid | Who fights in this slot. A 1v1 slot (position 1) is created in the same statement as the accept |
-| result | enum | challenger, opponent, or void |
+| result | enum | challenger, opponent, or void. Set at finalize, and on a forfeit or void |
 
 ### submissions
 | Field | Type | Notes |
@@ -162,7 +164,7 @@ Every battle has one or more slots. A 1v1 has one slot. A team battle has three,
 | youtube_url, video_id | text | YouTube links only |
 | title_snapshot, thumbnail_snapshot | text | Saved at submission so a dead link still shows context. The thumbnail is kept only from https://i.ytimg.com (the one image host the CSP allows), otherwise null |
 | status | enum | submitted, replaced, cancelled, dead_link |
-| last_checked_at | timestamp | Last time the link was re-checked (see 03-state-flows) |
+| last_checked_at | timestamp | Last time the worker re-checked the link (see 03-state-flows). A dead answer sets dead_link; a later live answer sets it back to submitted |
 | submitted_at, locked_at | timestamp | locked_at is set on both live submissions, in one statement, when the second video goes in. One live submission (submitted or dead_link) per player per slot; replaced and cancelled rows stay as history |
 
 ### judge_assignments
@@ -170,12 +172,14 @@ One panel of three judges per battle. A team battle uses the same three for all 
 | Field | Type | Notes |
 |---|---|---|
 | battle_id, judge_user_id | uuid | Three active judges per battle. Unique pair: one row per judge per battle ever, so a judge who declined is never drawn again for that battle |
-| status | enum | drawn, accepted, declined, recused, replaced, scored |
+| status | enum | drawn, accepted, declined, recused, replaced, scored. The worker sets replaced (worker slice) |
 | drawn_at, respond_by | timestamp | Judges have 48 hours to accept before replacement (CHECK: respond_by = drawn_at + 48 hours) |
 | responded_at | timestamp | When the judge accepted or declined |
 | recused_at | timestamp | When the judge recused. Set exactly when status is recused (CHECK) |
 | score_due_at | timestamp | Five days after the battle enters judging. Set once per judge: a replacement gets a fresh 5 days, the others keep theirs |
-| replaced_by, replaced_reason | uuid, text | Moderators and admins can sub in |
+| replaced_at | timestamp | When the worker replaced the judge. Set exactly when status is replaced (CHECK) |
+| replaced_reason | text | no_reply (past respond_by) or no_pick (past score_due_at). Set exactly when status is replaced (CHECK). Staff sub-in reasons are added with their slice |
+| replaced_by | uuid | Moderators and admins can sub in (unused until that slice) |
 
 ### judgments
 One row per judge per slot. A 1v1 has one row per judge; a team battle has three.
@@ -258,11 +262,12 @@ Every active account is a Member without a user_roles row; the member role carri
 | status | enum | pending, approved, denied, withdrawn |
 | approvals | application_id, admin_id, decision, decided_at | Two admin approvals required. A super admin's direct assignment skips this table and is audit-logged |
 
-### banned_words and scheduled_jobs
+### banned_words
 | Table | Fields | Notes |
 |---|---|---|
 | banned_words | id, word, added_by, added_at | Checked on names and bios |
-| scheduled_jobs | id, kind, run_at, payload, status † | Powers the timers. A one-minute worker runs due rows (see 03-state-flows) |
+
+No scheduled_jobs table (Matt, Nov 25, 2026). The one-minute worker sweeps the due columns (expires_at, submissions_due_at, respond_by, score_due_at, and last_checked_at for video rechecks); each has a partial index. scheduled_jobs returns only when email retries need it (F-H7). See 03-state-flows.
 
 ### notifications
 | Field | Type | Notes |

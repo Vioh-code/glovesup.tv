@@ -1,6 +1,16 @@
 <%# A saved video (F-C3): v = submission row, label = small caption. Link and thumbnail come
-    from the database (canonical watch url; thumbnail only from https://i.ytimg.com). %>
+    from the database (canonical watch url; thumbnail only from https://i.ytimg.com).
+    A dead_link video (the worker's daily recheck) shows the gravestone with its saved title
+    instead of the link. Layout: wireframes/pages/battle.html, video-frame--gone. %>
+<% if (v.status === 'dead_link') { %>
+<div style="margin-top:var(--space-4)">
+  <div class="text-xs text-secondary video-label"><%= label %></div>
+  <div class="video-frame video-frame--gone"><div><span class="video-frame__title">Video gone</span>This video is gone. The link is dead or the video was made private.</div></div>
+  <div class="row__title" style="margin-top:var(--space-2)"><%= v.title_snapshot %></div>
+</div>
+<% } else { %>
 <div class="link-preview" style="margin-top:var(--space-4)">
   <a class="link-preview__thumb" href="<%= v.youtube_url %>" target="_blank" rel="noopener noreferrer"><% if (v.thumbnail_snapshot) { %><img src="<%= v.thumbnail_snapshot %>" alt="" loading="lazy" /><% } else { %>No thumbnail<% } %></a>
   <div><div class="text-xs text-secondary"><%= label %></div><div class="row__title" style="margin-top:var(--space-1)"><a href="<%= v.youtube_url %>" target="_blank" rel="noopener noreferrer"><%= v.title_snapshot %></a></div></div>
 </div>
+<% } %>

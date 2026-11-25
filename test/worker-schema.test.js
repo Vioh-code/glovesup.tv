@@ -90,6 +90,7 @@ test('battles: voided needs result void and finalized_at', async () => {
   await assert.rejects(setBattle("status = 'voided'"), /battles_voided/);
   await assert.rejects(setBattle("status = 'voided', result = 'void'"), /battles_voided/);
   await assert.rejects(setBattle("status = 'voided', result = 'challenger', finalized_at = now()"), /battles_voided/);
+  await assert.rejects(setBattle("status = 'voided', finalized_at = now()"), /battles_voided/);
   await setBattle("status = 'voided', result = 'void', finalized_at = now()");
 });
 

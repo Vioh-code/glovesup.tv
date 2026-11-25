@@ -107,7 +107,7 @@ async function bothIn(battleId, lockedAt = B) {
 async function assign(battleId, name, { status = 'drawn', drawnAt = B, scoreDue = null } = {}) {
   const { rows: [a] } = await pool.query(
     `INSERT INTO judge_assignments (battle_id, judge_user_id, status, drawn_at, respond_by, responded_at, score_due_at)
-     VALUES ($1, $2, $3, $4, $4::timestamptz + interval '48 hours', CASE WHEN $3 = 'drawn' THEN NULL ELSE $4::timestamptz END, $5)
+     VALUES ($1, $2, $3::judge_assignment_status, $4, $4::timestamptz + interval '48 hours', CASE WHEN $3::judge_assignment_status = 'drawn' THEN NULL ELSE $4::timestamptz END, $5)
      RETURNING *`,
     [battleId, ids[name], status, drawnAt, scoreDue],
   );

@@ -29,6 +29,7 @@ const REFUSED = {
 const WHY = {
   closed: 'The battle is no longer waiting for judges.',
   refused: 'You already answered this request.',
+  replaced: 'Time ran out on this request. Another judge took the seat.',
 };
 
 // S-J2 messages. Link and video wording match S-B5.

@@ -15,5 +15,5 @@ Read these in order when starting work. They are written to be read by Claude Co
 - `†` = inferred, not yet confirmed. No dagger = decided.
 - Behavior conflicts: 01-feature-spec wins. Layout conflicts: the wireframe wins.
 - Anything not in the V1 list in 01-feature-spec is V2. Do not build it.
-- Timers run from a `scheduled_jobs` table processed by a one-minute worker.
+- Timers run from a one-minute worker that sweeps the due columns (no `scheduled_jobs` table; see 03-state-flows, section 8).
 - Dropdowns over typed text whenever the answer comes from a fixed set (see 05-screen-inventory).

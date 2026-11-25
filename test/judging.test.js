@@ -367,7 +367,7 @@ test('submit locks the judgment: scored; the same judgment again changes nothing
   assert.equal(rows[0].submitted_at.getTime(), first.submitted_at.getTime());
 });
 
-test('a pick after score_due_at is still taken (the worker slice replaces silent judges)', async () => {
+test('a pick after score_due_at is still taken while the worker has not replaced the judge', async () => {
   await judges(3);
   const id = await judgingBattle();
   const [a] = await panel(id);
@@ -511,7 +511,7 @@ test('recuse: refused for a drawn judge (use Decline) and after submitting; a re
 
   // A battle that is over: an accepted judge can no longer recuse.
   assert.equal(c.status, 'accepted');
-  await pool.query("UPDATE battles SET status = 'voided' WHERE id = $1", [id2]);
+  await pool.query("UPDATE battles SET status = 'voided', result = 'void', finalized_at = now() WHERE id = $1", [id2]);
   assert.equal((await recuse(await as(c.username), c.id)).status, 409);
   assert.equal((await byName(id2, c.username)).status, 'accepted');
 });

@@ -90,7 +90,7 @@ async function video(battleId, name, { status = 'submitted', locked = null } = {
 async function assign(battleId, name, { status = 'accepted', scoreDue = null, drawnAt = new Date() } = {}) {
   const { rows: [a] } = await pool.query(
     `INSERT INTO judge_assignments (battle_id, judge_user_id, status, drawn_at, respond_by, responded_at, score_due_at)
-     VALUES ($1, $2, $3, $4, $4::timestamptz + interval '48 hours', CASE WHEN $3 = 'drawn' THEN NULL ELSE $4::timestamptz END, $5)
+     VALUES ($1, $2, $3::judge_assignment_status, $4, $4::timestamptz + interval '48 hours', CASE WHEN $3::judge_assignment_status = 'drawn' THEN NULL ELSE $4::timestamptz END, $5)
      RETURNING *`,
     [battleId, ids[name], status, drawnAt, scoreDue],
   );
@@ -104,6 +104,10 @@ async function assign(battleId, name, { status = 'accepted', scoreDue = null, dr
 }
 const battle = async (id) => (await pool.query('SELECT * FROM battles WHERE id = $1', [id])).rows[0];
 const assignment = async (id) => (await pool.query('SELECT * FROM judge_assignments WHERE id = $1', [id])).rows[0];
+
+const sleep = (ms) => new Promise((r) => { setTimeout(r, ms); });
+// Alternates which side reaches the battle lock first, so both orders run.
+const first = (round, mine) => sleep((round % 2 === 0) === mine ? 0 : 150);
 
 // Holds the battle row so every request reaches its transaction, then lets go.
 async function racing(battleId, requests) {
@@ -191,10 +195,10 @@ test('race: the last video and the due-date close at the same moment: either the
     const id = await accepted({ acceptedAt: new Date(due.getTime() - 5 * D) });
     await video(id, 'Alice');
     const [res] = await racing(id, [
-      () => bob.post(`/battles/${id}/video`, {
+      () => first(round, true).then(() => bob.post(`/battles/${id}/video`, {
         youtube_url: 'https://www.youtube.com/watch?v=bobsvideo01', checked: 'bobsvideo01', _csrf: bob.token,
-      }),
-      () => worker.closeSubmissions({ now: due, log: silent }),
+      })),
+      () => first(round, false).then(() => worker.closeSubmissions({ now: due, log: silent })),
     ]);
     const b = await battle(id);
     const { rows: bobLive } = await pool.query(
@@ -215,13 +219,14 @@ test('race: the last video and the due-date close at the same moment: either the
       assert.equal(b.forfeited_by, ids.Bob, `round ${round}`);
     }
   }
-  assert.ok(outcomes.size >= 1);
+  assert.deepEqual([...outcomes].sort(), ['forfeit', 'video']); // both orders were tried
 });
 
 // 50
 test('race: a pick and the no-pick replacement at score_due_at: the pick counts or the judge is replaced, never both; never finalized on fewer than 3', async () => {
   for (const n of ['J1', 'J2', 'J3', 'J4']) await addUser(n, { judge: true });
   const j1 = await as('J1');
+  const outcomes = new Set();
   for (let round = 0; round < 4; round += 1) {
     await clearBattles(pool);
     const scoreDue = new Date(Date.now() + 60 * 1000);
@@ -232,10 +237,10 @@ test('race: a pick and the no-pick replacement at score_due_at: the pick counts 
     await assign(id, 'J2', { status: 'scored', scoreDue: new Date(Date.now() + D) });
     await assign(id, 'J3', { status: 'scored', scoreDue: new Date(Date.now() + D) });
     const [res] = await racing(id, [
-      () => j1.post(`/judging/${a.id}/judge`, {
+      () => first(round, true).then(() => j1.post(`/judging/${a.id}/judge`, {
         _csrf: j1.token, pick: 'opponent', reason_text: 'my pick', reason_video_url: '',
-      }),
-      () => worker.replaceLateJudges({ now: scoreDue, log: silent }),
+      })),
+      () => first(round, false).then(() => worker.replaceLateJudges({ now: scoreDue, log: silent })),
     ]);
     const b = await battle(id);
     const mine = await assignment(a.id);
@@ -243,12 +248,14 @@ test('race: a pick and the no-pick replacement at score_due_at: the pick counts 
       'SELECT j.* FROM judgments j JOIN judge_assignments x ON x.id = j.assignment_id WHERE x.battle_id = $1', [id],
     );
     if (res.status === 303) {
+      outcomes.add('pick');
       assert.equal(mine.status, 'scored', `round ${round}`);
       assert.equal(b.status, 'finalized', `round ${round}`);
       assert.equal(picks.length, 3, `round ${round}`);
       const { rows: extra } = await pool.query('SELECT 1 FROM judge_assignments WHERE battle_id = $1 AND judge_user_id = $2', [id, ids.J4]);
       assert.equal(extra.length, 0, `round ${round}`);
     } else {
+      outcomes.add('replaced');
       assert.equal(res.status, 409, `round ${round}`);
       assert.match(res.html, /You are no longer on this panel\./);
       assert.equal(mine.status, 'replaced', `round ${round}`);
@@ -257,4 +264,5 @@ test('race: a pick and the no-pick replacement at score_due_at: the pick counts 
       assert.equal(picks.length, 2, `round ${round}`);
     }
   }
+  assert.deepEqual([...outcomes].sort(), ['pick', 'replaced']); // both orders were tried
 });

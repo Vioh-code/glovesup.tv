@@ -1,7 +1,7 @@
 # GlovesUP V1 Screen Inventory
 
 Doc: 05-screen-inventory. Related: 01-feature-spec (F- IDs), 04-permissions-matrix (who sees what). The drawn wireframes show what is done; remaining gaps are in OPEN_ITEMS.md.
-Last updated: Nov 25, 2026. Owner: Matt.
+Last updated: Nov 25, 2026 (worker slice). Owner: Matt.
 
 ## Conventions (read first)
 - Screen IDs use the `S-` prefix (example: `S-B1`). Feature IDs use `F-` (example: `F-B1` is Create team; `S-B1` is Create call out).
@@ -75,7 +75,7 @@ These follow the battle lifecycle in order. Every screen shows its countdown.
 | ID | Screen | What it holds | Features |
 |---|---|---|---|
 | S-B1 | Create call out | A four-step form: opponent (named player or team, with ELO and a within-400 check on ELO call outs), format (1v1 or 3v3, with the roster picker for team battles), scoring and judging (ELO or Just for fun; Official judges or popular vote, where ELO requires official judges), and due days (dropdown: 3, 5 or 7). Ends with a review screen | F-C1, F-C2 |
-| S-B2 | Call out detail | The proposal, a 72-hour countdown, and the buttons that fit the viewer: Accept and Decline for the opponent, Edit and Cancel for the creator | F-C1 |
+| S-B2 | Call out detail | The proposal, a 72-hour countdown, and the buttons that fit the viewer: Accept and Decline for the opponent, Edit and Cancel for the creator. After a missed due date, a Result card: "[name] missed the due date. [name] wins by forfeit." or "Neither video came in. The battle is void." (worker slice) | F-C1, F-C6 |
 | S-B3 | My battles | Tabs for Incoming, Outgoing, Active, and Past. Past links to battle detail. Target of the Battles nav link | F-C1, F-C8 |
 | S-B4 | Panel status | A section of S-B7 (the battle page), not its own page. Read-only. Each drawn judge as J1, J2, J3 with their status (Waiting for reply, Accepted, or Judged once they submit) and a reply countdown. Players see statuses only, never judge names or picks (Matt, Nov 25, 2026). After finalize the battle page adds the Judging outcome card: winner, "2 of 3" or "3 of 3", and each judge's username, pick and reason. Shows a waiting message when fewer than 3 judges are drawn. No buttons | F-C4 |
 | S-B5 | Submit video | Paste a YouTube link, preview with the saved title and thumbnail, Replace and Cancel before the lock (the due date, or the second video going in), and the due-date countdown. The opponent shows as Waiting or Submitted; their video appears once both are in or the due date passes | F-C3 |
@@ -106,7 +106,7 @@ Designed once, reused everywhere.
 
 | Element | Where it appears | Behavior |
 |---|---|---|
-| Gravestone | Battle detail and any video slot | Replaces a video whose YouTube link is dead or private. Shows the saved title and thumbnail † and a note that the video is gone |
+| Gravestone | Battle detail and any video slot | Replaces a video whose YouTube link is dead or private (`dead_link`, set by the worker's daily recheck). Shows the saved title and a note that the video is gone ("This video is gone. The link is dead or the video was made private."), with no link. Built on S-B5, the S-B2 battle status card and S-J2 (worker slice); S-P7 with the battle log slice. The saved thumbnail is not shown yet † |
 | Hung Up placeholder | Battle logs, rosters, leaderboard history | Darkened gloves hanging over a wire in muted monochrome. Replaces the name and avatar of a deleted account. Not clickable |
 | Countdown | Call out, judge response, submission, judging | Shows time left and the exact due date. Time left is whole days, rounded down, from 48 hours out ("2 days left"), whole hours below that ("47 hours left"), and "Less than 1 hour left" under an hour. The due date is page text, not only a tooltip, shown as a separate item next to the time left (they wrap onto two lines on a narrow screen). It displays in the viewer's browser time zone with the short zone name ("Due Nov 25, 4:54 PM CST"); without JavaScript it falls back to UTC, labelled UTC ("Due Nov 25, 22:54 UTC"). Turns urgent in the last 24 hours, inclusive |
 | Report button | Profiles, battles, submissions | Opens S-M9 with the subject filled in |

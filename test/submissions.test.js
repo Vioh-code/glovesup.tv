@@ -517,8 +517,15 @@ test('the closed notice and a refusal give the same reason in every state', asyn
     } else if (status === 'finalized') {
       // A finalized battle has its result (battles_finalized_result, slice 2c-2).
       await pool.query("UPDATE battles SET status = 'finalized', result = 'challenger', finalized_at = now() WHERE id = $1", [id]);
+    } else if (status === 'forfeited') {
+      // A forfeit names who forfeited and the result (battles_forfeit, worker slice).
+      await pool.query(
+        `UPDATE battles SET status = 'forfeited', forfeited_by = opponent_user_id, forfeit_reason = 'missed_deadline',
+                result = 'challenger', finalized_at = now() WHERE id = $1`, [id],
+      );
     } else {
-      await pool.query('UPDATE battles SET status = $1 WHERE id = $2', [status, id]);
+      // A void has result void and finalized_at (battles_voided, worker slice).
+      await pool.query("UPDATE battles SET status = 'voided', result = 'void', finalized_at = now() WHERE id = $1", [id]);
     }
     const a = await as('Alice');
     const re = new RegExp(reason.replace(/\./g, '\\.'));

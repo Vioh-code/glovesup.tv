@@ -81,6 +81,19 @@
 <% if (outcome) { %>
 <%- include('partials/outcome', { o: outcome }) %>
 <% } %>
+<%# Missed due date (worker slice, Matt, Nov 25): who missed it and who wins, or void. %>
+<% if (b.status === 'forfeited' || b.status === 'voided') {
+     const missed = b.forfeited_by === b.challenger_user_id ? b.challenger_name : b.opponent_name;
+     const winner = b.result === 'challenger' ? b.challenger_name : b.opponent_name; %>
+      <section class="card" style="margin-top:var(--space-5)" aria-labelledby="result-h">
+        <div class="card__head"><h2 class="card__title card__title--sm" id="result-h">Result</h2><span class="pill"><%= labels.status[b.status] %></span></div>
+<%   if (b.status === 'forfeited') { %>
+        <p class="text-secondary"><%= missed %> missed the due date. <%= winner %> wins by forfeit.</p>
+<%   } else { %>
+        <p class="text-secondary">Neither video came in. The battle is void.</p>
+<%   } %>
+      </section>
+<% } %>
 
 <% if (open && role === 'creator') { %>
       <section class="card" style="margin-top:var(--space-5)">

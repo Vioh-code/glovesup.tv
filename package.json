@@ -8,7 +8,8 @@
     "dev": "node --env-file=.env.dev --watch index.js",
     "test": "node --env-file=.env.test --require ./test/helpers/guard.js --test --test-concurrency=1",
     "migrate": "node --env-file=.env.dev scripts/migrate.js",
-    "migrate:test": "node --env-file=.env.test scripts/migrate.js"
+    "migrate:test": "node --env-file=.env.test scripts/migrate.js",
+    "worker:dev": "node --env-file=.env.dev scripts/worker.js"
   },
   "author": "Matt Flom",
   "license": "ISC",
