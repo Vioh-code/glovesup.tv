@@ -388,6 +388,42 @@ test('race: the last judge accept and the last video at the same moment end in j
   }
 });
 
+// --- Slice 2c-2: a seat is an accepted or scored assignment ---
+
+test('settle counts scored judges: 1 scored, 1 accepted, then the replacement accepts: judging', async () => {
+  await judges('J1', 'J2', 'J3');
+  const id = await acceptedBattle();
+  const p = await panel(id);
+  await reply(await as(p[0].username), p[0].id, 'accept');
+  await reply(await as(p[1].username), p[1].id, 'accept');
+  await submit(await as('Alice'), id, vid(1));
+  await submit(await as('Bob'), id, vid(2));
+  // A judge who has already submitted holds a seat (as after a co-judge recused).
+  await pool.query("UPDATE judge_assignments SET status = 'scored' WHERE id = $1", [p[0].id]);
+  assert.equal((await reply(await as(p[2].username), p[2].id, 'accept')).status, 303);
+  const b = await battle(id);
+  assert.equal(b.status, 'judging');
+  assert.ok(b.judging_due_at);
+});
+
+test('settle counts scored judges: one judge submits in judging and the battle stays in judging', async () => {
+  await judges('J1', 'J2', 'J3');
+  const id = await acceptedBattle();
+  await allAccept(id);
+  await submit(await as('Alice'), id, vid(1));
+  await submit(await as('Bob'), id, vid(2));
+  const before = await battle(id);
+  assert.equal(before.status, 'judging');
+  const [a] = await panel(id);
+  const j = await as(a.username);
+  const r = await j.post(`/judging/${a.id}/judge`, { _csrf: j.token, pick: 'challenger', reason_text: 'Sharper', reason_video_url: '' });
+  assert.equal(r.status, 303);
+  assert.equal((await assignment(id, a.username)).status, 'scored');
+  const after = await battle(id);
+  assert.equal(after.status, 'judging');
+  assert.equal(after.judging_due_at.getTime(), before.judging_due_at.getTime());
+});
+
 // --- Screens ---
 
 test('S-J1 /judging: judges only; requests, accepted and history tabs list only their own rows', async () => {
