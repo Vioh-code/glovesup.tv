@@ -459,3 +459,27 @@ test('S-M1: a judge sees a judge request with the reply countdown; players do no
   await reply(await as(a.username), a.id, 'accept');
   assert.doesNotMatch((await (await as(a.username)).get('/dashboard')).html, /Judge request: Alice vs Bob/);
 });
+
+test('Terms card: judging shows "Judging due" from judging_due_at instead of "Videos due"', async () => {
+  await judges('J1', 'J2', 'J3');
+  const id = await acceptedBattle();
+  const termsOf = (html) => html.slice(html.indexOf('id="d"'), html.indexOf('</dl>'));
+  for (const stage of ['awaiting_panel', 'submissions_open']) {
+    if (stage === 'submissions_open') await allAccept(id);
+    assert.equal((await battle(id)).status, stage);
+    const terms = termsOf((await (await as('Alice')).get(`/callouts/${id}`)).html);
+    assert.match(terms, /<dt>Videos due<\/dt>[\s\S]*4 days left/, stage);
+    assert.doesNotMatch(terms, /Judging due/, stage);
+  }
+  await submit(await as('Alice'), id, vid(1));
+  await submit(await as('Bob'), id, vid(2));
+  const b = await battle(id);
+  assert.equal(b.status, 'judging');
+  for (const who of ['Alice', 'Bob']) {
+    const terms = termsOf((await (await as(who)).get(`/callouts/${id}`)).html);
+    assert.doesNotMatch(terms, /Videos due/, who);
+    assert.match(terms, /<dt>Judging due<\/dt>[\s\S]*4 days left/, who);
+    assert.match(terms, new RegExp(`datetime="${b.judging_due_at.toISOString()}"`), who);
+    assert.doesNotMatch(terms, new RegExp(`datetime="${b.submissions_due_at.toISOString()}"`), who);
+  }
+});

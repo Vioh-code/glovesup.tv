@@ -24,7 +24,11 @@
           <dt>Format</dt><dd><%= labels.kind[b.kind] %></dd>
           <dt>Scoring</dt><dd><%= labels.scoring[b.scoring] %></dd>
           <dt>Judging</dt><dd><%= labels.judging[b.judging] %></dd>
+<% if (b.status === 'judging' && b.judging_due_at) { %>
+          <dt>Judging due</dt><dd><%- include('partials/time-left', { t: timeLeft(b.judging_due_at), due: b.judging_due_at }) %></dd>
+<% } else { %>
           <dt>Videos due</dt><dd><% if (videosDue) { %><%- include('partials/time-left', { t: videosDue, due: b.submissions_due_at }) %><% } else { %><%= b.submission_days %> days after accept<% } %></dd>
+<% } %>
         </dl>
 <% if (open && role === 'opponent') { %>
         <div class="card__foot">
