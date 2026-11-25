@@ -68,6 +68,7 @@ flowchart TD
   C -->|all 3 accepted| E[Panel complete<br/>judging can start once both videos are in]
 ```
 - A free judge holds the judge role, is active and verified, is not a player in the battle, and has no assignment on that battle already, in any status (so a judge who declined is never drawn again for it). There is no cap on how many battles one judge holds (Matt, Nov 25, 2026).
+- Panels are drawn only for battles with Official judges. A Popular vote battle gets no panel and stays `awaiting_panel` until the popular vote slice sets its own status flow (Matt, Nov 25, 2026).
 - Fewer than 3 free judges: the draw takes who exists and accept never fails. Topping up the panel later is the worker's job.
 - A decline draws the replacement at once, with no timer.
 - Players see each judge's status, never names. A judge sees only their own assignment.

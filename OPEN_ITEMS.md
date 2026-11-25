@@ -13,7 +13,6 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 - Team battles: S-J2 and the battle outcome show one pairing. Build repeats it per pairing.
 
 ## Decisions still open
-- Popular vote battles and the judge panel: slice 2c-1 draws judges only for battles with Official judges. A Just for fun battle with Popular vote gets no panel and stays `awaiting_panel` (videos open) until the popular vote slice. 01-feature-spec says both "Every battle gets 3 judges" and "Official judges or popular vote", so this needs Matt's call.
 - Does accept recheck the 400-point band? Today it is checked at create and edit only. Decide before slice 2d (ELO), when ratings start to move.
 - Limit open call outs between the same two players? More than one is allowed today; the docs do not say.
 - Cap or rate limit on call outs one member can send (spam risk). Not in the docs.
@@ -96,3 +95,4 @@ Built: roles tables (F-H2 part), the random draw of 3 judges at accept, S-J1 Jud
 - Only the permissions this slice enforces are seeded (`battle.elo.enter`, `judge.assignment.respond`). Each later slice adds its own rows. No revoke script; revoke is the admin slice (S-S5).
 - `scripts/grant-role.js` grants site roles only. Production use is a manual Linode step, only when Matt says so.
 - Team battles: the same 3 judges for all pairings, with the teams slice.
+- Decided (Matt, Nov 25): judge panels are drawn only for battles with Official judges. A Just for fun battle with Popular vote gets no panel and stays `awaiting_panel` (videos open) until the popular vote slice. The popular vote slice must set its own status flow for these battles (they never reach `submissions_open` or `judging` through the panel rules).
