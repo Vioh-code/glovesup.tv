@@ -15,7 +15,7 @@
           <section class="card" aria-labelledby="needs-h">
             <div class="card__head"><h2 class="card__title" id="needs-h">Needs your action</h2></div>
             <div class="row-list">
-<% if (!incoming.length && !videos.length && !judgeRequests.length) { %>
+<% if (!incoming.length && !videos.length && !judgeRequests.length && !judgeReady.length) { %>
               <p class="hint">Nothing waiting on you. <a href="/callouts/new">Create a call out</a></p>
 <% } %>
 <% incoming.forEach(function (r) { %>
@@ -28,6 +28,12 @@
               <div class="row row--action">
                 <div class="row__main"><div class="row__title">Judge request: <%= r.challenger_name %> vs <%= r.opponent_name %></div><div class="row__meta"><%= labels.kind[r.kind] %> · <%= labels.scoring[r.scoring] %></div></div>
                 <div class="row__aside"><%- include('partials/time-left', { t: timeLeft(r.respond_by), due: r.respond_by, suffix: 'to reply' }) %><a class="btn btn--primary btn--sm" href="/judging">Reply</a></div>
+              </div>
+<% }) %>
+<% judgeReady.forEach(function (r) { %>
+              <div class="row row--action">
+                <div class="row__main"><div class="row__title">Judge this battle: <%= r.challenger_name %> vs <%= r.opponent_name %></div><div class="row__meta"><%= labels.kind[r.kind] %> · <%= labels.scoring[r.scoring] %></div></div>
+                <div class="row__aside"><% if (r.score_due_at) { %><%- include('partials/time-left', { t: timeLeft(r.score_due_at), due: r.score_due_at, suffix: 'to judge' }) %><% } %><a class="btn btn--primary btn--sm" href="/judging/<%= r.id %>">Judge</a></div>
               </div>
 <% }) %>
 <% videos.forEach(function (r) { %>

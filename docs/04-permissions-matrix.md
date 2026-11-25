@@ -1,7 +1,7 @@
 # GlovesUP V1 Permissions Matrix
 
 Doc: 04-permissions-matrix. Related: 01-feature-spec (section 8, Roles), 02-data-model (roles, permissions tables).
-Last updated: Nov 13, 2026. Owner: Matt.
+Last updated: Nov 25, 2026. Owner: Matt.
 
 ## Conventions (read first)
 - Roles stack. Every account is a Member. Staff and judges hold extra roles on top. A user can do anything any of their roles allows.
@@ -55,10 +55,10 @@ An owner cannot leave a team until ownership passes to an officer. A team is del
 | Forfeit a battle | - | own | - | Y† | Y† | - | - | - | - |
 | Vote in a popular vote (verified, 7-day-old account, 1 completed battle, not a participant) | - | Y | - | - | - | - | - | - | - |
 | Accept, decline, or recuse from a judge assignment | - | - | Y | - | - | Y | Y | Y | Y |
-| See the judge panel's statuses on a battle (J1, J2, J3; never names) | - | own | - | - | - | - | - | - | - |
+| See the judge panel's statuses on a battle (J1, J2, J3; never names or picks before finalize) | - | own | - | - | - | - | - | - | - |
 | See your own judge assignments (S-J1); never co-judges | - | - | own | - | - | - | - | - | - |
 | Pick a winner and give a reason (when assigned or subbed in) | - | - | Y | - | - | Y | Y | Y | Y |
-| Read judge reasons once all judging is complete | Y | Y | - | - | - | - | - | - | - |
+| Read judge reasons, picks and judge usernames once all judging is complete | Y | Y | - | - | - | - | - | - | - |
 | Apply to be a judge | - | Y | - | - | - | - | - | - | - |
 | Approve a judge application (two admins required) | - | - | - | - | - | - | Y | Y | Y |
 | Assign the judge role directly, bypassing approval | - | - | - | - | - | - | - | Y | Y |
@@ -68,6 +68,8 @@ An owner cannot leave a team until ownership passes to an officer. A team is del
 | Start or approve a result reversal (two different admins; the site owner may be one) | - | - | - | - | - | - | Y | Y | Y |
 
 Judges are barred from ELO battles but may enter Just for fun battles that have no official sponsor. The bar covers both sides: no ELO call out from a judge or to a judge, checked at create, edit and accept (either side may have become a judge after the call out was sent). It is a deny row in role_permissions, which wins over the Member allow. A moderator or admin cannot sub in as a judge on a battle they are in †. A reversal changes only after two different admins approve it; no other role can change a result.
+
+Judging (slice 2c-2, Matt, Nov 25, 2026): "Pick a winner" is the `judge.judgment.submit` permission and recusal is part of `judge.assignment.respond`. A judge acts only on their own assignment (anyone else's gets not found), and a revoked, banned or suspended judge can do neither. Until the battle log slice builds the public battle page (S-P7), the outcome shows to the two players and the panel judges only.
 
 ## 3. Moderation, cases, and administration
 Moderators handle content and user conduct. Admins handle account data, roles, and the audit log.

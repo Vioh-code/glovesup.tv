@@ -321,7 +321,7 @@ test('reason video: a bad link format, a dead video and an unreachable YouTube a
 });
 
 test('Check link on S-J2: shows the checked title and keeps the typed reason and pick; saves nothing', async () => {
-  await judges(3);
+  await judges(4);
   const id = await judgingBattle();
   const [a] = await panel(id);
   const j = await as(a.username);
@@ -337,7 +337,6 @@ test('Check link on S-J2: shows the checked title and keeps the typed reason and
   const dead = await j.post(`/judging/${a.id}/check-link`, judgeForm(j, { reason_video_url: `https://youtu.be/${DEAD_ID}` }));
   assert.equal(dead.status, 400);
   // A judge who may not pick yet cannot make the server ask YouTube.
-  await judges(4);
   const id2 = await acceptedBattle();
   const [d] = await panel(id2);
   const calls = ytCalls;

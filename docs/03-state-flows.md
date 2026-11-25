@@ -1,7 +1,7 @@
 # GlovesUP V1 State Flows
 
 Doc: 03-state-flows. Related: 01-feature-spec, 02-data-model (status enums), 04-permissions-matrix.
-Last updated: Nov 13, 2026. Owner: Matt.
+Last updated: Nov 25, 2026. Owner: Matt.
 
 ## Conventions (read first)
 - `†` marks a detail inferred and not yet confirmed. Everything without `†` is decided.
@@ -14,7 +14,7 @@ Last updated: Nov 13, 2026. Owner: Matt.
 | Call out | The call out is sent | 72 hours | The call out expires. No penalty in V1 |
 | Judge response | A judge is drawn | 48 hours | The judge is replaced by another random free judge. If none is free, the battle waits and a moderator or admin is notified to sub in. Until the worker slice nothing acts on this clock, and a reply after it is still taken |
 | Submission due date | The opponent accepts | 3, 5, or 7 days, chosen by the creator | If one side is missing, that side forfeits. If neither submitted, the battle is voided with no ELO change |
-| Judge decision | Both videos are submitted and the 3 judges have accepted (`judging_due_at`) | 5 days | The judge is replaced and the new judge gets a fresh 5 days † |
+| Judge decision | Both videos are submitted and the 3 judges have accepted (`score_due_at` per judge; `judging_due_at` is the latest on the panel) | 5 days | The judge is replaced and the new judge gets a fresh 5 days; the others keep theirs (Matt, Nov 25, 2026). Until the worker slice nothing acts on this clock, and a pick after it is still taken |
 | Popular vote | Both videos are submitted | Until the 5-day judging window ends | Voting closes. Results stay hidden until then |
 | Judge reasons | All judging is complete | Immediate | Reasons (text and review videos) become public |
 
@@ -44,14 +44,16 @@ stateDiagram-v2
   AwaitingPanel --> SubmissionsOpen: 3 judges accepted, videos still coming in
   AwaitingPanel --> Judging: 3rd judge accepts after both videos are in
   SubmissionsOpen --> Judging: both videos in and 3 judges accepted
-  Judging --> Finalized: result set, ELO ledger updated, reasons public
+  Judging --> AwaitingPanel: a judge recuses, replacement drawn
+  Judging --> Finalized: all 3 judges submitted, majority result set, reasons public (ELO ledger from slice 2d)
   SubmissionsOpen --> Forfeited: a side forfeits or misses the due date
   SubmissionsOpen --> Voided: neither side submitted
   Judging --> Stuck: no result after the window
   Stuck --> Finalized: an admin corrects it (F-H6)
 ```
-- Status names: `awaiting_panel` (fewer than 3 judges accepted), `submissions_open` (panel complete), `judging` (panel complete and both videos in). The `accepted` status is never stored; accept moves a call out straight to `awaiting_panel` (slice 2c-1).
+- Status names: `awaiting_panel` (fewer than 3 judges hold a seat; a seat is an accepted or scored assignment), `submissions_open` (panel complete), `judging` (panel complete and both videos in). The `accepted` status is never stored; accept moves a call out straight to `awaiting_panel` (slice 2c-1).
 - Every status move (judge accept or decline, video submit or cancel) runs in one transaction holding the battle row lock, so the last judge accept and the last video cannot race.
+- Finalize (slice 2c-2) runs in the transaction of the third judgment: each slot gets the majority of its 3 picks, the battle gets the slot result (team battles: 2 of 3 pairings), status `finalized`, `finalized_at`, and `reasons_public_at` on every judgment. Never on fewer than 3 picks: a 1-1 split waits for the third judge, and a battle with no replacement becomes stuck (F-H6). A judgment already submitted always counts, even if the judge is later revoked or banned. ELO does not move until slice 2d, which adds its ledger rows inside finalize, in the same transaction (Matt, Nov 25, 2026).
 - A forfeit can be called at any point before the result is final. On ELO battles it counts as a loss.
 - A reversed appeal does not move the battle backward. It adds ELO ledger rows for this battle only. Later battles are not changed.
 - Reversal needs two different admins (see section 5).
@@ -71,7 +73,9 @@ flowchart TD
 - Panels are drawn only for battles with Official judges. A Popular vote battle gets no panel and stays `awaiting_panel` until the popular vote slice sets its own status flow (Matt, Nov 25, 2026).
 - Fewer than 3 free judges: the draw takes who exists and accept never fails. Topping up the panel later is the worker's job.
 - A decline draws the replacement at once, with no timer.
-- Players see each judge's status, never names. A judge sees only their own assignment.
+- Players see each judge's status (Waiting for reply, Accepted, Judged), never names or picks. A judge sees only their own assignment and judgment. After finalize the outcome names each judge with their pick and reason (Matt, Nov 25, 2026).
+- Picking (slice 2c-2): an accepted judge picks once both videos are locked, in `judging`, or in `awaiting_panel` after a co-judge recused. Submitting locks the judgment (status `scored`).
+- Recusal (slice 2c-2): only an accepted judge who has not submitted, while the battle is `awaiting_panel`, `submissions_open` or `judging`. A drawn judge uses Decline. The assignment becomes `recused` (`recused_at`), a replacement is drawn at once (none if nobody is free; the battle waits), and the battle goes back to `awaiting_panel`. `judging_due_at` and the other judges' `score_due_at` do not change. When the battle re-enters `judging`, only seated judges without a `score_due_at` get now + 5 days, and `judging_due_at` becomes the latest `score_due_at` on the panel. A recused judge is never drawn again for that battle.
 - A moderator or admin cannot sub in on a battle they are in †.
 - In a team battle the same 3 judges score all three pairings.
 

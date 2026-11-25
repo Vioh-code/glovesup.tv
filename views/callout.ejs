@@ -24,7 +24,7 @@
           <dt>Format</dt><dd><%= labels.kind[b.kind] %></dd>
           <dt>Scoring</dt><dd><%= labels.scoring[b.scoring] %></dd>
           <dt>Judging</dt><dd><%= labels.judging[b.judging] %></dd>
-<% if (b.status === 'judging' && b.judging_due_at) { %>
+<% if (['judging', 'awaiting_panel'].includes(b.status) && b.judging_due_at) { %>
           <dt>Judging due</dt><dd><%- include('partials/time-left', { t: timeLeft(b.judging_due_at), due: b.judging_due_at }) %></dd>
 <% } else { %>
           <dt>Videos due</dt><dd><% if (videosDue) { %><%- include('partials/time-left', { t: videosDue, due: b.submissions_due_at }) %><% } else { %><%= b.submission_days %> days after accept<% } %></dd>
@@ -61,12 +61,13 @@
 <% if (judges) { %>
       <section class="card" style="margin-top:var(--space-5)" aria-labelledby="panel-h">
         <%# S-B4 Judge panel, a section of the battle page (Matt, Nov 25). Layout: wireframes/pages/judge-panel.html
-            Players see each judge's status only, never a name (Matt, Nov 25). Read-only, no buttons. %>
+            Players see each judge's status only (Waiting for reply, Accepted, Judged), never a name or a pick
+            (Matt, Nov 25). Read-only, no buttons. Names and picks show on the outcome card after finalize. %>
         <div class="card__head"><h2 class="card__title card__title--sm" id="panel-h">Judge panel</h2></div>
 <%   if (judges.length) { %>
         <div class="judge-grid">
 <%     judges.forEach(function (j, i) { const ok = j.status !== 'drawn'; %>
-          <div class="judge-card judge-card--<%= ok ? 'accepted' : 'waiting' %>"><span class="avatar avatar--crest">J<%= i + 1 %></span><span class="pill <%= ok ? 'pill--success' : 'pill--waiting' %>"><%= ok ? 'Accepted' : 'Waiting for reply' %></span><% if (!ok) { %><div class="judge-card__meta"><%- include('partials/time-left', { t: timeLeft(j.respond_by), due: j.respond_by, suffix: 'to reply' }) %></div><% } %></div>
+          <div class="judge-card judge-card--<%= ok ? 'accepted' : 'waiting' %>"><span class="avatar avatar--crest">J<%= i + 1 %></span><span class="pill <%= ok ? 'pill--success' : 'pill--waiting' %>"><%= j.status === 'scored' ? 'Judged' : (ok ? 'Accepted' : 'Waiting for reply') %></span><% if (!ok) { %><div class="judge-card__meta"><%- include('partials/time-left', { t: timeLeft(j.respond_by), due: j.respond_by, suffix: 'to reply' }) %></div><% } %></div>
 <%     }) %>
         </div>
 <%   } %>
@@ -75,6 +76,10 @@
 <%   } %>
         <p class="hint">Judges are drawn at random from free judges. Neither side picks, approves or replaces them. Submissions open at acceptance; judging starts once both videos are in and all 3 judges have accepted.</p>
       </section>
+<% } %>
+
+<% if (outcome) { %>
+<%- include('partials/outcome', { o: outcome }) %>
 <% } %>
 
 <% if (open && role === 'creator') { %>

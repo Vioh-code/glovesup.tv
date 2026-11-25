@@ -1,7 +1,7 @@
 # GlovesUP V1 Data Model
 
 Doc: 02-data-model. Related: 01-feature-spec (F- IDs), 03-state-flows (timers and statuses), 04-permissions-matrix.
-Last updated: Nov 20, 2026. Owner: Matt.
+Last updated: Nov 25, 2026. Owner: Matt.
 
 ## Conventions (read first)
 - `†` marks a detail inferred and not yet confirmed. Everything without `†` is decided.
@@ -141,7 +141,7 @@ Every battle has one or more slots. A 1v1 has one slot. A team battle has three,
 | created_at, updated_at | timestamp | updated_at changes on every edit; accept checks it so the opponent accepts the terms they saw |
 | expires_at | timestamp | Creation plus 72 hours. Editing does not move it |
 | accepted_at, submissions_due_at, judging_due_at, finalized_at | timestamp | Due dates computed from acceptance and from the second submission. A day is a fixed 24 hours (no daylight saving shift) |
-| result | enum | challenger, opponent, or void |
+| result | enum | challenger, opponent, or void. Set at finalize (CHECK: a finalized battle has result and finalized_at) |
 | forfeited_by | uuid | User or team that forfeited, or null |
 | forfeit_reason | enum | explicit or missed_deadline |
 
@@ -173,7 +173,8 @@ One panel of three judges per battle. A team battle uses the same three for all 
 | status | enum | drawn, accepted, declined, recused, replaced, scored |
 | drawn_at, respond_by | timestamp | Judges have 48 hours to accept before replacement (CHECK: respond_by = drawn_at + 48 hours) |
 | responded_at | timestamp | When the judge accepted or declined |
-| score_due_at | timestamp | Five days after both videos are in |
+| recused_at | timestamp | When the judge recused. Set exactly when status is recused (CHECK) |
+| score_due_at | timestamp | Five days after the battle enters judging. Set once per judge: a replacement gets a fresh 5 days, the others keep theirs |
 | replaced_by, replaced_reason | uuid, text | Moderators and admins can sub in |
 
 ### judgments
@@ -181,10 +182,12 @@ One row per judge per slot. A 1v1 has one row per judge; a team battle has three
 | Field | Type | Notes |
 |---|---|---|
 | assignment_id, slot_id | uuid | |
-| pick | enum | challenger or opponent. Required |
-| reason_text | text | Typed reason. At least one of reason_text or reason_video_url is required |
-| reason_video_url, reason_video_id | text | YouTube link to the judge's review video. Same format and oEmbed checks as battle videos |
-| submitted_at, reasons_public_at | timestamp | Reasons become public once all judging is complete |
+| pick | enum | challenger or opponent. Required. Judges never pick void |
+| reason_text | text | Typed reason, stored trimmed, 1 to 2,000 characters. At least one of reason_text or reason_video_url is required (CHECK) |
+| reason_video_url, reason_video_id | text | YouTube link to the judge's review video (canonical watch url) and its id. Both or neither (CHECK). Same format and oEmbed checks as battle videos. No title or thumbnail snapshot |
+| submitted_at, reasons_public_at | timestamp | reasons_public_at is set on every judgment of the battle at finalize (once all judging is complete) |
+
+Unique (assignment_id, slot_id). Kept for history (no cascade). An assignment becomes `scored` when its judgment is saved. A seat on the panel is an `accepted` or `scored` assignment (slice 2c-2).
 
 ### votes (popular vote)
 | Field | Type | Notes |
@@ -243,7 +246,7 @@ A result can change only through this table, and only after two different admins
 | Table | Fields | Notes |
 |---|---|---|
 | roles | id, key, name, scope_type | Scope is site or team. Adding a role is a data insert. Seeded site roles: member, judge, moderator, admin, super_admin, site_owner. Team roles come with the teams slice |
-| permissions | id, key, description | One row per action in 04-permissions-matrix. Each slice seeds the rows it enforces (slice 2c-1: battle.elo.enter, judge.assignment.respond) |
+| permissions | id, key, description | One row per action in 04-permissions-matrix. Each slice seeds the rows it enforces (slice 2c-1: battle.elo.enter, judge.assignment.respond; slice 2c-2: judge.judgment.submit) |
 | role_permissions | role_id, permission_id, effect | Changing what a role can do is an edit here, not a code change. effect is allow or deny. A deny on any role the user holds wins over every allow (the matrix's NO, e.g. judges barred from ELO battles) |
 
 Every active account is a Member without a user_roles row; the member role carries the baseline permissions. Inactive accounts (suspended, banned, deleted) can do nothing. user_roles rows are deleted with their user. `granted_by` is null for grants made outside the app (scripts/grant-role.js).

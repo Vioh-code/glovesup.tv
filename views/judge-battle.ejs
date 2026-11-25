@@ -1,0 +1,89 @@
+<%- include('partials/top', { title: 'Judge this battle' }) %>
+  <%# S-J2 Judging (F-C4). Layout: wireframes/pages/score.html
+      Only the judge's own assignment. Both videos once locked; the pick, then a typed reason, a YouTube
+      review video, or both. No JavaScript: the reason fields always show, and Check link posts the form
+      and the server shows the preview. Submit checks the review video with YouTube again. Submitting
+      locks the judgment. Co-judges' picks and reasons show only after finalize (the outcome card). %>
+<% const a = ctx.assignment, b = ctx.battle, j = ctx.judgment, me = '/judging/' + a.id;
+   const names = { challenger: b.challenger_name, opponent: b.opponent_name }; %>
+  <main class="page">
+    <div class="container">
+      <p style="margin-bottom:var(--space-3)"><a class="back-link" href="/judging">&larr; Judging</a></p>
+      <div class="judging-bar">
+        <div>
+          <h1>Judge this battle</h1>
+          <div class="page-head__meta"><span class="pill pill--outline"><%= b.challenger_name %> vs <%= b.opponent_name %></span><span class="pill pill--outline"><%= labels.kind[b.kind] %></span><span class="pill pill--outline"><%= labels.scoring[b.scoring] %></span></div>
+        </div>
+<% if (!outcome && a.score_due_at && (a.status === 'accepted')) { %><%- include('partials/time-left', { t: timeLeft(a.score_due_at), due: a.score_due_at, suffix: 'to judge' }) %><% } %>
+      </div>
+
+<% if (ctx.videos) { %>
+      <div class="video-pair">
+        <div><% if (ctx.videos.challenger) { %><%- include('partials/video', { v: ctx.videos.challenger, label: b.challenger_name }) %><% } %></div>
+        <div><% if (ctx.videos.opponent) { %><%- include('partials/video', { v: ctx.videos.opponent, label: b.opponent_name }) %><% } %></div>
+      </div>
+<% } %>
+
+<% if (outcome) { %>
+<%- include('partials/outcome', { o: outcome }) %>
+<% } else if (mayPick) { %>
+      <div class="layout">
+        <section class="card" aria-labelledby="pk-h">
+<%- include('partials/form-errors', { errors: form.errors }) %>
+          <form method="post" action="<%= me %>/judge" id="judgment" novalidate>
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <div class="card__head"><h2 class="card__title" id="pk-h">1. Pick the winner</h2></div>
+            <div class="segmented" role="radiogroup" aria-label="Winner" style="margin-top:var(--space-2)">
+<%   ['challenger', 'opponent'].forEach(function (side) { %>
+              <label class="segmented__opt"><input type="radio" name="pick" value="<%= side %>"<%= form.pick === side ? ' checked' : '' %> /><span><%= names[side] %></span></label>
+<%   }) %>
+            </div>
+            <div class="card__head" style="margin-top:var(--space-6)"><h2 class="card__title">2. Give your reason</h2></div>
+            <p class="hint" style="margin-top:0">Add a typed reason, a YouTube link to a video of you watching and judging, or both. At least one is required.</p>
+            <div class="field">
+              <label class="field__label" for="why">Typed reason</label>
+              <textarea class="textarea" id="why" name="reason_text" rows="6" maxlength="2000" placeholder="Why did they win?"><%= form.reasonText %></textarea>
+              <span class="field__hint">Up to 2,000 characters.</span>
+            </div>
+            <div class="field">
+              <label class="field__label" for="rv">Review video (YouTube link)</label>
+              <div class="input-group"><input class="input" id="rv" name="reason_video_url" type="url" maxlength="200" autocomplete="off" placeholder="https://www.youtube.com/watch?v=…" value="<%= form.videoUrl %>" /><button class="btn btn--ghost" type="submit" formaction="<%= me %>/check-link">Check link</button></div>
+              <span class="field__hint">A video of you watching and judging the battle. Public or unlisted.</span>
+            </div>
+<%   if (form.preview) { %>
+            <div class="link-preview" style="margin-top:var(--space-5)">
+              <div class="link-preview__thumb"><% if (form.preview.thumbnail) { %><img src="<%= form.preview.thumbnail %>" alt="" /><% } else { %>No thumbnail<% } %></div>
+              <div><div class="text-xs text-secondary">Link check result</div><div class="row__title" style="margin-top:var(--space-1)"><%= form.preview.title %></div><span class="pill pill--success" style="margin-top:var(--space-2)">Link works</span></div>
+            </div>
+<%   } %>
+          </form>
+        </section>
+        <aside>
+          <section class="card">
+            <div class="submit-block">
+              <button class="btn btn--primary btn--block" type="submit" form="judgment">Submit judgment</button>
+<%   if (mayRecuse) { %>
+              <form method="post" action="<%= me %>/recuse"><input type="hidden" name="_csrf" value="<%= csrfToken %>" /><button class="btn btn--ghost btn--block" type="submit">Recuse myself</button></form>
+<%   } %>
+              <p class="hint" style="margin:0">Submitting locks your judgment. Reasons become public once all three judges have finished.</p>
+            </div>
+          </section>
+        </aside>
+      </div>
+<% } else if (j) { %>
+      <section class="card" aria-labelledby="mine-h">
+        <div class="card__head"><h2 class="card__title card__title--sm" id="mine-h">Your judgment</h2><span class="pill pill--success">Submitted</span></div>
+        <div class="verdict-row"><strong>You</strong><span class="pill pill--outline">Pick: <%= names[j.pick] %></span><span class="text-secondary"><% if (j.reason_text) { %><%= j.reason_text %><% } %><% if (j.reason_text && j.reason_video_url) { %> · <% } %><% if (j.reason_video_url) { %><a href="<%= j.reason_video_url %>" target="_blank" rel="noopener noreferrer">Your review video</a> (YouTube)<% } %></span></div>
+        <p class="hint">Your judgment is locked. Reasons become public once all three judges have finished.</p>
+      </section>
+<% } else { %>
+      <section class="card">
+        <div class="notice"><div class="notice__title">You can't judge this battle now</div><%= ctx.why ? WHY_NOT[ctx.why] : 'You can no longer judge battles.' %></div>
+<%   if (mayRecuse) { %>
+        <div class="card__foot"><form method="post" action="<%= me %>/recuse"><input type="hidden" name="_csrf" value="<%= csrfToken %>" /><button class="btn btn--ghost" type="submit">Recuse myself</button></form></div>
+<%   } %>
+      </section>
+<% } %>
+    </div>
+  </main>
+<%- include('partials/bottom') %>
