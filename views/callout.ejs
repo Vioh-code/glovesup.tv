@@ -34,7 +34,7 @@
 <%   } %>
             <form method="post" action="/callouts/<%= b.id %>/decline"><input type="hidden" name="_csrf" value="<%= csrfToken %>" /><button class="btn btn--ghost" type="submit">Decline</button></form>
           </div>
-          <p class="hint">Accepting starts the clock for videos.</p>
+          <p class="hint">Accepting starts the clock for videos<%= b.judging === 'official' ? ' and draws three judges at random' : '' %>.</p>
         </div>
 <% } %>
       </section>
@@ -51,6 +51,25 @@
         <div class="card__head"><h2 class="card__title card__title--sm" id="vs">Battle status</h2><a class="btn btn--primary btn--sm" href="/battles/<%= b.id %>/video"><%= videos.mine ? 'Your video' : 'Submit video' %></a></div>
 <%- include('partials/video-status', { state: videos, opponent: other.name }) %>
 <%   if (videos.mine) { %><%- include('partials/video', { v: videos.mine, label: 'Your video' }) %><% } %>
+      </section>
+<% } %>
+
+<% if (judges) { %>
+      <section class="card" style="margin-top:var(--space-5)" aria-labelledby="panel-h">
+        <%# S-B4 Judge panel, a section of the battle page (Matt, Nov 25). Layout: wireframes/pages/judge-panel.html
+            Players see each judge's status only, never a name (Matt, Nov 25). Read-only, no buttons. %>
+        <div class="card__head"><h2 class="card__title card__title--sm" id="panel-h">Judge panel</h2></div>
+<%   if (judges.length) { %>
+        <div class="judge-grid">
+<%     judges.forEach(function (j, i) { const ok = j.status !== 'drawn'; %>
+          <div class="judge-card judge-card--<%= ok ? 'accepted' : 'waiting' %>"><span class="avatar avatar--crest">J<%= i + 1 %></span><span class="pill <%= ok ? 'pill--success' : 'pill--waiting' %>"><%= ok ? 'Accepted' : 'Waiting for reply' %></span><% if (!ok) { %><div class="judge-card__meta"><%- include('partials/time-left', { t: timeLeft(j.respond_by), due: j.respond_by, suffix: 'to reply' }) %></div><% } %></div>
+<%     }) %>
+        </div>
+<%   } %>
+<%   if (judges.length < panelSize) { %>
+        <div class="notice notice--warn"><div class="notice__title">Waiting for judges.</div>Not enough free judges are available right now. The battle waits until more judges are free.</div>
+<%   } %>
+        <p class="hint">Judges are drawn at random from free judges. Neither side picks, approves or replaces them. Submissions open at acceptance; judging starts once both videos are in and all 3 judges have accepted.</p>
       </section>
 <% } %>
 

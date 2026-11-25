@@ -135,7 +135,7 @@ Every battle has one or more slots. A 1v1 has one slot. A team battle has three,
 | challenger_user_id, opponent_user_id | uuid | Single battles |
 | challenger_team_id, opponent_team_id | uuid | Team battles |
 | created_by | uuid | Who sent the call out |
-| status | enum | proposed, accepted, declined, cancelled, expired, awaiting_panel, submissions_open, judging, finalized, forfeited, voided. `stuck` is added with F-H6 |
+| status | enum | proposed, accepted, declined, cancelled, expired, awaiting_panel, submissions_open, judging, finalized, forfeited, voided. `stuck` is added with F-H6. `accepted` stays in the enum but is never stored (CHECK): accept goes straight to awaiting_panel (slice 2c-1) |
 | elo_band_ok | boolean | Opponent was within 400 ELO (inclusive) when the call out was created or last edited. Must be true on ELO battles; null on Just for fun |
 | submission_days | integer | 3, 5, or 7, chosen by the creator from a dropdown |
 | created_at, updated_at | timestamp | updated_at changes on every edit; accept checks it so the opponent accepts the terms they saw |
@@ -145,7 +145,7 @@ Every battle has one or more slots. A 1v1 has one slot. A team battle has three,
 | forfeited_by | uuid | User or team that forfeited, or null |
 | forfeit_reason | enum | explicit or missed_deadline |
 
-`awaiting_panel` means the 3 judges have not all accepted yet. Submissions can still open while a battle is in this state.
+`awaiting_panel` means the 3 judges have not all accepted yet. Submissions are open in this state. `submissions_open` means the panel is complete and videos are still coming in. `judging` means both videos are in and 3 judges have accepted; `judging_due_at` is set (5 days) when the battle enters it (CHECK: judging needs judging_due_at). Every status move runs in one transaction holding the battle row lock.
 
 ### battle_slots
 | Field | Type | Notes |
@@ -169,9 +169,10 @@ Every battle has one or more slots. A 1v1 has one slot. A team battle has three,
 One panel of three judges per battle. A team battle uses the same three for all its slots.
 | Field | Type | Notes |
 |---|---|---|
-| battle_id, judge_user_id | uuid | Three active judges per battle |
+| battle_id, judge_user_id | uuid | Three active judges per battle. Unique pair: one row per judge per battle ever, so a judge who declined is never drawn again for that battle |
 | status | enum | drawn, accepted, declined, recused, replaced, scored |
-| drawn_at, respond_by | timestamp | Judges have 48 hours to accept before replacement |
+| drawn_at, respond_by | timestamp | Judges have 48 hours to accept before replacement (CHECK: respond_by = drawn_at + 48 hours) |
+| responded_at | timestamp | When the judge accepted or declined |
 | score_due_at | timestamp | Five days after both videos are in |
 | replaced_by, replaced_reason | uuid, text | Moderators and admins can sub in |
 
@@ -241,9 +242,11 @@ A result can change only through this table, and only after two different admins
 ### roles, permissions, role_permissions
 | Table | Fields | Notes |
 |---|---|---|
-| roles | id, key, name, scope_type | Scope is site or team. Adding a role is a data insert |
-| permissions | id, key, description | One row per action in 04-permissions-matrix |
-| role_permissions | role_id, permission_id | Changing what a role can do is an edit here, not a code change |
+| roles | id, key, name, scope_type | Scope is site or team. Adding a role is a data insert. Seeded site roles: member, judge, moderator, admin, super_admin, site_owner. Team roles come with the teams slice |
+| permissions | id, key, description | One row per action in 04-permissions-matrix. Each slice seeds the rows it enforces (slice 2c-1: battle.elo.enter, judge.assignment.respond) |
+| role_permissions | role_id, permission_id, effect | Changing what a role can do is an edit here, not a code change. effect is allow or deny. A deny on any role the user holds wins over every allow (the matrix's NO, e.g. judges barred from ELO battles) |
+
+Every active account is a Member without a user_roles row; the member role carries the baseline permissions. Inactive accounts (suspended, banned, deleted) can do nothing. user_roles rows are deleted with their user. `granted_by` is null for grants made outside the app (scripts/grant-role.js).
 
 ### judge_applications
 | Field | Type | Notes |

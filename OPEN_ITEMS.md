@@ -13,7 +13,7 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 - Team battles: S-J2 and the battle outcome show one pairing. Build repeats it per pairing.
 
 ## Decisions still open
-- S-B4 Judge panel: own page or a section of S-B7 (marked with a dagger in the Screen Inventory).
+- Popular vote battles and the judge panel: slice 2c-1 draws judges only for battles with Official judges. A Just for fun battle with Popular vote gets no panel and stays `awaiting_panel` (videos open) until the popular vote slice. 01-feature-spec says both "Every battle gets 3 judges" and "Official judges or popular vote", so this needs Matt's call.
 - Does accept recheck the 400-point band? Today it is checked at create and edit only. Decide before slice 2d (ELO), when ratings start to move.
 - Limit open call outs between the same two players? More than one is allowed today; the docs do not say.
 - Cap or rate limit on call outs one member can send (spam risk). Not in the docs.
@@ -70,17 +70,29 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 Built: S-B1, S-B2, S-B3, S-M1 call out parts; F-C1, F-C2 (1v1 only). Migration 1796256000000_battles ran on the Linode Nov 24. Open decisions from this slice moved to "Decisions still open". Known gaps left:
 - "Rating at stake +N −N" on S-B2 is hidden until slice 2d (ELO). `lib/elo.js` is built there.
 - Team call outs (3v3) wait for the teams slice. `battles.challenger_team_id` and `opponent_team_id` get their foreign keys then.
-- Rules not enforced yet because their tables do not exist: judges barred from ELO call outs (roles), blocked users cannot call out the blocker (blocks), call out emails (F-H7), audit log rows for call out actions (F-H3).
+- Rules not enforced yet because their tables do not exist: blocked users cannot call out the blocker (blocks), call out emails (F-H7), audit log rows for call out actions (F-H3). Judges barred from ELO call outs is enforced from slice 2c-1.
 - Expiry runs without the worker: actions refuse a call out past `expires_at`, and call out page loads mark every past-due call out expired (one query). The worker slice takes this over. Until then an expired call out sorts on Past by `expires_at`.
-- S-B2 "Your opponent" card shows the rating only. Battles, record and View profile wait for user stats (F-F2) and the profile slice. The wireframe's "Accepting draws three judges at random" hint is reworded until judges are drawn (slice 2c).
+- S-B2 "Your opponent" card shows the rating only. Battles, record and View profile wait for user stats (F-F2) and the profile slice. The wireframe's "Accepting draws three judges at random" hint is back from slice 2c-1 (Official judges only).
 - Header nav is clipped at phone width (375 px); LEADERBOARDS is cut off.
 
 ## Slice 2b (submit videos): done, live Nov 25, 2026 (PR #9)
 Built: S-B5, S-B2 Battle status card, S-M1 "Submit your video"; F-C3 (1v1). Migration 1797120000000_submissions ran on the Linode Nov 25 after a backup (indexes and constraints checked). Open decisions from this slice moved to "Decisions still open". Known gaps left:
-- Timer work waits for the worker slice: forfeit or void at a missed submission due date, the daily oEmbed re-check that sets `dead_link`, and the gravestone. Until then a battle past its due date stays `accepted` and shows "Submissions are closed".
-- Battle status stays `accepted` through submissions until slice 2c adds the judge panel (Matt, Nov 24). `judging_due_at` and the popular vote clock (both start at the second video) are set in 2c.
+- Timer work waits for the worker slice: forfeit or void at a missed submission due date, the daily oEmbed re-check that sets `dead_link`, and the gravestone. Until then a battle past its due date stays `awaiting_panel` or `submissions_open` and shows "Submissions are closed".
+- Battle statuses after accept came with slice 2c-1 (awaiting_panel, submissions_open, judging). The popular vote clock waits for the popular vote slice.
 - The battle page for players (S-B7) is the S-B2 call out page plus a Battle status card for now. The public battle detail (S-P7) and embedded players come with the battle log slice.
 - Team battles get three slots in the teams slice; today accept creates slot 1 only.
 
-## Slice 2c (judges), not started
-- S-B5 closed-reason wording (second review of slice 2b, finding 3): the "Submissions are closed" notice picks its reason from `accepted_at`, while a refusal picks it from the battle status. Once a battle moves past `accepted` (judging in 2c, or forfeited and voided in the worker slice) with a due date still in the future, the page says "The due date has passed." and a refused POST says "Videos open once the call out is accepted." Use one reason for both, with wording for a battle that has moved on.
+## Slice 2c-1 (judge panel), built Nov 25, 2026, not merged
+Built: roles tables (F-H2 part), the random draw of 3 judges at accept, S-J1 Judge dashboard (Accept and Decline), S-B4 as a section of the battle page, the Judging nav link, the S-M1 judge request item, the ELO bar for judges, `scripts/grant-role.js`, and one transactional status function (awaiting_panel, submissions_open, judging). Migration `1797984000000_judge_panel`. The S-B5 closed-reason wording (slice 2b review finding 3) is fixed: one reason for the notice and every refusal. Known gaps left:
+- Recusal waits for slice 2c-2 (Matt, Nov 25). Until then an accepted judge cannot leave a panel.
+- No timers yet. A judge who never replies blocks the battle until the worker slice replaces judges (48 hours) and judges who do not pick (5 days). Until then a reply after `respond_by` is still taken (Matt, Nov 25).
+- Fewer than 3 free judges: the battle waits. Topping up the panel when judges become free is the worker slice's job. The "moderators and admins are notified" step needs staff roles in use and email (F-H7).
+- Moderator and admin sub-ins are deferred (`replaced_by`, `replaced_reason` exist, unused).
+- Judges get no email about a request (F-H7). The S-J1 list and the S-M1 item are the only notice.
+- The 5-day judging clock is set (`judging_due_at`, `score_due_at`) but nothing acts on it. S-J2 (pick and reason) comes in slice 2c-2; S-J1 shows "Judging opens soon" for battles in judging.
+- Battles accepted before this slice (dev box only; production had 0) moved to `awaiting_panel` with no judges drawn; they get a panel only from the worker's top-up.
+- Do not build yet (Matt, Nov 25): what happens when the judge role is granted to a member who already has open ELO call outs or battles as a player. Today the grant goes through; that member's open ELO call outs can no longer be accepted, and ELO battles already accepted carry on.
+- A judge whose role is revoked, or who is banned or suspended, while on a panel keeps the assignment (it still counts toward the 3) but can no longer reply. Not in the docs.
+- Only the permissions this slice enforces are seeded (`battle.elo.enter`, `judge.assignment.respond`). Each later slice adds its own rows. No revoke script; revoke is the admin slice (S-S5).
+- `scripts/grant-role.js` grants site roles only. Production use is a manual Linode step, only when Matt says so.
+- Team battles: the same 3 judges for all pairings, with the teams slice.

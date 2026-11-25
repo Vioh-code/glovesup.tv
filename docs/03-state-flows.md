@@ -12,13 +12,13 @@ Last updated: Nov 13, 2026. Owner: Matt.
 | Clock | Starts when | Length | If it runs out |
 |---|---|---|---|
 | Call out | The call out is sent | 72 hours | The call out expires. No penalty in V1 |
-| Judge response | A judge is drawn | 48 hours | The judge is replaced by another random free judge. If none is free, the battle waits and a moderator or admin is notified to sub in |
+| Judge response | A judge is drawn | 48 hours | The judge is replaced by another random free judge. If none is free, the battle waits and a moderator or admin is notified to sub in. Until the worker slice nothing acts on this clock, and a reply after it is still taken |
 | Submission due date | The opponent accepts | 3, 5, or 7 days, chosen by the creator | If one side is missing, that side forfeits. If neither submitted, the battle is voided with no ELO change |
-| Judge decision | Both videos are submitted and the 3 judges have accepted † | 5 days | The judge is replaced and the new judge gets a fresh 5 days † |
+| Judge decision | Both videos are submitted and the 3 judges have accepted (`judging_due_at`) | 5 days | The judge is replaced and the new judge gets a fresh 5 days † |
 | Popular vote | Both videos are submitted | Until the 5-day judging window ends | Voting closes. Results stay hidden until then |
 | Judge reasons | All judging is complete | Immediate | Reasons (text and review videos) become public |
 
-The submission clock starts at acceptance, so judge responses can still be pending while submissions come in. Judging waits for the 3 accepted judges and both videos †.
+The submission clock starts at acceptance, so judge responses can still be pending while submissions come in. Judging waits for the 3 accepted judges and both videos (Matt, Nov 25, 2026).
 
 ## 2. Call out lifecycle
 A call out is a battle in the `proposed` state. The creator can edit it until the opponent accepts. Team call outs follow the same path, with the opposing team's officers answering.
@@ -40,9 +40,9 @@ One main path to a result, with three ways out.
 
 ```mermaid
 stateDiagram-v2
-  [*] --> Accepted: submission clock starts
-  Accepted --> PanelDrawn: 3 judges drawn at random, 48 hours to accept
-  PanelDrawn --> SubmissionsOpen: submissions open at acceptance, judging waits for the panel
+  [*] --> AwaitingPanel: accepted, submission clock starts, 3 judges drawn at random (48 hours to reply), submissions open
+  AwaitingPanel --> SubmissionsOpen: 3 judges accepted, videos still coming in
+  AwaitingPanel --> Judging: 3rd judge accepts after both videos are in
   SubmissionsOpen --> Judging: both videos in and 3 judges accepted
   Judging --> Finalized: result set, ELO ledger updated, reasons public
   SubmissionsOpen --> Forfeited: a side forfeits or misses the due date
@@ -50,6 +50,8 @@ stateDiagram-v2
   Judging --> Stuck: no result after the window
   Stuck --> Finalized: an admin corrects it (F-H6)
 ```
+- Status names: `awaiting_panel` (fewer than 3 judges accepted), `submissions_open` (panel complete), `judging` (panel complete and both videos in). The `accepted` status is never stored; accept moves a call out straight to `awaiting_panel` (slice 2c-1).
+- Every status move (judge accept or decline, video submit or cancel) runs in one transaction holding the battle row lock, so the last judge accept and the last video cannot race.
 - A forfeit can be called at any point before the result is final. On ELO battles it counts as a loss.
 - A reversed appeal does not move the battle backward. It adds ELO ledger rows for this battle only. Later battles are not changed.
 - Reversal needs two different admins (see section 5).
@@ -65,6 +67,10 @@ flowchart TD
   D --> C
   C -->|all 3 accepted| E[Panel complete<br/>judging can start once both videos are in]
 ```
+- A free judge holds the judge role, is active and verified, is not a player in the battle, and has no assignment on that battle already, in any status (so a judge who declined is never drawn again for it). There is no cap on how many battles one judge holds (Matt, Nov 25, 2026).
+- Fewer than 3 free judges: the draw takes who exists and accept never fails. Topping up the panel later is the worker's job.
+- A decline draws the replacement at once, with no timer.
+- Players see each judge's status, never names. A judge sees only their own assignment.
 - A moderator or admin cannot sub in on a battle they are in †.
 - In a team battle the same 3 judges score all three pairings.
 

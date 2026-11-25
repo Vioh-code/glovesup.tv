@@ -1,6 +1,6 @@
 <%- include('partials/top', { title: 'Submit your video' }) %>
   <%# S-B5 Submit video (F-C3). Layout: wireframes/pages/submit-video.html
-      No JavaScript: Check link posts the form and the server shows the preview; Submit checks the
+      One closed reason (closedReason) for the notice and every refusal. No JavaScript: Check link posts the form and the server shows the preview; Submit checks the
       link with YouTube again and saves only what YouTube returned. Replace and Cancel until the due
       date or until both videos are in (the second video locks both). %>
 <% const page = '/battles/' + b.id + '/video'; const mine = state.mine; %>
@@ -13,10 +13,8 @@
       </div>
       <div class="layout">
         <section class="card">
-<% if (state.locked) { %>
-          <div class="notice"><div class="notice__title">Both videos are in</div>Submissions are locked. Neither video can be replaced or cancelled.</div>
-<% } else if (!open) { %>
-          <div class="notice"><div class="notice__title">Submissions are closed</div><%= !b.accepted_at ? 'Videos open once the call out is accepted.' : 'The due date has passed.' %></div>
+<% if (why) { %>
+          <div class="notice"><div class="notice__title">Submissions are closed</div><%= WHY[why] %><% if (why === 'locked') { %> Neither video can be replaced or cancelled.<% } %></div>
 <% } else if (mine && !replacing) { %>
           <div class="notice"><div class="notice__title">Your video is in: <%= mine.title_snapshot %></div>You can replace it or cancel the submission until the due date, or until your opponent's video is in.</div>
           <div class="form-actions">
@@ -51,7 +49,7 @@
           <section class="card">
             <div class="card__head"><h2 class="card__title card__title--sm">Battle status</h2></div>
 <%- include('partials/video-status', { state: state, opponent: opponent }) %>
-<% if (open) { %>
+<% if (!why) { %>
             <p class="hint">You can replace your video until the due date. Once both videos are in, both are locked.</p>
 <% } %>
           </section>

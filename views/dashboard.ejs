@@ -2,7 +2,7 @@
   <%# S-M1 Dashboard. Layout: wireframes/pages/dashboard.html
       Slice 2a: call outs to answer, active battles, rating, Create a call out.
       Slice 2b: Submit your video items (F-C3).
-      Judge request, team and result items come with their slices. %>
+      Slice 2c-1: Judge request items (F-C4). Team and result items come with their slices. %>
   <main class="page">
     <div class="container">
       <div class="page-head"><div>
@@ -15,13 +15,19 @@
           <section class="card" aria-labelledby="needs-h">
             <div class="card__head"><h2 class="card__title" id="needs-h">Needs your action</h2></div>
             <div class="row-list">
-<% if (!incoming.length && !videos.length) { %>
+<% if (!incoming.length && !videos.length && !judgeRequests.length) { %>
               <p class="hint">Nothing waiting on you. <a href="/callouts/new">Create a call out</a></p>
 <% } %>
 <% incoming.forEach(function (r) { %>
               <div class="row row--action">
                 <div class="row__main"><div class="row__title">Call out from <%= r.other_name %></div><div class="row__meta">1v1 · <%= labels.scoring[r.scoring] %> · <%= labels.judging[r.judging] %></div></div>
                 <div class="row__aside"><%- include('partials/time-left', { t: timeLeft(r.expires_at), due: r.expires_at, suffix: 'to answer' }) %><a class="btn btn--primary btn--sm" href="/callouts/<%= r.id %>">Review</a></div>
+              </div>
+<% }) %>
+<% judgeRequests.forEach(function (r) { %>
+              <div class="row row--action">
+                <div class="row__main"><div class="row__title">Judge request: <%= r.challenger_name %> vs <%= r.opponent_name %></div><div class="row__meta"><%= labels.kind[r.kind] %> · <%= labels.scoring[r.scoring] %></div></div>
+                <div class="row__aside"><%- include('partials/time-left', { t: timeLeft(r.respond_by), due: r.respond_by, suffix: 'to reply' }) %><a class="btn btn--primary btn--sm" href="/judging">Reply</a></div>
               </div>
 <% }) %>
 <% videos.forEach(function (r) { %>
