@@ -64,7 +64,7 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 - No password reset flow yet; production test account password was reset by hand on the Linode (Nov 24).
 - Production submit pages are untested. The Nov 25 smoke test after slice 2b passed, but glovera is the only verified production account, so no accepted battle exists to open S-B5 (Submit video) or the S-B2 Battle status card. Test them once a second verified production account exists (created and verified by hand, only when Matt says so).
 - Production has no battles yet: the slice 2b migration backfilled 0 slots, and the slice 2c-1 migration moved 0 battles to `awaiting_panel`.
-- No judge role is granted in production yet. The judge panel (S-B4 section, S-J1 Judging, the S-M1 judge request item, the ELO bar for judges) is untested in production. Testing it needs a verified judge account and a second verified player account, created and verified by hand, only when Matt says so.
+- No judge role is granted in production yet. The judge panel (S-B4 section, S-J1 Judging, the S-M1 judge request item, the ELO bar for judges) and the judging flow from slice 2c-2 (S-J2 pick and reason, recusal, finalize, the outcome card, the S-M1 "Judge this battle" item) are untested in production. Testing it needs a verified judge account and a second verified player account, created and verified by hand, only when Matt says so.
 - The Linode has 20 pending OS updates (3 security) and needs a reboot. Do both in the Dec 7, 2026 monthly update session.
 - The production DOB_ENC_KEY is stored in Matt's password manager. Losing it loses every stored DOB.
 
@@ -101,7 +101,8 @@ Built: roles tables (F-H2 part), the random draw of 3 judges at accept, S-J1 Jud
 - Team battles: the same 3 judges for all pairings, with the teams slice.
 - Decided (Matt, Nov 25): judge panels are drawn only for battles with Official judges. A Just for fun battle with Popular vote gets no panel and stays `awaiting_panel` (videos open) until the popular vote slice. The popular vote slice must set its own status flow for these battles (they never reach `submissions_open` or `judging` through the panel rules).
 
-## Slice 2c-2 (judging): built Nov 25, 2026, branch slice/judging
+## Slice 2c-2 (judging): done, live Nov 25, 2026 (PR #13)
+Migration `1798848000000_judgments` ran on the Linode before the merge, after a backup (judgments table, `judge_assignments.recused_at`, the 5 `judge.judgment.submit` grants and the migration record checked). Smoke test passed: `/judging` as glovera shows "Only judges", health ok. Browser test on the dev box passed (picks, video-only review, 2-of-3 finalize, outcome card, S-J1 history); recusal is covered by tests only.
 Built: S-J2 (pick plus a typed reason, a checked YouTube review video, or both; Check link; Submit locks), the 2-of-3 majority and finalize (slot and battle result, finalized_at, reasons_public_at; team rule as a tested function for the teams slice), recusal (S-J1 and S-J2), the outcome card on the battle page with judge usernames after finalize, "Judged" on S-B4, S-J1 Ready to judge, Judge and View, and the S-M1 "Judge this battle" item. The settle() fix: a seat is an accepted or scored assignment. Migration `1798848000000_judgments` (judgments, judgment_pick, judge_assignments.recused_at, the battles finalized check, the judge.judgment.submit seed). Known gaps left:
 - ELO does not move on finalize (slice 2d hook in `finalize()`).
 - Picks, recusals and finalize write no audit log rows (F-H3 not built) and send no email (F-H7).
@@ -109,7 +110,9 @@ Built: S-J2 (pick plus a typed reason, a checked YouTube review video, or both; 
 - Dead-link rechecks of battle and review videos during judging are the worker's job; judges judge whatever is linked.
 - Moderator and admin sub-ins stay deferred: those roles hold `judge.judgment.submit` but there is no route to sub in.
 - The outcome shows to the two players and the panel judges only. Visitors read it on the public battle page (S-P7) in the battle log slice, which reads `reasons_public_at`.
-- S-J2 shows video thumbnails and links, no embedded players (CSP frame-src, battle log slice). Without JavaScript the reason fields always show (the wireframe shows them after the pick).
-- Team battles: `finalize()` and `teamResult()` handle three slots, but the S-J2 form and submit take one slot; a team battle throws until the teams slice builds the three-pick form.
+- S-J2 shows video thumbnails and links, no embedded players (CSP frame-src, battle log slice).
+- S-J2 reason fields always show, without JavaScript (the wireframe shows them after the pick).
+- Rate limit on Check link: `/judging/:id/check-link` is in the Check link item under "Decisions still open". No limit built.
+- Team battle judging waits for the teams slice: `finalize()` and `teamResult()` handle three slots, but the S-J2 form and submit take one slot, so a team battle throws until the teams slice builds the three-pick form.
 - The S-B4 hint and the S-B3 Past tab do not show who won yet (Past shows "Finalized"). Recent results on S-M1 wait for a later slice.
-- Production: judge roles may be granted; still none are. No ELO call outs in production until slice 2d is live.
+- Production: no judge role granted yet, so the judging flow is untested there (see Production). The rule stands: no ELO call outs in production until slice 2d is live.
