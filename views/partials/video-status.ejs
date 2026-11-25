@@ -1,0 +1,8 @@
+<%# Battle status (F-C3), shared by S-B5 and S-B2: state = videoState(...), opponent = their username.
+    The opponent's video is in `state.theirs` only once it may be shown (both in, or past the due date). %>
+<dl class="dl">
+  <dt>Your video</dt><dd><% if (state.mine) { %><span class="pill pill--success">Submitted</span><% } else { %><span class="pill pill--action">Not submitted</span><% } %></dd>
+  <dt><%= opponent %></dt><dd><% if (state.theirsIn) { %><span class="pill pill--success">Submitted</span><% } else { %><span class="pill pill--waiting">Waiting</span><% } %></dd>
+</dl>
+<% if (state.locked) { %><p class="hint">Both videos are in. Submissions are locked.</p><% } %>
+<% if (state.theirs && state.theirs.youtube_url) { %><%- include('video', { v: state.theirs, label: opponent + '\'s video' }) %><% } %>

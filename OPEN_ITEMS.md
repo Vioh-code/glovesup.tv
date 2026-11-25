@@ -56,7 +56,7 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 - Active-session list (S-M4, `sessions` table) not built. Deferred with MFA and lockout.
 
 ## Production
-- A test account (gloverb) exists in the production database, email marked verified by hand on Nov 24, 2026. Delete it before launch, only when Matt says so.
+- A test account (glovera) exists in the production database, email marked verified by hand on Nov 24, 2026. gloverb and gloverc exist only on the dev box. Delete it before launch, only when Matt says so.
 - No password reset flow yet; production test account password was reset by hand on the Linode (Nov 24).
 - The Linode has 20 pending OS updates (3 security) and needs a reboot. Do both in the Dec 7, 2026 monthly update session.
 - The production DOB_ENC_KEY is stored in Matt's password manager. Losing it loses every stored DOB.
@@ -69,3 +69,14 @@ Built: S-B1, S-B2, S-B3, S-M1 call out parts; F-C1, F-C2 (1v1 only). Migration 1
 - Expiry runs without the worker: actions refuse a call out past `expires_at`, and call out page loads mark every past-due call out expired (one query). The worker slice takes this over. Until then an expired call out sorts on Past by `expires_at`.
 - S-B2 "Your opponent" card shows the rating only. Battles, record and View profile wait for user stats (F-F2) and the profile slice. The wireframe's "Accepting draws three judges at random" hint is reworded until judges are drawn (slice 2c).
 - Header nav is clipped at phone width (375 px); LEADERBOARDS is cut off.
+
+## Slice 2b (submit videos), Nov 24, 2026
+- Timer work waits for the worker slice: forfeit or void at a missed submission due date, the daily oEmbed re-check that sets `dead_link`, and the gravestone. Until then a battle past its due date stays `accepted` and shows "Submissions are closed".
+- Battle status stays `accepted` through submissions until slice 2c adds the judge panel (Matt, Nov 24). `judging_due_at` and the popular vote clock (both start at the second video) are set in 2c.
+- The battle page for players (S-B7) is the S-B2 call out page plus a Battle status card for now. The public battle detail (S-P7) and embedded players come with the battle log slice.
+- No rate limit on Check link. Each Check and Submit makes one oEmbed request from the server; only the two players of an open, unlocked battle can trigger it.
+- A link must include http:// or https://. "youtu.be/ID" typed without it is refused with the format message.
+- Team battles get three slots in the teams slice; today accept creates slot 1 only.
+
+## Slice 2c (judges), not started
+- S-B5 closed-reason wording (second review of slice 2b, finding 3): the "Submissions are closed" notice picks its reason from `accepted_at`, while a refusal picks it from the battle status. Once a battle moves past `accepted` (judging in 2c, or forfeited and voided in the worker slice) with a due date still in the future, the page says "The due date has passed." and a refused POST says "Videos open once the call out is accepted." Use one reason for both, with wording for a battle that has moved on.

@@ -5,6 +5,7 @@ const { test, before, after, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const { app, HOST } = require('../index');
 const { pool } = require('../db');
+const { clearBattles } = require('./helpers/db');
 const { hashPassword } = require('../lib/passwords');
 const { encryptDob, parseKey } = require('../lib/dob-crypto');
 const { Browser, listen } = require('./helpers/http');
@@ -25,7 +26,7 @@ before(async () => {
 });
 
 beforeEach(async () => {
-  await pool.query('DELETE FROM battles');
+  await clearBattles(pool);
   await pool.query('DELETE FROM users');
   await pool.query('DELETE FROM session');
   ids.alice = await addUser('Alice');
@@ -35,7 +36,7 @@ beforeEach(async () => {
 
 after(async () => {
   await new Promise((resolve) => server.close(resolve));
-  await pool.query('DELETE FROM battles');
+  await clearBattles(pool);
   await pool.query('DELETE FROM users');
   await pool.query('DELETE FROM session');
   await pool.end();
@@ -773,7 +774,8 @@ test('every displayed date is a <time> element with a UTC datetime and UTC fallb
   const alice = await as('Alice');
   const pages = [
     [bob, `/callouts/${open}`, 1], [alice, `/callouts/${acc}`, 1],
-    [bob, '/dashboard', 2], [alice, '/dashboard', 1],
+    // Dashboards: + one "Submit your video" item each since slice 2b.
+    [bob, '/dashboard', 3], [alice, '/dashboard', 2], [alice, `/battles/${acc}/video`, 1],
     [bob, '/my-battles?tab=incoming', 1], [alice, '/my-battles?tab=active', 1],
   ];
   for (const [who, page, n] of pages) {
@@ -801,4 +803,35 @@ test('local-time.js is served and the CSP allows only same-origin scripts', asyn
   const csp = r.headers.get('content-security-policy');
   const scriptSrc = csp.split(';').find((d) => d.startsWith('script-src '));
   assert.equal(scriptSrc, "script-src 'self'");
+});
+
+// --- Slice 2b: accept creates the battle's slot (F-C3) ---
+
+test('accept creates exactly one slot, position 1, with the two players', async () => {
+  const id = await callout('alice', 'bob');
+  const b1 = await as('Bob');
+  const b2 = await as('Bob');
+  const v = versionFrom((await b1.get(`/callouts/${id}`)).html);
+  await Promise.all([
+    b1.post(`/callouts/${id}/accept`, { _csrf: b1.token, terms_version: v }),
+    b2.post(`/callouts/${id}/accept`, { _csrf: b2.token, terms_version: v }),
+  ]);
+  const { rows } = await pool.query('SELECT * FROM battle_slots WHERE battle_id = $1', [id]);
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].position, 1);
+  assert.equal(rows[0].challenger_user_id, ids.alice);
+  assert.equal(rows[0].opponent_user_id, ids.bob);
+});
+
+test('declined, cancelled and expired call outs get no slot', async () => {
+  const d = await callout('alice', 'bob');
+  const c = await callout('alice', 'bob');
+  const bob = await as('Bob');
+  const alice = await as('Alice');
+  await bob.post(`/callouts/${d}/decline`, { _csrf: bob.token });
+  await alice.post(`/callouts/${c}/cancel`, { _csrf: alice.token });
+  const e = await callout('alice', 'bob');
+  await expire(e);
+  await accept(bob, e);
+  assert.equal(Number((await pool.query('SELECT count(*) FROM battle_slots')).rows[0].count), 0);
 });

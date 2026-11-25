@@ -5,7 +5,9 @@ const { test, before, after, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const { execFileSync } = require('node:child_process');
 const path = require('node:path');
+const { requireTestDatabase } = require('./helpers/guard'); // refuses a non-test DB on load
 const { pool } = require('../db');
+const { clearBattles } = require('./helpers/db');
 
 let alice;
 let bob;
@@ -20,17 +22,18 @@ async function makeUser(username) {
 }
 
 before(async () => {
+  requireTestDatabase();
   execFileSync(process.execPath, ['--env-file=.env.test', 'scripts/migrate.js', 'up'], {
     cwd: path.join(__dirname, '..'), stdio: 'pipe',
   });
-  await pool.query('DELETE FROM battles');
+  await clearBattles(pool);
   await pool.query('DELETE FROM users');
   alice = await makeUser('alice');
   bob = await makeUser('bob');
 });
-beforeEach(() => pool.query('DELETE FROM battles'));
+beforeEach(() => clearBattles(pool));
 after(async () => {
-  await pool.query('DELETE FROM battles');
+  await clearBattles(pool);
   await pool.query('DELETE FROM users');
   await pool.end();
 });

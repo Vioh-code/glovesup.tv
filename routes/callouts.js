@@ -15,6 +15,7 @@ const { LABELS: labels } = require('../lib/labels');
 const {
   VERSION_SQL, TOUCH_SQL, markExpired, viewer, findOpponent, loadCallout, myBattles,
 } = require('../lib/battles');
+const subs = require('../lib/submissions');
 
 const VERSION_RE = /^\d{1,20}$/;
 
@@ -189,9 +190,18 @@ function calloutRoutes() {
 
   // --- S-B2 Detail ---
 
-  router.get('/callouts/:id', requireLogin, participantOnly, (req, res) => {
+  router.get('/callouts/:id', requireLogin, participantOnly, async (req, res, next) => {
     const b = req.callout;
-    res.render('callout', {
+    // F-C3 battle status card once accepted (same hiding rule as S-B5).
+    let videos = null;
+    try {
+      const slot = await subs.slotFor(b.id, req.viewer.id);
+      if (slot) videos = await subs.videoState(slot.id, req.viewer.id, b.submissions_due_at <= new Date());
+    } catch (err) {
+      return next(err);
+    }
+    return res.render('callout', {
+      videos,
       labels,
       b,
       role: req.role,
@@ -273,11 +283,17 @@ function calloutRoutes() {
       const b = req.callout;
       const seen = typeof req.body.terms_version === 'string' && VERSION_RE.test(req.body.terms_version)
         ? req.body.terms_version : null;
+      // One statement: the accept and the battle's slot (F-C3, a 1v1 has one,
+      // position 1) land together or not at all.
       const { rowCount } = await pool.query(
-        `UPDATE battles SET status = 'accepted', accepted_at = now(),
-                submissions_due_at = now() + make_interval(hours => 24 * submission_days), ${TOUCH_SQL}
-         WHERE id = $1 AND opponent_user_id = $2 AND status = 'proposed' AND expires_at > now()
-           AND ${VERSION_SQL} = $3`,
+        `WITH acc AS (
+           UPDATE battles SET status = 'accepted', accepted_at = now(),
+                  submissions_due_at = now() + make_interval(hours => 24 * submission_days), ${TOUCH_SQL}
+           WHERE id = $1 AND opponent_user_id = $2 AND status = 'proposed' AND expires_at > now()
+             AND ${VERSION_SQL} = $3
+           RETURNING id, challenger_user_id, opponent_user_id)
+         INSERT INTO battle_slots (battle_id, position, challenger_user_id, opponent_user_id)
+         SELECT id, 1, challenger_user_id, opponent_user_id FROM acc`,
         [b.id, req.viewer.id, seen],
       );
       if (rowCount) return res.redirect(303, `/callouts/${b.id}`);

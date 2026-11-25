@@ -104,7 +104,7 @@ A deletion request ends with the account anonymized as Hung Up and a logged conf
 - **Timers.** Keep the `scheduled_jobs` table. One small worker runs every minute (cron or a systemd timer), picks up rows where `run_at` has passed and `status` is pending, runs them, and marks them done. Jobs survive restarts. No extra services.
 - **YouTube checks.** No API key.
   1. On submit, check the URL format server-side: watch, youtu.be and shorts links.
-  2. Ask YouTube's public oEmbed endpoint whether the video exists and is viewable. It also returns the title and thumbnail, which are saved as the snapshots.
+  2. Ask YouTube's public oEmbed endpoint whether the video exists and is viewable. It also returns the title and thumbnail, which are saved as the snapshots. No answer within 5 seconds, or any reply other than a video or a 400/401/403/404, means YouTube could not be reached: the video is refused with "Couldn't check the video, try again." and nothing is saved.
   3. Once a day, re-check saved videos for battles that are not yet finalized. A failed check sets the submission to `dead_link` and the gravestone shows.
   4. Private, deleted and embedding-disabled videos all count as dead.
 - **Email.** Gmail, once the site is ready (F-H7). Provider details and templates to be settled then.
