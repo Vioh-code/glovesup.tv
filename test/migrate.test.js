@@ -36,8 +36,26 @@ async function typeExists(name) {
   return rows.length > 0;
 }
 
-test('judge panel, submissions, battles, session and users migrations each revert cleanly, then reapply', async () => {
+async function columnExists(table, column) {
+  const { rows } = await pool.query(
+    'SELECT 1 FROM information_schema.columns WHERE table_name = $1 AND column_name = $2', [table, column],
+  );
+  return rows.length > 0;
+}
+
+test('judgments, judge panel, submissions, battles, session and users migrations each revert cleanly, then reapply', async () => {
   migrate('up');
+  assert.ok(await tableExists('judgments'));
+  assert.ok(await columnExists('judge_assignments', 'recused_at'));
+
+  migrate('down'); // judgments, judgment_pick, recused_at, the finalized check, the judge.judgment.submit seed
+  assert.ok(!(await tableExists('judgments')));
+  assert.ok(!(await typeExists('judgment_pick')));
+  assert.ok(!(await columnExists('judge_assignments', 'recused_at')));
+  const { rows: perm } = await pool.query("SELECT 1 FROM permissions WHERE key = 'judge.judgment.submit'");
+  assert.equal(perm.length, 0);
+  const { rows: chk } = await pool.query("SELECT 1 FROM pg_constraint WHERE conname = 'battles_finalized_result'");
+  assert.equal(chk.length, 0);
   for (const t of ['roles', 'permissions', 'role_permissions', 'user_roles', 'judge_assignments']) {
     assert.ok(await tableExists(t), t);
   }
@@ -84,12 +102,14 @@ test('judge panel, submissions, battles, session and users migrations each rever
   assert.ok(await tableExists('battle_slots'));
   assert.ok(await tableExists('submissions'));
   assert.ok(await tableExists('judge_assignments'));
+  assert.ok(await tableExists('judgments'));
 });
 
 // Battles accepted before slice 2b have no slot. The migration adds one to
 // each accepted 1v1 battle, and none to call outs that were never accepted.
 test('the submissions migration backfills one slot per accepted 1v1 battle', async () => {
   migrate('up');
+  await pool.query('DELETE FROM judgments');
   await pool.query('DELETE FROM judge_assignments');
   await pool.query('DELETE FROM submissions');
   await pool.query('DELETE FROM battle_slots');
@@ -101,6 +121,7 @@ test('the submissions migration backfills one slot per accepted 1v1 battle', asy
   const { rows: [b] } = await pool.query(
     `INSERT INTO users (username, email, password_hash, dob_encrypted, age_gate_passed, terms_accepted_at)
      VALUES ('mig_b', 'mig_b@example.com', 'x', '\\x00', true, now()) RETURNING id`);
+  migrate('down'); // judgments
   migrate('down'); // judge panel
   migrate('down'); // drop slots and submissions, as on the Linode before 2b
   const insert = (status, accepted) => pool.query(
@@ -128,6 +149,7 @@ test('the submissions migration backfills one slot per accepted 1v1 battle', asy
 // slice). Down moves them back. Other statuses are untouched.
 test('the judge panel migration moves accepted battles to awaiting_panel, and down moves them back', async () => {
   migrate('up');
+  await pool.query('DELETE FROM judgments');
   await pool.query('DELETE FROM judge_assignments');
   await pool.query('DELETE FROM submissions');
   await pool.query('DELETE FROM battle_slots');
@@ -139,6 +161,7 @@ test('the judge panel migration moves accepted battles to awaiting_panel, and do
   const { rows: [b] } = await pool.query(
     `INSERT INTO users (username, email, password_hash, dob_encrypted, age_gate_passed, terms_accepted_at)
      VALUES ('mig_b', 'mig_b@example.com', 'x', '\\x00', true, now()) RETURNING id`);
+  migrate('down'); // judgments
   migrate('down'); // judge panel: `accepted` may be stored again
   const insert = (status, accepted) => pool.query(
     `INSERT INTO battles (kind, scoring, judging, challenger_user_id, opponent_user_id, created_by, submission_days,
@@ -151,7 +174,8 @@ test('the judge panel migration moves accepted battles to awaiting_panel, and do
   const status = async (id) => (await pool.query('SELECT status FROM battles WHERE id = $1', [id])).rows[0].status;
   assert.equal(await status(acc.id), 'awaiting_panel');
   assert.equal(await status(prop.id), 'proposed');
-  migrate('down');
+  migrate('down'); // judgments
+  migrate('down'); // judge panel
   assert.equal(await status(acc.id), 'accepted');
   assert.equal(await status(prop.id), 'proposed');
   migrate('up');

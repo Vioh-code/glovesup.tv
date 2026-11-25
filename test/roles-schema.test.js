@@ -57,7 +57,7 @@ test('the six site roles are seeded, keys unique', async () => {
   await assert.rejects(pool.query("INSERT INTO roles (key, name, scope_type) VALUES ('judge', 'Again', 'site')"), /roles_key/);
 });
 
-test('seeded grants: member allows ELO, judge denies it; judge and staff may respond to assignments', async () => {
+test('seeded grants: member allows ELO, judge denies it; judge and staff may respond to assignments and judge', async () => {
   const { rows } = await pool.query(
     `SELECT r.key AS role, p.key AS perm, rp.effect FROM role_permissions rp
      JOIN roles r ON r.id = rp.role_id JOIN permissions p ON p.id = rp.permission_id
@@ -71,6 +71,11 @@ test('seeded grants: member allows ELO, judge denies it; judge and staff may res
     'judge.assignment.respond moderator allow',
     'judge.assignment.respond site_owner allow',
     'judge.assignment.respond super_admin allow',
+    'judge.judgment.submit admin allow',
+    'judge.judgment.submit judge allow',
+    'judge.judgment.submit moderator allow',
+    'judge.judgment.submit site_owner allow',
+    'judge.judgment.submit super_admin allow',
   ]);
   await assert.rejects(pool.query(
     "INSERT INTO role_permissions (role_id, permission_id, effect) SELECT r.id, p.id, 'maybe' FROM roles r, permissions p LIMIT 1",

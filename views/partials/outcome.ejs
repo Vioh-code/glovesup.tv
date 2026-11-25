@@ -1,0 +1,11 @@
+<%# Judging outcome (F-C4, F-C5), shared by the battle page and S-J2. Layout: wireframes/pages/battle.html
+    o = judging.outcome(...): shown only once the battle is finalized (reasons public). Judge usernames
+    show here only, never before finalize (Matt, Nov 25). %>
+<section class="card" style="margin-top:var(--space-5)" aria-labelledby="outcome-h">
+  <div class="card__head"><h2 class="card__title card__title--sm" id="outcome-h">Judging outcome</h2><span class="pill pill--success">Finalized</span></div>
+  <p class="text-secondary" style="margin-bottom:var(--space-3)">Winner: <strong><%= o.winner %></strong> · <%= o.votes %> of <%= o.of %> judges</p>
+<% o.verdicts.forEach(function (v) { %>
+  <div class="verdict-row"><strong><%= v.judge %></strong><span class="pill pill--outline">Pick: <%= v.pickName %></span><span class="text-secondary"><% if (v.reason_text) { %><%= v.reason_text %><% } %><% if (v.reason_text && v.reason_video_url) { %> · <% } %><% if (v.reason_video_url) { %><a href="<%= v.reason_video_url %>" target="_blank" rel="noopener noreferrer">Watch <%= v.judge %>&rsquo;s review video</a> (YouTube)<% } %></span></div>
+<% }) %>
+  <p class="hint">The majority of the three judges decides the battle.</p>
+</section>

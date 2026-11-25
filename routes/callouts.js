@@ -21,6 +21,7 @@ const {
 const subs = require('../lib/submissions');
 const { can } = require('../lib/permissions');
 const panel = require('../lib/panel');
+const judging = require('../lib/judging');
 
 const VERSION_RE = /^\d{1,20}$/;
 
@@ -214,18 +215,22 @@ function calloutRoutes() {
     const b = req.callout;
     // F-C3 battle status card once accepted (same hiding rule as S-B5), and
     // S-B4 judge panel: each judge's status, never a name (Matt, Nov 25).
+    // F-C4 judging outcome once finalized: judge names, picks and reasons (slice 2c-2).
     let videos = null;
     let judges = null;
+    let outcome = null;
     try {
       const slot = await subs.slotFor(b.id, req.viewer.id);
       if (slot) videos = await subs.videoState(slot.id, req.viewer.id, b.submissions_due_at <= new Date());
       if (b.accepted_at && b.judging === 'official') judges = await panel.panelStatus(b.id);
+      if (b.status === 'finalized') outcome = await judging.outcome(b.id);
     } catch (err) {
       return next(err);
     }
     return res.render('callout', {
       videos,
       judges,
+      outcome,
       panelSize: panel.PANEL_SIZE,
       timeLeft,
       labels,

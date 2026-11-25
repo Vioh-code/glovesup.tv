@@ -1,10 +1,11 @@
 <%- include('partials/top', { title: 'Judging' }) %>
   <%# S-J1 Judge dashboard (F-C4). Layout: wireframes/pages/judging-queue.html
       Requests: Accept or Decline, with the reply countdown. Accepted: battles waiting on the panel
-      or videos, and judging deadlines. History: declined and closed. Only the viewer's own rows;
-      co-judges are never shown. Recuse and Judge come in slice 2c-2. %>
+      or videos (with Recuse), or Ready to judge (Judge opens S-J2, which also has Recuse), with judging
+      deadlines. History: submitted, declined, recused and closed, with View (S-J2) on submitted rows and
+      finalized battles. Only the viewer's own rows; co-judges are never shown. %>
 <% const names = { requests: 'Requests', accepted: 'Accepted', history: 'History' };
-   const stage = { awaiting_panel: 'Waiting for judges', submissions_open: 'Waiting on videos', judging: 'Ready to judge' };
+   const stage = { awaiting_panel: 'Waiting for judges', submissions_open: 'Waiting on videos', judging: 'Waiting on videos' };
    const outcome = { declined: 'Declined', recused: 'Recused', replaced: 'Replaced', scored: 'Submitted', drawn: 'Closed', accepted: 'Closed' }; %>
   <main class="page">
     <div class="container">
@@ -34,13 +35,13 @@
                   <form method="post" action="/judging/<%= r.id %>/accept"><input type="hidden" name="_csrf" value="<%= csrfToken %>" /><button class="btn btn--primary btn--sm" type="submit">Accept</button></form>
                 </div></td>
 <%     } else if (tab === 'accepted') { %>
-                <td><span class="pill <%= r.battle_status === 'judging' ? 'pill--action' : 'pill--waiting' %>"><%= stage[r.battle_status] %></span></td>
+                <td><span class="pill <%= r.ready ? 'pill--action' : 'pill--waiting' %>"><%= r.ready ? 'Ready to judge' : stage[r.battle_status] %></span></td>
                 <td><% if (r.score_due_at) { %><%- include('partials/time-left', { t: timeLeft(r.score_due_at), due: r.score_due_at, suffix: 'to judge' }) %><% } else { %>—<% } %></td>
-                <td><div class="table__actions"><% if (r.battle_status === 'judging') { %><span class="hint">Judging opens soon</span><% } %></div></td>
+                <td><div class="table__actions"><% if (r.ready) { %><a class="btn btn--primary btn--sm" href="/judging/<%= r.id %>">Judge</a><% } else { %><form method="post" action="/judging/<%= r.id %>/recuse"><input type="hidden" name="_csrf" value="<%= csrfToken %>" /><button class="btn btn--ghost btn--sm" type="submit">Recuse</button></form><% } %></div></td>
 <%     } else { %>
-                <td><span class="pill"><%= outcome[r.status] %></span></td>
+                <td><span class="pill"><%= r.battle_status === 'finalized' && r.status === 'scored' ? 'Finalized' : outcome[r.status] %></span></td>
                 <td>—</td>
-                <td></td>
+                <td><div class="table__actions"><% if (r.status === 'scored' || r.battle_status === 'finalized') { %><a class="btn btn--ghost btn--sm" href="/judging/<%= r.id %>">View</a><% } %></div></td>
 <%     } %>
               </tr>
 <%   }) %>

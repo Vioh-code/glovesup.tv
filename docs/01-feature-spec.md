@@ -1,7 +1,7 @@
 # GlovesUP Feature Spec (V1)
 
 Doc: 01-feature-spec. Related: 02-data-model, 03-state-flows, 04-permissions-matrix, 05-screen-inventory.
-Last updated: Nov 17, 2026. Owner: Matt.
+Last updated: Nov 25, 2026. Owner: Matt.
 
 ## Conventions (read first)
 - Feature IDs use the `F-` prefix (example: `F-C1`). Screen IDs use `S-` and live in 05-screen-inventory (example: `S-B1`). `F-B1` (Create team) and `S-B1` (Create call out) are different things.
@@ -124,12 +124,12 @@ V1 battles that do not affect ELO (Just for fun) use official judges or popular 
 - A team battle uses the same 3 judges for all three pairings. Each judge picks a winner for every pairing.
 - Judges have 48 hours to accept. A judge who declines or does not reply is replaced by another random free judge.
 - If fewer than 3 free judges exist, the battle waits. Moderators and admins are notified and can sub in.
-- Judges have 5 days to submit their picks once both videos are submitted and the 3 judges have accepted †, then are replaced.
-- Judges can recuse themselves. A recused or removed judge is replaced by another random free judge. Moderators and admins can sub in. A moderator or admin cannot sub in on a battle they are in †.
+- Judges have 5 days to submit their picks once both videos are submitted and the 3 judges have accepted, then are replaced. A replacement judge gets a fresh 5 days; the other judges keep their own due dates (Matt, Nov 25, 2026).
+- Judges can recuse themselves: an accepted judge who has not submitted, while the battle is still in play (a judge who has not accepted uses Decline). A recused or removed judge is replaced by another random free judge, drawn at once, and the battle goes back to waiting for its panel. Moderators and admins can sub in. A moderator or admin cannot sub in on a battle they are in †.
 - A judge on the same team as a participant is avoided where possible, but allowed when the pool is too small.
 - A judge cannot compete in ELO battles. A judge may enter Just for fun battles that have no official sponsor.
-- Each judge picks a winner for every pairing (one pick in a 1v1, three in a team battle). After picking, the judge must give a reason: type it, add a YouTube link to a video of themselves watching and judging, or both. At least one is required. Submitting locks the judgment. The majority of the 3 picks decides each pairing. Popular vote is open to verified members who have completed at least one battle.
-- Judge reasons (text and video) become public once all judging is complete.
+- Each judge picks a winner for every pairing (one pick in a 1v1, three in a team battle). After picking, the judge must give a reason: type it, add a YouTube link to a video of themselves watching and judging, or both. At least one is required. A typed reason is 1 to 2,000 characters. Submitting locks the judgment; it cannot be changed or withdrawn. The majority of the 3 picks decides each pairing. The result is decided only once all 3 judges have submitted, never on fewer picks; a judge who never picks is replaced, and a judgment already submitted always counts (Matt, Nov 25, 2026). Popular vote is open to verified members who have completed at least one battle.
+- Judge reasons (text and video) become public once all judging is complete. Before that, players see each judge's status only (J1 to J3) and a judge sees only their own judgment. The judging outcome names each judge with their pick and reason (Matt, Nov 25, 2026).
 - An event organizer may request specific judges (V2); each must accept or the slot is filled at random.
 
 ### Popular vote safeguards

@@ -514,6 +514,9 @@ test('the closed notice and a refusal give the same reason in every state', asyn
     const id = await battle();
     if (status === 'judging') {
       await pool.query("UPDATE battles SET status = 'judging', judging_due_at = now() + interval '5 days' WHERE id = $1", [id]);
+    } else if (status === 'finalized') {
+      // A finalized battle has its result (battles_finalized_result, slice 2c-2).
+      await pool.query("UPDATE battles SET status = 'finalized', result = 'challenger', finalized_at = now() WHERE id = $1", [id]);
     } else {
       await pool.query('UPDATE battles SET status = $1 WHERE id = $2', [status, id]);
     }

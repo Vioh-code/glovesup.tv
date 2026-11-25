@@ -1,7 +1,9 @@
 // S-M1 Dashboard. Slice 2a fills the call out parts: call outs waiting on the
 // viewer (with countdowns), videos to submit (F-C3), active battles, the
 // viewer's rating, and the Create a call out button. Slice 2c-1: judge requests
-// (F-C4) for judges, with the reply countdown. Results come with later slices.
+// (F-C4) for judges, with the reply countdown. Slice 2c-2: "Judge this
+// battle" for accepted judges whose battle has both videos in, with the
+// judging countdown. Results come with later slices.
 const express = require('express');
 const { pool } = require('../db');
 const { requireLogin } = require('../lib/auth');
@@ -27,6 +29,7 @@ router.get('/dashboard', requireLogin, async (req, res, next) => {
       incoming: lists.incoming,
       videos,
       judgeRequests: judging.requests,
+      judgeReady: judging.accepted.filter((r) => r.ready),
       active: lists.active,
       rating: me ? me.elo_rating : null,
       timeLeft,

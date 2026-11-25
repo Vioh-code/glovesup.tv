@@ -14,11 +14,12 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 
 ## Decisions still open
 - Does accept recheck the 400-point band? Today it is checked at create and edit only. Decide before slice 2d (ELO), when ratings start to move.
+- Rule until slice 2d is live (Matt, Nov 25, 2026): no ELO call outs in production. Written rule only, no code gate: nothing stops a verified member from sending one, so do not create any. Judge roles in production are allowed; Just for fun battles never touch ratings. Slice 2d: ELO battles finalized before it have no ledger rows; on the dev box they come from the seed script, and production must have none.
 - Limit open call outs between the same two players? More than one is allowed today; the docs do not say.
 - Cap or rate limit on call outs one member can send (spam risk). Not in the docs.
 - What a ban, suspension or deletion does to that member's open call outs and battles (moderation slice, F-G2). Today a call out from a member banned after sending can still be accepted, and edit does not recheck the opponent's status or verification (only the band), so a creator can still edit, even to ELO, against an opponent banned after it was sent.
 - Repeat Send window: a same-terms Send within 10 seconds lands on the call out already made. The window is not in the docs; confirm or change it.
-- Rate limit on Check link (S-B5)? Each Check and Submit makes one oEmbed request from the server; only the two players of an open, unlocked battle can trigger it. Not in the docs (from slice 2b).
+- Rate limit on Check link? S-B5 (`/battles/:id/video/check`): each Check and Submit makes one oEmbed request from the server; only the two players of an open, unlocked battle can trigger it (from slice 2b). S-J2 (`/judging/:id/check-link`): the same, for the review video; only a panel judge who may pick now can trigger it (from slice 2c-2). Not in the docs. No limit built.
 - Accept a YouTube link typed without http:// or https://? Today "youtu.be/ID" is refused with the format message. Not in the docs (from slice 2b).
 - Does joining a team also need a verified email? The S-P8 subtitle says "Verify your email to call out and join teams"; spec section 8 and the verification banner name call outs and voting only. Decide before the teams slice (from slice 1a).
 
@@ -28,6 +29,7 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 
 ## Deferred to later
 - ELO test cases and seed data.
+- Slice 2d (ELO) notes: add the elo_ledger rows inside `finalize()` in `lib/judging.js` (marked "Slice 2d hook"), in the same transaction, for `scoring = 'elo'` only. No ELO call outs in production until 2d is live (see Decisions still open). Decide the 400-band recheck at accept first.
 - Timer and job details beyond the one-minute worker over scheduled_jobs.
 - Logging design (separate chat).
 - Fight card (not V1).
@@ -85,12 +87,12 @@ Built: S-B5, S-B2 Battle status card, S-M1 "Submit your video"; F-C3 (1v1). Migr
 ## Slice 2c-1 (judge panel): done, live Nov 25, 2026 (PR #11)
 Migration `1797984000000_judge_panel` ran on the Linode before the merge, after a backup (6 roles, judge_assignments and the migration record checked; smoke test passed). PR #11 also carried c8fd628 from docs/slice-2b-close, so that commit is already in main and docs/slice-2b-close needs no PR of its own.
 Built: roles tables (F-H2 part), the random draw of 3 judges at accept, S-J1 Judge dashboard (Accept and Decline), S-B4 as a section of the battle page, the Judging nav link, the S-M1 judge request item, the ELO bar for judges, `scripts/grant-role.js`, and one transactional status function (awaiting_panel, submissions_open, judging). Migration `1797984000000_judge_panel`. The S-B5 closed-reason wording (slice 2b review finding 3) is fixed: one reason for the notice and every refusal. Known gaps left:
-- Recusal waits for slice 2c-2 (Matt, Nov 25). Until then an accepted judge cannot leave a panel.
+- Recusal came with slice 2c-2.
 - No timers yet. A judge who never replies blocks the battle until the worker slice replaces judges (48 hours) and judges who do not pick (5 days). Until then a reply after `respond_by` is still taken (Matt, Nov 25).
 - Fewer than 3 free judges: the battle waits. Topping up the panel when judges become free is the worker slice's job. The "moderators and admins are notified" step needs staff roles in use and email (F-H7).
 - Moderator and admin sub-ins are deferred (`replaced_by`, `replaced_reason` exist, unused).
 - Judges get no email about a request (F-H7). The S-J1 list and the S-M1 item are the only notice.
-- The 5-day judging clock is set (`judging_due_at`, `score_due_at`) but nothing acts on it. S-J2 (pick and reason) comes in slice 2c-2; S-J1 shows "Judging opens soon" for battles in judging.
+- The 5-day judging clock is set (`judging_due_at`, `score_due_at`) but nothing acts on it. S-J2 came with slice 2c-2.
 - Battles accepted before this slice (dev box only; production had 0) moved to `awaiting_panel` with no judges drawn; they get a panel only from the worker's top-up.
 - Do not build yet (Matt, Nov 25): what happens when the judge role is granted to a member who already has open ELO call outs or battles as a player. Today the grant goes through; that member's open ELO call outs can no longer be accepted, and ELO battles already accepted carry on.
 - A judge whose role is revoked, or who is banned or suspended, while on a panel keeps the assignment (it still counts toward the 3) but can no longer reply. Not in the docs.
@@ -98,3 +100,16 @@ Built: roles tables (F-H2 part), the random draw of 3 judges at accept, S-J1 Jud
 - `scripts/grant-role.js` grants site roles only. Production use is a manual Linode step, only when Matt says so.
 - Team battles: the same 3 judges for all pairings, with the teams slice.
 - Decided (Matt, Nov 25): judge panels are drawn only for battles with Official judges. A Just for fun battle with Popular vote gets no panel and stays `awaiting_panel` (videos open) until the popular vote slice. The popular vote slice must set its own status flow for these battles (they never reach `submissions_open` or `judging` through the panel rules).
+
+## Slice 2c-2 (judging): built Nov 25, 2026, branch slice/judging
+Built: S-J2 (pick plus a typed reason, a checked YouTube review video, or both; Check link; Submit locks), the 2-of-3 majority and finalize (slot and battle result, finalized_at, reasons_public_at; team rule as a tested function for the teams slice), recusal (S-J1 and S-J2), the outcome card on the battle page with judge usernames after finalize, "Judged" on S-B4, S-J1 Ready to judge, Judge and View, and the S-M1 "Judge this battle" item. The settle() fix: a seat is an accepted or scored assignment. Migration `1798848000000_judgments` (judgments, judgment_pick, judge_assignments.recused_at, the battles finalized check, the judge.judgment.submit seed). Known gaps left:
+- ELO does not move on finalize (slice 2d hook in `finalize()`).
+- Picks, recusals and finalize write no audit log rows (F-H3 not built) and send no email (F-H7).
+- A judge who never picks blocks finalize until the worker slice replaces them after `score_due_at`; a pick after it is still taken. No replacement free: the battle waits (stuck battles, F-H6, later).
+- Dead-link rechecks of battle and review videos during judging are the worker's job; judges judge whatever is linked.
+- Moderator and admin sub-ins stay deferred: those roles hold `judge.judgment.submit` but there is no route to sub in.
+- The outcome shows to the two players and the panel judges only. Visitors read it on the public battle page (S-P7) in the battle log slice, which reads `reasons_public_at`.
+- S-J2 shows video thumbnails and links, no embedded players (CSP frame-src, battle log slice). Without JavaScript the reason fields always show (the wireframe shows them after the pick).
+- Team battles: `finalize()` and `teamResult()` handle three slots, but the S-J2 form and submit take one slot; a team battle throws until the teams slice builds the three-pick form.
+- The S-B4 hint and the S-B3 Past tab do not show who won yet (Past shows "Finalized"). Recent results on S-M1 wait for a later slice.
+- Production: judge roles may be granted; still none are. No ELO call outs in production until slice 2d is live.
