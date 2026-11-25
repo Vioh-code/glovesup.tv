@@ -61,7 +61,8 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 - A test account (glovera) exists in the production database, email marked verified by hand on Nov 24, 2026. gloverb and gloverc exist only on the dev box. Delete it before launch, only when Matt says so.
 - No password reset flow yet; production test account password was reset by hand on the Linode (Nov 24).
 - Production submit pages are untested. The Nov 25 smoke test after slice 2b passed, but glovera is the only verified production account, so no accepted battle exists to open S-B5 (Submit video) or the S-B2 Battle status card. Test them once a second verified production account exists (created and verified by hand, only when Matt says so).
-- Production has no battles yet: the slice 2b migration backfilled 0 slots.
+- Production has no battles yet: the slice 2b migration backfilled 0 slots, and the slice 2c-1 migration moved 0 battles to `awaiting_panel`.
+- No judge role is granted in production yet. The judge panel (S-B4 section, S-J1 Judging, the S-M1 judge request item, the ELO bar for judges) is untested in production. Testing it needs a verified judge account and a second verified player account, created and verified by hand, only when Matt says so.
 - The Linode has 20 pending OS updates (3 security) and needs a reboot. Do both in the Dec 7, 2026 monthly update session.
 - The production DOB_ENC_KEY is stored in Matt's password manager. Losing it loses every stored DOB.
 
@@ -81,7 +82,8 @@ Built: S-B5, S-B2 Battle status card, S-M1 "Submit your video"; F-C3 (1v1). Migr
 - The battle page for players (S-B7) is the S-B2 call out page plus a Battle status card for now. The public battle detail (S-P7) and embedded players come with the battle log slice.
 - Team battles get three slots in the teams slice; today accept creates slot 1 only.
 
-## Slice 2c-1 (judge panel), built Nov 25, 2026, not merged
+## Slice 2c-1 (judge panel): done, live Nov 25, 2026 (PR #11)
+Migration `1797984000000_judge_panel` ran on the Linode before the merge, after a backup (6 roles, judge_assignments and the migration record checked; smoke test passed). PR #11 also carried c8fd628 from docs/slice-2b-close, so that commit is already in main and docs/slice-2b-close needs no PR of its own.
 Built: roles tables (F-H2 part), the random draw of 3 judges at accept, S-J1 Judge dashboard (Accept and Decline), S-B4 as a section of the battle page, the Judging nav link, the S-M1 judge request item, the ELO bar for judges, `scripts/grant-role.js`, and one transactional status function (awaiting_panel, submissions_open, judging). Migration `1797984000000_judge_panel`. The S-B5 closed-reason wording (slice 2b review finding 3) is fixed: one reason for the notice and every refusal. Known gaps left:
 - Recusal waits for slice 2c-2 (Matt, Nov 25). Until then an accepted judge cannot leave a panel.
 - No timers yet. A judge who never replies blocks the battle until the worker slice replaces judges (48 hours) and judges who do not pick (5 days). Until then a reply after `respond_by` is still taken (Matt, Nov 25).
