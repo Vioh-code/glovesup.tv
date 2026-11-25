@@ -35,7 +35,11 @@
 .approval-bar__side--right { flex-direction: row-reverse; text-align: right; }
 .approval-bar__name { font-family: var(--font-display); font-weight: 700; font-size: var(--text-lg); text-transform: uppercase; }
 .judge-grid { display: grid; gap: var(--space-4); grid-template-columns: 1fr; }
-@media (min-width: 640px) { .judge-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 640px) { .judge-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+/* Cards shrink to their column; the reply countdown wraps inside the card instead of overflowing it. */
+.judge-grid > .judge-card { min-width: 0; padding-inline: var(--space-4); }
+.judge-card .countdown { justify-content: center; }
+.judge-card .time-left { white-space: normal; }
 .button-pair { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-5); }
 
 /* ---- Battle detail ------------------------------------------------------ */

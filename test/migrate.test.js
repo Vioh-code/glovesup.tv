@@ -36,12 +36,24 @@ async function typeExists(name) {
   return rows.length > 0;
 }
 
-test('submissions, battles, session and users migrations each revert cleanly, then reapply', async () => {
+test('judge panel, submissions, battles, session and users migrations each revert cleanly, then reapply', async () => {
   migrate('up');
+  for (const t of ['roles', 'permissions', 'role_permissions', 'user_roles', 'judge_assignments']) {
+    assert.ok(await tableExists(t), t);
+  }
   assert.ok(await tableExists('users'));
   assert.ok(await tableExists('session'));
   assert.ok(await tableExists('battles'));
   assert.ok(await tableExists('battle_slots'));
+  assert.ok(await tableExists('submissions'));
+
+  migrate('down'); // roles tables, judge_assignments and their enums
+  for (const t of ['roles', 'permissions', 'role_permissions', 'user_roles', 'judge_assignments']) {
+    assert.ok(!(await tableExists(t)), t);
+  }
+  for (const t of ['role_scope', 'permission_effect', 'judge_assignment_status']) {
+    assert.ok(!(await typeExists(t)), t);
+  }
   assert.ok(await tableExists('submissions'));
 
   migrate('down'); // battle_slots, submissions and submission_status
@@ -71,12 +83,14 @@ test('submissions, battles, session and users migrations each revert cleanly, th
   assert.ok(await tableExists('battles'));
   assert.ok(await tableExists('battle_slots'));
   assert.ok(await tableExists('submissions'));
+  assert.ok(await tableExists('judge_assignments'));
 });
 
 // Battles accepted before slice 2b have no slot. The migration adds one to
 // each accepted 1v1 battle, and none to call outs that were never accepted.
 test('the submissions migration backfills one slot per accepted 1v1 battle', async () => {
   migrate('up');
+  await pool.query('DELETE FROM judge_assignments');
   await pool.query('DELETE FROM submissions');
   await pool.query('DELETE FROM battle_slots');
   await pool.query('DELETE FROM battles');
@@ -87,6 +101,7 @@ test('the submissions migration backfills one slot per accepted 1v1 battle', asy
   const { rows: [b] } = await pool.query(
     `INSERT INTO users (username, email, password_hash, dob_encrypted, age_gate_passed, terms_accepted_at)
      VALUES ('mig_b', 'mig_b@example.com', 'x', '\\x00', true, now()) RETURNING id`);
+  migrate('down'); // judge panel
   migrate('down'); // drop slots and submissions, as on the Linode before 2b
   const insert = (status, accepted) => pool.query(
     `INSERT INTO battles (kind, scoring, judging, challenger_user_id, opponent_user_id, created_by, submission_days,
@@ -104,6 +119,42 @@ test('the submissions migration backfills one slot per accepted 1v1 battle', asy
   assert.equal(rows[0].opponent_user_id, b.id);
   assert.ok(prop.id);
   await pool.query('DELETE FROM battle_slots');
+  await pool.query('DELETE FROM battles');
+  await pool.query("DELETE FROM users WHERE username IN ('mig_a', 'mig_b')");
+});
+
+// Slice 2c-1: `accepted` is no longer a stored status. Battles accepted before
+// it move to awaiting_panel (no judges drawn; top-up waits for the worker
+// slice). Down moves them back. Other statuses are untouched.
+test('the judge panel migration moves accepted battles to awaiting_panel, and down moves them back', async () => {
+  migrate('up');
+  await pool.query('DELETE FROM judge_assignments');
+  await pool.query('DELETE FROM submissions');
+  await pool.query('DELETE FROM battle_slots');
+  await pool.query('DELETE FROM battles');
+  await pool.query("DELETE FROM users WHERE username IN ('mig_a', 'mig_b')");
+  const { rows: [a] } = await pool.query(
+    `INSERT INTO users (username, email, password_hash, dob_encrypted, age_gate_passed, terms_accepted_at)
+     VALUES ('mig_a', 'mig_a@example.com', 'x', '\\x00', true, now()) RETURNING id`);
+  const { rows: [b] } = await pool.query(
+    `INSERT INTO users (username, email, password_hash, dob_encrypted, age_gate_passed, terms_accepted_at)
+     VALUES ('mig_b', 'mig_b@example.com', 'x', '\\x00', true, now()) RETURNING id`);
+  migrate('down'); // judge panel: `accepted` may be stored again
+  const insert = (status, accepted) => pool.query(
+    `INSERT INTO battles (kind, scoring, judging, challenger_user_id, opponent_user_id, created_by, submission_days,
+                          status, accepted_at, submissions_due_at)
+     VALUES ('single', 'fun', 'official', $1, $2, $1, 5, $3, $4::timestamptz, $4::timestamptz + interval '120 hours') RETURNING id`,
+    [a.id, b.id, status, accepted ? new Date() : null]);
+  const { rows: [acc] } = await insert('accepted', true);
+  const { rows: [prop] } = await insert('proposed', false);
+  migrate('up');
+  const status = async (id) => (await pool.query('SELECT status FROM battles WHERE id = $1', [id])).rows[0].status;
+  assert.equal(await status(acc.id), 'awaiting_panel');
+  assert.equal(await status(prop.id), 'proposed');
+  migrate('down');
+  assert.equal(await status(acc.id), 'accepted');
+  assert.equal(await status(prop.id), 'proposed');
+  migrate('up');
   await pool.query('DELETE FROM battles');
   await pool.query("DELETE FROM users WHERE username IN ('mig_a', 'mig_b')");
 });

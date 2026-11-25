@@ -120,7 +120,7 @@ V1 battles that do not affect ELO (Just for fun) use official judges or popular 
 ## 5. Business rules
 
 ### Judging
-- Every battle gets 3 judges, drawn at random from free judges. Neither side picks judges, approves them, or can ask for different ones.
+- Every battle gets 3 judges, drawn at random from free judges. Neither side picks judges, approves them, or can ask for different ones. A free judge holds the judge role, is active and verified, is not a player in the battle, and has not already been drawn for it (including a judge who declined). No cap on battles per judge in V1.
 - A team battle uses the same 3 judges for all three pairings. Each judge picks a winner for every pairing.
 - Judges have 48 hours to accept. A judge who declines or does not reply is replaced by another random free judge.
 - If fewer than 3 free judges exist, the battle waits. Moderators and admins are notified and can sub in.

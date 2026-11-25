@@ -104,14 +104,14 @@ test('stuck is not a battle status yet (added with F-H6)', async () => {
 test('an accepted battle has its videos due exactly N days after acceptance', async () => {
   const { rows: [b] } = await insert({ submission_days: 3 });
   await assert.rejects(pool.query(
-    `UPDATE battles SET status = 'accepted', accepted_at = now(),
+    `UPDATE battles SET status = 'awaiting_panel', accepted_at = now(),
      submissions_due_at = now() + interval '5 days' WHERE id = $1`, [b.id],
   ), { code: '23514' });
   await assert.rejects(pool.query(
-    "UPDATE battles SET status = 'accepted', accepted_at = now() WHERE id = $1", [b.id],
+    "UPDATE battles SET status = 'awaiting_panel', accepted_at = now() WHERE id = $1", [b.id],
   ), { code: '23514' });
   const { rows: [a] } = await pool.query(
-    `UPDATE battles SET status = 'accepted', accepted_at = now(),
+    `UPDATE battles SET status = 'awaiting_panel', accepted_at = now(),
      submissions_due_at = now() + interval '3 days' WHERE id = $1 RETURNING *`, [b.id],
   );
   assert.equal(a.submissions_due_at - a.accepted_at, 3 * 24 * 3600 * 1000);
@@ -124,7 +124,7 @@ test('due dates are fixed 24-hour days, whatever the session timezone (DST week)
     await client.query('BEGIN');
     await client.query("SET LOCAL TimeZone = 'America/Chicago'"); // DST ends Nov 1, 2026
     await client.query(
-      `UPDATE battles SET status = 'accepted', accepted_at = '2026-10-31 12:00-05',
+      `UPDATE battles SET status = 'awaiting_panel', accepted_at = '2026-10-31 12:00-05',
        submissions_due_at = timestamptz '2026-10-31 12:00-05' + interval '120 hours' WHERE id = $1`, [b.id],
     );
     await client.query("UPDATE battles SET judging_due_at = now() WHERE id = $1", [b.id]); // later updates still pass

@@ -10,6 +10,7 @@ const pages = require('./routes/pages');
 const { authRoutes } = require('./routes/auth');
 const { calloutRoutes } = require('./routes/callouts');
 const { submissionRoutes } = require('./routes/submissions');
+const { judgingRoutes } = require('./routes/judging');
 const dashboard = require('./routes/dashboard');
 
 const HOST = '127.0.0.1'; // Nginx proxies to this; never listen on all interfaces.
@@ -55,6 +56,7 @@ function createApp(env) {
   app.use(dashboard);
   app.use(calloutRoutes());
   app.use(submissionRoutes());
+  app.use(judgingRoutes());
   app.use(pages);
 
   app.use(notFound);

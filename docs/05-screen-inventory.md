@@ -77,7 +77,7 @@ These follow the battle lifecycle in order. Every screen shows its countdown.
 | S-B1 | Create call out | A four-step form: opponent (named player or team, with ELO and a within-400 check on ELO call outs), format (1v1 or 3v3, with the roster picker for team battles), scoring and judging (ELO or Just for fun; Official judges or popular vote, where ELO requires official judges), and due days (dropdown: 3, 5 or 7). Ends with a review screen | F-C1, F-C2 |
 | S-B2 | Call out detail | The proposal, a 72-hour countdown, and the buttons that fit the viewer: Accept and Decline for the opponent, Edit and Cancel for the creator | F-C1 |
 | S-B3 | My battles | Tabs for Incoming, Outgoing, Active, and Past. Past links to battle detail. Target of the Battles nav link | F-C1, F-C8 |
-| S-B4 | Panel status | Read-only. The three drawn judges with their response status and a countdown. Shows a waiting message when fewer than 3 have accepted. No buttons. Can be a section of S-B7 instead of its own page † | F-C4 |
+| S-B4 | Panel status | A section of S-B7 (the battle page), not its own page. Read-only. Each drawn judge as J1, J2, J3 with their response status (Accepted or Waiting for reply) and a reply countdown. Players see statuses only, never judge names (Matt, Nov 25, 2026). Shows a waiting message when fewer than 3 judges are drawn. No buttons | F-C4 |
 | S-B5 | Submit video | Paste a YouTube link, preview with the saved title and thumbnail, Replace and Cancel before the lock (the due date, or the second video going in), and the due-date countdown. The opponent shows as Waiting or Submitted; their video appears once both are in or the due date passes | F-C3 |
 | S-B6 | Forfeit confirmation | A confirmation dialog on the battle page. States the ELO loss on ELO battles, and for team battles who is forfeiting | F-C6 |
 | S-B7 | Battle detail, member view | The public battle detail (S-P7) plus participant actions: Submit video, Forfeit, Report or dispute the result. Eligible voters see the vote buttons when popular vote is on | F-C3, F-C6, F-C2, F-G1 |
@@ -89,7 +89,7 @@ Staff screens are shown by permission. Which role sees which screen follows 04-p
 
 | ID | Screen | Who | What it holds | Features |
 |---|---|---|---|---|
-| S-J1 | Judge dashboard | Judge | Pending assignments with Accept, Decline, and Recuse, active assignments with judging deadlines, and history | F-C4, F-E1 |
+| S-J1 | Judge dashboard | Judge | Pending assignments with Accept, Decline, and Recuse, active assignments with judging deadlines, and history. Shows only the judge's own assignments, never co-judges. Recuse comes with slice 2c-2 | F-C4, F-E1 |
 | S-J2 | Judging | Judge, or a moderator or admin subbing in | Both videos side by side. The judge picks the winner (once in a 1v1, once per pairing in a team battle). After the pick, two options show: type a reason, or add a YouTube link to a video of themselves watching and judging. At least one is required. Submit locks the judgment | F-C4 |
 | S-S1 | Case queue | Moderator and up | One queue for every case type, filterable by type, status, and assignee | F-G3 |
 | S-S2 | Case detail | Moderator and up | The reporter's thread, internal staff notes, the linked subject, status and assignee controls, and shortcut actions: warn, suspend, ban, remove content. Moderators can note a recommended reversal here | F-G3, F-G4, F-G2 |

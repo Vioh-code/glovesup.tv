@@ -55,6 +55,8 @@ An owner cannot leave a team until ownership passes to an officer. A team is del
 | Forfeit a battle | - | own | - | Y† | Y† | - | - | - | - |
 | Vote in a popular vote (verified, 7-day-old account, 1 completed battle, not a participant) | - | Y | - | - | - | - | - | - | - |
 | Accept, decline, or recuse from a judge assignment | - | - | Y | - | - | Y | Y | Y | Y |
+| See the judge panel's statuses on a battle (J1, J2, J3; never names) | - | own | - | - | - | - | - | - | - |
+| See your own judge assignments (S-J1); never co-judges | - | - | own | - | - | - | - | - | - |
 | Pick a winner and give a reason (when assigned or subbed in) | - | - | Y | - | - | Y | Y | Y | Y |
 | Read judge reasons once all judging is complete | Y | Y | - | - | - | - | - | - | - |
 | Apply to be a judge | - | Y | - | - | - | - | - | - | - |
@@ -65,7 +67,7 @@ An owner cannot leave a team until ownership passes to an officer. A team is del
 | Recommend a result reversal (case notes only) | - | - | - | - | - | Y | Y | Y | Y |
 | Start or approve a result reversal (two different admins; the site owner may be one) | - | - | - | - | - | - | Y | Y | Y |
 
-Judges are barred from ELO battles but may enter Just for fun battles that have no official sponsor. A moderator or admin cannot sub in as a judge on a battle they are in †. A reversal changes only after two different admins approve it; no other role can change a result.
+Judges are barred from ELO battles but may enter Just for fun battles that have no official sponsor. The bar covers both sides: no ELO call out from a judge or to a judge, checked at create, edit and accept (either side may have become a judge after the call out was sent). It is a deny row in role_permissions, which wins over the Member allow. A moderator or admin cannot sub in as a judge on a battle they are in †. A reversal changes only after two different admins approve it; no other role can change a result.
 
 ## 3. Moderation, cases, and administration
 Moderators handle content and user conduct. Admins handle account data, roles, and the audit log.

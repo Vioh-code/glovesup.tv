@@ -2,7 +2,10 @@
 // Permission rules are enforced here, never only in the views:
 // - logged in (requireLogin), and a verified email to send, edit or accept;
 // - only the two participants can see a call out; strangers get 404;
-// - only the opponent accepts or declines, only the creator edits or cancels (403).
+// - only the opponent accepts or declines, only the creator edits or cancels (403);
+// - judges are barred from ELO battles (04-permissions-matrix NO, F-E1): no
+//   ELO call out from or to a member without battle.elo.enter, checked at
+//   review, send, edit and accept (either side may have become a judge since).
 // Every state change is one UPDATE whose WHERE clause carries all of its
 // conditions (status proposed, not expired, actor, and for accept the terms
 // version the opponent saw). Zero rows updated means refuse with 409.
@@ -16,6 +19,8 @@ const {
   VERSION_SQL, TOUCH_SQL, markExpired, viewer, findOpponent, loadCallout, myBattles,
 } = require('../lib/battles');
 const subs = require('../lib/submissions');
+const { can } = require('../lib/permissions');
+const panel = require('../lib/panel');
 
 const VERSION_RE = /^\d{1,20}$/;
 
@@ -23,6 +28,9 @@ const VERIFY = 'Verify your email to send or accept call outs.';
 const NOT_AVAILABLE = 'That member cannot be called out.';
 const SELF = 'You cannot call yourself out.';
 const OUT_OF_BAND = 'ELO call outs need an opponent within 400 points of your rating.';
+const JUDGE_SELF = 'Judges cannot enter ELO battles. Pick Just for fun.';
+const JUDGE_OPP = 'That member is a judge and cannot enter ELO battles. Pick Just for fun.';
+const JUDGE_ACCEPT = 'This ELO call out cannot be accepted: judges cannot enter ELO battles.';
 const TERMS_CHANGED = 'The terms changed. Review them again.';
 const UNREVIEWED = 'You changed the terms after Review. Check them below and send again.';
 // A repeat of the same Send within this window is the same click (double-click
@@ -47,9 +55,11 @@ const ALREADY = {
   voided: 'It has already finished.',
 };
 const already = (status) => ALREADY[status] || 'It has already been accepted.';
-// The status each action leaves. Finding it already there means this viewer's
-// own earlier click did it (only one role can take each action).
-const DONE = { accept: 'accepted', decline: 'declined', cancel: 'cancelled' };
+// Finding the call out already where an action leaves it means this viewer's
+// own earlier click did it (only one role can take each action). An accepted
+// call out has moved on to awaiting_panel or later, so accept checks accepted_at.
+const DONE = { decline: 'declined', cancel: 'cancelled' };
+const alreadyDone = (action, b) => (action === 'accept' ? Boolean(b.accepted_at) : b.status === DONE[action]);
 
 function calloutRoutes() {
   const router = express.Router();
@@ -61,7 +71,7 @@ function calloutRoutes() {
   const refuse = async (res, id, action) => {
     await markExpired();
     const now = await loadCallout(id);
-    if (DONE[action] && now.status === DONE[action]) return res.redirect(303, `/callouts/${id}`);
+    if (alreadyDone(action, now)) return res.redirect(303, `/callouts/${id}`);
     const { heading, lead } = REFUSED[action];
     let why = already(now.status);
     if (now.status === 'proposed') why = action === 'accept' ? TERMS_CHANGED : 'Reload the page and try again.';
@@ -101,6 +111,14 @@ function calloutRoutes() {
     }
   };
 
+  // The ELO bar for both sides, or null. Only ELO call outs are checked.
+  async function judgeBar(scoring, meId, opponentId) {
+    if (scoring !== 'elo') return null;
+    if (!(await can(meId, 'battle.elo.enter'))) return JUDGE_SELF;
+    if (!(await can(opponentId, 'battle.elo.enter'))) return JUDGE_OPP;
+    return null;
+  }
+
   // Validates the form and the opponent. Returns { errors, values, opponent }.
   async function checkNew(me, body) {
     const form = parseCalloutForm(body);
@@ -111,6 +129,8 @@ function calloutRoutes() {
     }
     const opponent = await findOpponent(values.opponent);
     if (!opponent) return { ...form, errors: [NOT_AVAILABLE], opponent: null };
+    const barred = await judgeBar(values.scoring, me.id, opponent.id);
+    if (barred) return { ...form, errors: [barred], opponent };
     const band = eloBandOk(values.scoring, me.elo_rating, opponent.elo_rating);
     if (band === false) return { ...form, errors: [OUT_OF_BAND], opponent };
     return { ...form, opponent, band };
@@ -192,16 +212,22 @@ function calloutRoutes() {
 
   router.get('/callouts/:id', requireLogin, participantOnly, async (req, res, next) => {
     const b = req.callout;
-    // F-C3 battle status card once accepted (same hiding rule as S-B5).
+    // F-C3 battle status card once accepted (same hiding rule as S-B5), and
+    // S-B4 judge panel: each judge's status, never a name (Matt, Nov 25).
     let videos = null;
+    let judges = null;
     try {
       const slot = await subs.slotFor(b.id, req.viewer.id);
       if (slot) videos = await subs.videoState(slot.id, req.viewer.id, b.submissions_due_at <= new Date());
+      if (b.accepted_at && b.judging === 'official') judges = await panel.panelStatus(b.id);
     } catch (err) {
       return next(err);
     }
     return res.render('callout', {
       videos,
+      judges,
+      panelSize: panel.PANEL_SIZE,
+      timeLeft,
       labels,
       b,
       role: req.role,
@@ -222,10 +248,12 @@ function calloutRoutes() {
     reviewed: reviewKey({ ...r.values, opponent: b.opponent_name }),
   });
 
-  // Rechecks the band against the opponent's current rating.
-  function checkEdit(b, me, body) {
+  // Rechecks the ELO bar and the band against the opponent's current rating.
+  async function checkEdit(b, me, body) {
     const form = parseCalloutForm({ ...body, opponent: b.opponent_name });
     if (form.errors.length) return form;
+    const barred = await judgeBar(form.values.scoring, me.id, b.opponent_user_id);
+    if (barred) return { ...form, errors: [barred] };
     const band = eloBandOk(form.values.scoring, me.elo_rating, b.opponent_elo);
     if (band === false) return { ...form, errors: [OUT_OF_BAND] };
     return { ...form, band };
@@ -243,18 +271,22 @@ function calloutRoutes() {
   });
 
   router.post('/callouts/:id/review', ...editGuards, async (req, res, next) => {
-    const b = req.callout;
-    if (b.status !== 'proposed') return refuse(res, b.id, 'save').catch(next);
-    const r = checkEdit(b, req.viewer, req.body);
-    if (r.errors.length) return renderForm(req, res, 400, { edit: editLocals(b), errors: r.errors, values: r.redisplay });
-    return renderForm(req, res, 200, reviewEdit(b, r));
+    try {
+      const b = req.callout;
+      if (b.status !== 'proposed') return await refuse(res, b.id, 'save');
+      const r = await checkEdit(b, req.viewer, req.body);
+      if (r.errors.length) return renderForm(req, res, 400, { edit: editLocals(b), errors: r.errors, values: r.redisplay });
+      return renderForm(req, res, 200, reviewEdit(b, r));
+    } catch (err) {
+      return next(err);
+    }
   });
 
   router.post('/callouts/:id', ...editGuards, async (req, res, next) => {
     try {
       const b = req.callout;
       if (b.status !== 'proposed') return await refuse(res, b.id, 'save');
-      const r = checkEdit(b, req.viewer, req.body);
+      const r = await checkEdit(b, req.viewer, req.body);
       if (r.errors.length) {
         return renderForm(req, res, 400, { edit: editLocals(b), errors: r.errors, values: r.redisplay });
       }
@@ -283,20 +315,33 @@ function calloutRoutes() {
       const b = req.callout;
       const seen = typeof req.body.terms_version === 'string' && VERSION_RE.test(req.body.terms_version)
         ? req.body.terms_version : null;
-      // One statement: the accept and the battle's slot (F-C3, a 1v1 has one,
-      // position 1) land together or not at all.
-      const { rowCount } = await pool.query(
-        `WITH acc AS (
-           UPDATE battles SET status = 'accepted', accepted_at = now(),
+      // One transaction under the battle row lock: the ELO bar for both sides
+      // (either may have become a judge since the call out was sent), the
+      // accept (straight to awaiting_panel), the battle's slot (F-C3, a 1v1
+      // has one, position 1) and, on official judging, the draw of up to 3
+      // judges (F-C4) land together or not at all.
+      const out = await panel.withBattle(b.id, async (client, now) => {
+        if (now.status === 'proposed' && await judgeBar(now.scoring, now.challenger_user_id, now.opponent_user_id)) {
+          return 'barred';
+        }
+        const { rows: [acc] } = await client.query(
+          `UPDATE battles SET status = 'awaiting_panel', accepted_at = now(),
                   submissions_due_at = now() + make_interval(hours => 24 * submission_days), ${TOUCH_SQL}
            WHERE id = $1 AND opponent_user_id = $2 AND status = 'proposed' AND expires_at > now()
              AND ${VERSION_SQL} = $3
-           RETURNING id, challenger_user_id, opponent_user_id)
-         INSERT INTO battle_slots (battle_id, position, challenger_user_id, opponent_user_id)
-         SELECT id, 1, challenger_user_id, opponent_user_id FROM acc`,
-        [b.id, req.viewer.id, seen],
-      );
-      if (rowCount) return res.redirect(303, `/callouts/${b.id}`);
+           RETURNING *`,
+          [b.id, req.viewer.id, seen],
+        );
+        if (!acc) return 'refused';
+        await client.query(
+          'INSERT INTO battle_slots (battle_id, position, challenger_user_id, opponent_user_id) VALUES ($1, 1, $2, $3)',
+          [acc.id, acc.challenger_user_id, acc.opponent_user_id],
+        );
+        if (acc.judging === 'official') await panel.drawJudges(client, acc, panel.PANEL_SIZE);
+        return 'accepted';
+      });
+      if (out === 'barred') return forbidden(res, JUDGE_ACCEPT);
+      if (out === 'accepted') return res.redirect(303, `/callouts/${b.id}`);
       // Still proposed after the refusal means the terms changed since the page was opened.
       return await refuse(res, b.id, 'accept');
     } catch (err) {

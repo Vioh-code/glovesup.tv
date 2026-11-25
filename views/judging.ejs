@@ -1,0 +1,54 @@
+<%- include('partials/top', { title: 'Judging' }) %>
+  <%# S-J1 Judge dashboard (F-C4). Layout: wireframes/pages/judging-queue.html
+      Requests: Accept or Decline, with the reply countdown. Accepted: battles waiting on the panel
+      or videos, and judging deadlines. History: declined and closed. Only the viewer's own rows;
+      co-judges are never shown. Recuse and Judge come in slice 2c-2. %>
+<% const names = { requests: 'Requests', accepted: 'Accepted', history: 'History' };
+   const stage = { awaiting_panel: 'Waiting for judges', submissions_open: 'Waiting on videos', judging: 'Ready to judge' };
+   const outcome = { declined: 'Declined', recused: 'Recused', replaced: 'Replaced', scored: 'Submitted', drawn: 'Closed', accepted: 'Closed' }; %>
+  <main class="page">
+    <div class="container">
+      <div class="page-head"><div><h1>Judging</h1><p class="page-head__sub">Requests to judge, battles you've accepted, and your history.</p></div></div>
+      <div class="tabs" role="tablist">
+<% tabs.forEach(function (t) { %>
+        <a class="tabs__tab<%= t === tab ? ' tabs__tab--active' : '' %>" href="/judging?tab=<%= t %>" role="tab"<%= t === tab ? ' aria-selected="true"' : '' %>><%= names[t] %><%= t !== 'history' && lists[t].length ? ' (' + lists[t].length + ')' : '' %></a>
+<% }) %>
+      </div>
+<% if (!lists[tab].length) { %>
+      <p class="hint"><%= tab === 'requests' ? 'No requests right now. New ones show here when you are drawn for a battle.' : 'Nothing here yet.' %></p>
+<% } else { %>
+      <section class="card card--flush">
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th>Battle</th><th>Format</th><th>Status</th><th>Time left</th><th style="text-align:right">Actions</th></tr></thead>
+            <tbody>
+<%   lists[tab].forEach(function (r) { %>
+              <tr>
+                <td><strong><%= r.challenger_name %> vs <%= r.opponent_name %></strong></td>
+                <td class="text-secondary"><%= labels.kind[r.kind] %> · <%= labels.scoring[r.scoring] %></td>
+<%     if (tab === 'requests') { %>
+                <td><span class="pill pill--action">Needs reply</span></td>
+                <td><%- include('partials/time-left', { t: timeLeft(r.respond_by), due: r.respond_by, suffix: 'to reply' }) %></td>
+                <td><div class="table__actions">
+                  <form method="post" action="/judging/<%= r.id %>/decline"><input type="hidden" name="_csrf" value="<%= csrfToken %>" /><button class="btn btn--ghost btn--sm" type="submit">Decline</button></form>
+                  <form method="post" action="/judging/<%= r.id %>/accept"><input type="hidden" name="_csrf" value="<%= csrfToken %>" /><button class="btn btn--primary btn--sm" type="submit">Accept</button></form>
+                </div></td>
+<%     } else if (tab === 'accepted') { %>
+                <td><span class="pill <%= r.battle_status === 'judging' ? 'pill--action' : 'pill--waiting' %>"><%= stage[r.battle_status] %></span></td>
+                <td><% if (r.score_due_at) { %><%- include('partials/time-left', { t: timeLeft(r.score_due_at), due: r.score_due_at, suffix: 'to judge' }) %><% } else { %>—<% } %></td>
+                <td><div class="table__actions"><% if (r.battle_status === 'judging') { %><span class="hint">Judging opens soon</span><% } %></div></td>
+<%     } else { %>
+                <td><span class="pill"><%= outcome[r.status] %></span></td>
+                <td>—</td>
+                <td></td>
+<%     } %>
+              </tr>
+<%   }) %>
+            </tbody>
+          </table>
+        </div>
+      </section>
+<% } %>
+    </div>
+  </main>
+<%- include('partials/bottom') %>

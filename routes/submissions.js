@@ -3,9 +3,11 @@
 // - only the battle's two players can see the page or act; anyone else 404;
 // - a player acts only on their own submission: the player comes from the
 //   session, never from the form, and no submission id is ever in a form;
-// - Check, Submit, Replace and Cancel only while the battle is accepted and
-//   before the due date, and not after the lock; checked again under the slot
-//   lock (lib/submissions). YouTube is asked only after these checks pass;
+// - Check, Submit, Replace and Cancel only while the battle is awaiting_panel
+//   or submissions_open and before the due date, and not after the lock;
+//   checked again under the battle and slot locks (lib/submissions). YouTube
+//   is asked only after these checks pass;
+// - the page notice and every refusal give one reason (closedReason);
 // - the opponent's video is hidden until both are in or the due date passes.
 // No email verification is needed to submit (only call outs and voting).
 const express = require('express');
@@ -13,7 +15,7 @@ const { requireLogin } = require('../lib/auth');
 const { notFound: notFoundPage } = require('../lib/web');
 const { timeLeft } = require('../lib/callouts');
 const { LABELS: labels } = require('../lib/labels');
-const { loadCallout } = require('../lib/battles');
+const { loadCallout, closedReason } = require('../lib/battles');
 const youtube = require('../lib/youtube');
 const subs = require('../lib/submissions');
 
@@ -24,8 +26,9 @@ const UNCHECKED = 'You changed the link after Check. Check it below and submit a
 
 const WHY = {
   notAccepted: 'Videos open once the call out is accepted.',
-  closed: 'The due date has passed.',
+  over: 'This battle is over.',
   locked: 'Both videos are in, so submissions are locked.',
+  closed: 'The due date has passed.',
 };
 const REFUSED = {
   check: { heading: 'Not checked', lead: 'The link was not checked.' },
@@ -60,10 +63,11 @@ function submissionRoutes() {
   };
 
   // The reason this player cannot change their video now, or null. A first
-  // look only; saveVideo and cancelVideo check again under the slot lock.
+  // look only; saveVideo and cancelVideo check again under the locks.
   const blocked = (req, state) => {
-    if (!req.slot || req.battle.status !== 'accepted') return 'notAccepted';
-    if (req.pastDue) return 'closed';
+    if (!req.slot) return 'notAccepted';
+    const why = closedReason(req.battle);
+    if (why) return why;
     if (state.locked) return 'locked';
     return null;
   };
@@ -79,7 +83,8 @@ function submissionRoutes() {
       b,
       opponent,
       state,
-      open: !blocked(req, state),
+      why: blocked(req, state),
+      WHY,
       // Any Check or Submit result keeps the form open, even with a blank link.
       replacing: req.query.replace === '1' || Boolean(form.url || form.preview || (form.errors && form.errors.length)),
       countdown: b.submissions_due_at && !req.pastDue ? timeLeft(b.submissions_due_at) : null,
@@ -139,7 +144,7 @@ function submissionRoutes() {
         return await render(req, res, 400, { url: video.typed, preview: video, errors: [UNCHECKED] });
       }
       const out = await subs.saveVideo({ slotId: req.slot.id, battleId: req.battle.id, userId: req.user.id, video });
-      if (out === 'closed' || out === 'locked') return refuse(res, req.battle.id, 'save', out);
+      if (WHY[out]) return refuse(res, req.battle.id, 'save', out);
       return res.redirect(303, page(req));
     } catch (err) {
       return next(err);
@@ -148,9 +153,10 @@ function submissionRoutes() {
 
   router.post('/battles/:id/video/cancel', requireLogin, playersOnly, async (req, res, next) => {
     try {
-      if (!req.slot || req.battle.status !== 'accepted') return refuse(res, req.battle.id, 'cancel', 'notAccepted');
+      const why = req.slot ? closedReason(req.battle) : 'notAccepted';
+      if (why) return refuse(res, req.battle.id, 'cancel', why);
       const out = await subs.cancelVideo({ slotId: req.slot.id, battleId: req.battle.id, userId: req.user.id });
-      if (out === 'closed' || out === 'locked') return refuse(res, req.battle.id, 'cancel', out);
+      if (WHY[out]) return refuse(res, req.battle.id, 'cancel', out);
       return res.redirect(303, page(req));
     } catch (err) {
       return next(err);

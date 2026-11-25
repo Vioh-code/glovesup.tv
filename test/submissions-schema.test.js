@@ -37,7 +37,7 @@ beforeEach(async () => {
   ({ rows: [{ id: battleId }] } = await pool.query(
     `INSERT INTO battles (kind, scoring, judging, challenger_user_id, opponent_user_id, created_by, submission_days,
                           status, accepted_at, submissions_due_at)
-     VALUES ('single', 'fun', 'official', $1, $2, $1, 5, 'accepted', now(), now() + interval '120 hours') RETURNING id`,
+     VALUES ('single', 'fun', 'official', $1, $2, $1, 5, 'awaiting_panel', now(), now() + interval '120 hours') RETURNING id`,
     [alice, bob],
   ));
 });
