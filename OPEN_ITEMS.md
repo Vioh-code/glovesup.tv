@@ -19,6 +19,8 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 - Cap or rate limit on call outs one member can send (spam risk). Not in the docs.
 - What a ban, suspension or deletion does to that member's open call outs and battles (moderation slice, F-G2). Today a call out from a member banned after sending can still be accepted, and edit does not recheck the opponent's status or verification (only the band), so a creator can still edit, even to ELO, against an opponent banned after it was sent.
 - Repeat Send window: a same-terms Send within 10 seconds lands on the call out already made. The window is not in the docs; confirm or change it.
+- Rate limit on Check link (S-B5)? Each Check and Submit makes one oEmbed request from the server; only the two players of an open, unlocked battle can trigger it. Not in the docs (from slice 2b).
+- Accept a YouTube link typed without http:// or https://? Today "youtu.be/ID" is refused with the format message. Not in the docs (from slice 2b).
 - Does joining a team also need a verified email? The S-P8 subtitle says "Verify your email to call out and join teams"; spec section 8 and the verification banner name call outs and voting only. Decide before the teams slice (from slice 1a).
 
 ## Content to supply
@@ -41,6 +43,7 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 - Optional deploy.yml hardening: add `permissions: contents: read` and a test job gate. Tests run on the dev box only; the Action has no gate.
 - Worker cron output needs a log file and rotation. Decide in the worker slice. Cron runs as `glovesup` with absolute paths.
 - DB roles: split an owner role (runs migrations, owns tables) from a least-privilege app role (runtime queries). Today the dev box uses one role, `glovesup_dev`, for the dev and test databases.
+- Dev box has no backup of `glovesup_dev` (it was wiped by a test run on Nov 24; tests now refuse any database not ending in `_test`). Take a `pg_dump -Fc` before any destructive dev step. Dev accounts gloverb and gloverc are recreated with `~/dev-seed.js` (outside the repo).
 - Old databases `glovesup` and `gloveleague` on the dev box can be dropped when Matt says so. Do not drop before then.
 - Remove `dotenv` from package.json once confirmed unused (Node loads env files with `--env-file`).
 - Old archive at ~/Downloads/Glovesup arch has Privacy_Policy.md, Terms_of_Service.md, ELO_Reference.md. Review for reuse later.
@@ -58,6 +61,8 @@ All 46 screens are drawn in the wireframe package (index.html and pages/). The w
 ## Production
 - A test account (glovera) exists in the production database, email marked verified by hand on Nov 24, 2026. gloverb and gloverc exist only on the dev box. Delete it before launch, only when Matt says so.
 - No password reset flow yet; production test account password was reset by hand on the Linode (Nov 24).
+- Production submit pages are untested. The Nov 25 smoke test after slice 2b passed, but glovera is the only verified production account, so no accepted battle exists to open S-B5 (Submit video) or the S-B2 Battle status card. Test them once a second verified production account exists (created and verified by hand, only when Matt says so).
+- Production has no battles yet: the slice 2b migration backfilled 0 slots.
 - The Linode has 20 pending OS updates (3 security) and needs a reboot. Do both in the Dec 7, 2026 monthly update session.
 - The production DOB_ENC_KEY is stored in Matt's password manager. Losing it loses every stored DOB.
 
@@ -70,12 +75,11 @@ Built: S-B1, S-B2, S-B3, S-M1 call out parts; F-C1, F-C2 (1v1 only). Migration 1
 - S-B2 "Your opponent" card shows the rating only. Battles, record and View profile wait for user stats (F-F2) and the profile slice. The wireframe's "Accepting draws three judges at random" hint is reworded until judges are drawn (slice 2c).
 - Header nav is clipped at phone width (375 px); LEADERBOARDS is cut off.
 
-## Slice 2b (submit videos), Nov 24, 2026
+## Slice 2b (submit videos): done, live Nov 25, 2026 (PR #9)
+Built: S-B5, S-B2 Battle status card, S-M1 "Submit your video"; F-C3 (1v1). Migration 1797120000000_submissions ran on the Linode Nov 25 after a backup (indexes and constraints checked). Open decisions from this slice moved to "Decisions still open". Known gaps left:
 - Timer work waits for the worker slice: forfeit or void at a missed submission due date, the daily oEmbed re-check that sets `dead_link`, and the gravestone. Until then a battle past its due date stays `accepted` and shows "Submissions are closed".
 - Battle status stays `accepted` through submissions until slice 2c adds the judge panel (Matt, Nov 24). `judging_due_at` and the popular vote clock (both start at the second video) are set in 2c.
 - The battle page for players (S-B7) is the S-B2 call out page plus a Battle status card for now. The public battle detail (S-P7) and embedded players come with the battle log slice.
-- No rate limit on Check link. Each Check and Submit makes one oEmbed request from the server; only the two players of an open, unlocked battle can trigger it.
-- A link must include http:// or https://. "youtu.be/ID" typed without it is refused with the format message.
 - Team battles get three slots in the teams slice; today accept creates slot 1 only.
 
 ## Slice 2c (judges), not started
